@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using ImapX.Helpers;
+using System.Linq;
+using System.Text.RegularExpressions;
 namespace ImapX
 {
 	public class Message
@@ -315,6 +318,14 @@ namespace ImapX
 		{
 			this.getMessage("body[HEADER]", false);
 		}
+
+        /* Method not used
+
+        /// <remarks>
+        /// [27.07.2012] Fix by Pavel Azanov (coder13)
+        ///              Some messages contain attachments that are not described in the ContentDisposition,
+        ///              but in the ContentStream directly.
+        /// </remarks>
 		public void ProcessBody()
 		{
 			this.getMessage("BODY.PEEK[]", true);
@@ -336,21 +347,35 @@ namespace ImapX
 			}
 			foreach (MessageContent current3 in this._bodyParts)
 			{
-				if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
-				{
-					Attachment attachment = new Attachment();
-					attachment.FileName = current3.ContentFilename;
-					attachment.FileType = current3.ContentType;
-					attachment.FileEncoding = current3.ContentTransferEncoding;
-					attachment.FileData = Convert.FromBase64String(current3.ContentStream);
-					this._attachments.Add(attachment);
-				}
+                if (current3.ContentDisposition == null)
+                    continue;
+                else if (current3.ContentDisposition.ToLower().Contains("attachment"))
+                {
+                    Attachment attachment = new Attachment();
+                    attachment.FileName = current3.ContentFilename;
+                    attachment.FileType = current3.ContentType;
+                    attachment.FileEncoding = current3.ContentTransferEncoding;
+                    attachment.FileData = Convert.FromBase64String(current3.ContentStream);
+                    this._attachments.Add(attachment);
+                }
+                else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
+                    this._attachments.Add(current3.ToAttachment());               // [27.07.2012]
 			}
-		}
+
+        }
+        
+        */
+
 		public void ProcessFlags()
 		{
 			this.getFlags();
 		}
+
+        /// <remarks>
+        /// [27.07.2012] Fix by Pavel Azanov (coder13)
+        ///              Some messages contain attachments that are not described in the ContentDisposition,
+        ///              but in the ContentStream directly.
+        /// </remarks>
 		public bool Process()
 		{
 			this.getFlags();
@@ -373,15 +398,19 @@ namespace ImapX
 			}
 			foreach (MessageContent current3 in this._bodyParts)
 			{
-				if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
-				{
-					Attachment attachment = new Attachment();
-					attachment.FileName = current3.ContentFilename;
-					attachment.FileType = current3.ContentType;
-					attachment.FileEncoding = current3.ContentTransferEncoding;
-					attachment.FileData = Convert.FromBase64String(current3.ContentStream);
-					this._attachments.Add(attachment);
-				}
+                if (current3.ContentDisposition == null)
+                    continue;
+                else if (current3.ContentDisposition.ToLower().Contains("attachment"))
+                {
+                    Attachment attachment = new Attachment();
+                    attachment.FileName = current3.ContentFilename;
+                    attachment.FileType = current3.ContentType;
+                    attachment.FileEncoding = current3.ContentTransferEncoding;
+                    attachment.FileData = Convert.FromBase64String(current3.ContentStream);
+                    this._attachments.Add(attachment);
+                }
+                else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
+                    this._attachments.Add(current3.ToAttachment());               // [27.07.2012]
 			}
 			return true;
 		}
@@ -425,6 +454,87 @@ namespace ImapX
 			}
 			return flag;
 		}
+
+        public string GetDecodedBody(out bool isHtml)
+        {
+            var body = "";
+            var transferEncoding = "";
+            var contentType = "";
+            var encoding = Encoding.Default;
+
+            if (this._htmlBody != null && !string.IsNullOrWhiteSpace(this._htmlBody.ContentStream))
+            {
+                body = this._htmlBody.ContentStream;
+                encoding = DecodeHelper.ParseContentType(this._htmlBody.ContentType, out contentType);
+                transferEncoding = string.IsNullOrWhiteSpace(this._htmlBody.ContentTransferEncoding) ? _contentTransferEncoding : this._htmlBody.ContentTransferEncoding;
+            }
+            else if (this._textBody != null && !string.IsNullOrWhiteSpace(this._textBody.ContentStream) && !(this._textBody.ContentDisposition != null && this._textBody.ContentDisposition.ToLower().Contains("attachment")))
+            {
+                body = this._textBody.ContentStream;
+                encoding = DecodeHelper.ParseContentType(this._textBody.ContentType, out contentType);
+                transferEncoding = string.IsNullOrWhiteSpace(this._textBody.ContentTransferEncoding) ? _contentTransferEncoding : this._textBody.ContentTransferEncoding;
+            }
+            else if (_bodyParts.Count > 0)
+            {
+                var part =_bodyParts.Where(_ => !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment"))).FirstOrDefault();
+                if (part == null)
+                {
+                    isHtml = false;
+                    return string.Empty;
+                }
+                body = part.ContentStream;
+                encoding = DecodeHelper.ParseContentType(part.ContentType, out contentType);
+                transferEncoding = string.IsNullOrWhiteSpace(part.ContentTransferEncoding) ? _contentTransferEncoding : part.ContentTransferEncoding;
+            }
+
+            if (encoding == null)
+            {
+                var rex = new Regex("^(.*):\\s(.*)[\r\n]?");
+                var tmp = (new Regex("\r\n")).Split(body).ToArray();
+
+                for (var i = 0; i < tmp.Length; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(tmp[i])) continue;
+                    var m = rex.Match(tmp[i]);
+                    if (m == null || !m.Success)
+                    {
+                        //all headers passed
+                        body = string.Join("\r\n", tmp.Skip(i));
+                        break;
+                    }
+                    else if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
+                        transferEncoding = m.Groups[2].Value;
+                    else if (m.Groups[1].Value.ToLower().Trim() == "content-type")
+                        encoding = DecodeHelper.ParseContentType(m.Groups[2].Value, out contentType);
+                }
+
+            }
+
+            transferEncoding = (transferEncoding ?? string.Empty).ToLower().Trim();
+
+            switch (transferEncoding)
+            {
+                case "base64":
+                    body = DecodeHelper.DecodeBase64(body, encoding);
+                    break;
+                case "quoted-printable":
+                    body = DecodeHelper.DecodeQuotedPrintable(body, encoding);
+                    break;
+                default:
+                    break;
+            }
+
+
+
+            isHtml = contentType == "text/html";
+
+            return body;
+        }
+
+        /// <remarks>
+        /// [27.07.2012] Fix by Pavel Azanov (coder13)
+        ///              Added automated decoding of mail subject
+        /// </remarks>
 		private void getMessage(string path, bool processBody)
 		{
 			ArrayList arrayList = new ArrayList();
@@ -470,6 +580,9 @@ namespace ImapX
 							if (!ParseHelper.MessageProperty(current.Key, current.Value, "content-transfer-encoding", ref this._contentTransferEncoding) && !ParseHelper.MessageProperty(current.Key, current.Value, "content-type", ref this._contentType) && !ParseHelper.MessageProperty(current.Key, current.Value, "message-id", ref this._messageId) && !ParseHelper.MessageProperty(current.Key, current.Value, "mime-version", ref this._mimeVersion) && !ParseHelper.MessageProperty(current.Key, current.Value, "organization", ref this._organization) && !ParseHelper.MessageProperty(current.Key, current.Value, "priority", ref this._priority) && !ParseHelper.MessageProperty(current.Key, current.Value, "received", ref this._received) && !ParseHelper.MessageProperty(current.Key, current.Value, "references", ref this._references) && !ParseHelper.MessageProperty(current.Key, current.Value, "reply-to", ref this._replyTo) && !ParseHelper.MessageProperty(current.Key, current.Value, "x-mailer", ref this._xMailer) && !ParseHelper.MessageProperty(current.Key, current.Value, "cc", ref this._cc) && !ParseHelper.MessageProperty(current.Key, current.Value, "bcc", ref this._bcc))
 							{
 								ParseHelper.MessageProperty(current.Key, current.Value, "subject", ref this._subject);
+
+                                this._subject = DecodeHelper.DecodeSubject(this._subject); // [27.07.2012]
+
 							}
 						}
 					}

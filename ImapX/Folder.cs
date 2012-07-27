@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Linq;
+using ImapX.Helpers;
 namespace ImapX
 {
     public class Folder
@@ -121,6 +124,50 @@ namespace ImapX
             set
             {
                 this._folderName = value;
+            }
+        }
+
+        /// <summary>
+        /// Decodes the folder name using the specified encoding and 
+        /// returns a friendly string
+        /// </summary>
+        /// <param name="encoding">The encoding to use. If null, 1201 (russian) is used by default</param>
+        /// <remarks>
+        /// [27.07.2012] Fix by Pavel Azanov (coder13)
+        /// </remarks>
+        public string GetDecodedName(Encoding encoding)
+        {
+            if (string.IsNullOrWhiteSpace(this._folderName))
+                return string.Empty;
+
+            try
+            {
+
+                if (!this._folderName.StartsWith("&") && !this._folderName.EndsWith("-"))
+                    return this._folderName;
+
+                var sb = new StringBuilder();
+
+                this._folderName.Split(' ').All(delegate(string part)
+                {
+
+                    part = part.Replace(",", "/").TrimStart('&').TrimEnd('-');
+
+                    while (part.Length % 4 != 0)
+                        part += "=";
+
+
+                    sb.Append(DecodeHelper.DecodeBase64(part, encoding));
+                    sb.Append(" ");
+
+                    return true;
+                });
+
+                return sb.ToString().Trim();
+            }
+            catch
+            {
+                return _folderName ?? string.Empty;
             }
         }
         private void SubfolderInit()

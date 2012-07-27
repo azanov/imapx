@@ -49,6 +49,7 @@
     <Compile Include="Folder.cs" />
     <Compile Include="FolderCollection.cs" />
     <Compile Include="FolderFlags.cs" />
+    <Compile Include="Helpers\DecodeHelper.cs" />
     <Compile Include="Imap.cs" />
     <Compile Include="ImapBase.cs" />
     <Compile Include="ImapClient.cs" />
