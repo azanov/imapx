@@ -5,6 +5,7 @@ namespace ImapX
     {
         private string _address;
         private string _displayName;
+
         public string DisplayName
         {
             get
@@ -16,6 +17,7 @@ namespace ImapX
                 this._displayName = value;
             }
         }
+
         public string Address
         {
             get
@@ -27,16 +29,19 @@ namespace ImapX
                 this._address = value;
             }
         }
+
         public MailAddress()
         {
             this._displayName = string.Empty;
             this._address = string.Empty;
         }
+
         public MailAddress(string display, string addr)
         {
             this._address = addr;
             this._displayName = display;
         }
+
         public override string ToString()
         {
             if (!(this.DisplayName == string.Empty))

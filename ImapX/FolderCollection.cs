@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 namespace ImapX
 {
     public class FolderCollection : List<Folder>
@@ -8,15 +9,10 @@ namespace ImapX
         {
             get
             {
-                foreach (Folder current in this)
-                {
-                    if (current.Name.Equals(name))
-                    {
-                        current.Examine();
-                        return current;
-                    }
-                }
-                return null;
+                var result = this.Find(_ => _.Name.Equals(name));
+                if (result != null)
+                    result.Examine();
+                return result;
             }
         }
     }
