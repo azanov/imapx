@@ -10,17 +10,15 @@ namespace ImapX
         private int _fileSize;
         private string _fileEncoding;
         private string _fileType;
+
         public int FileSize
         {
             get
             {
-                if (this._fileData != null)
-                {
-                    return this._fileData.Length;
-                }
-                return 0;
+                return this._fileData == null ? 0 : this._fileData.Length;
             }
         }
+
         public string FileName
         {
             get
@@ -32,6 +30,7 @@ namespace ImapX
                 this._fileName = value;
             }
         }
+
         public string FileEncoding
         {
             get
@@ -43,6 +42,7 @@ namespace ImapX
                 this._fileEncoding = value;
             }
         }
+
         public string FileType
         {
             get
@@ -54,6 +54,7 @@ namespace ImapX
                 this._fileType = value;
             }
         }
+
         public byte[] FileData
         {
             get
@@ -65,12 +66,14 @@ namespace ImapX
                 this._fileData = value;
             }
         }
+
         public void SaveFile(string downloadLocation)
         {
             FileStream fileStream = new FileStream(downloadLocation + this._fileName, FileMode.Create, FileAccess.Write);
             fileStream.Write(this._fileData, 0, this._fileData.Length);
             fileStream.Close();
         }
+
         public string GetStream()
         {
             byte[] array;

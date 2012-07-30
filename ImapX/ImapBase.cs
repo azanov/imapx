@@ -25,6 +25,7 @@ namespace ImapX
         protected string _userLogin;
         protected string _userPassword;
         internal string _selectedFolder;
+
         public bool IsDebug
         {
             get
@@ -36,6 +37,7 @@ namespace ImapX
                 this.isDebug = value;
             }
         }
+
         public string Host
         {
             get
@@ -47,6 +49,7 @@ namespace ImapX
                 this._imapHost = value;
             }
         }
+
         public int Port
         {
             get
@@ -58,6 +61,7 @@ namespace ImapX
                 this._imapPort = value;
             }
         }
+
         public bool UseSsl
         {
             get
@@ -69,6 +73,7 @@ namespace ImapX
                 this._useSSL = value;
             }
         }
+
         public string UserLogin
         {
             get
@@ -80,6 +85,7 @@ namespace ImapX
                 this._userLogin = value;
             }
         }
+
         public string UserPassword
         {
             get
@@ -91,10 +97,12 @@ namespace ImapX
                 this._userPassword = value;
             }
         }
+
         public bool LogIn()
         {
             return this.LogIn(this._userLogin, this._userPassword);
         }
+
         public bool LogIn(string login, string password)
         {
             if (!this._isConnected)
@@ -127,6 +135,7 @@ namespace ImapX
             }
             return false;
         }
+
         public bool LogOut()
         {
             if (!this._isLogged)
@@ -142,10 +151,12 @@ namespace ImapX
             this._isLogged = false;
             return true;
         }
+
         public bool Connect()
         {
             return this.Connect(this._imapHost, this._imapPort, this._useSSL);
         }
+
         public bool Connect(string sHost, int nPort, bool useSSL)
         {
             this._useSSL = useSSL;
@@ -189,6 +200,7 @@ namespace ImapX
             this._isConnected = true;
             return result;
         }
+
         public bool Disconnect()
         {
             this._commandCount = 0;
@@ -210,12 +222,14 @@ namespace ImapX
             this._isConnected = false;
             return true;
         }
+
         public bool Capability()
         {
             ArrayList arrayList = new ArrayList();
             string command = "CAPABILITY\r\n";
             return this.SendAndReceive(command, ref arrayList);
         }
+
         public bool SendData(string data)
         {
             byte[] bytes = Encoding.ASCII.GetBytes(data.ToCharArray());
@@ -246,6 +260,7 @@ namespace ImapX
             }
             return true;
         }
+
         public MessageCollection SearchUtf8Data(byte[] data)
         {
             MessageCollection result;
@@ -295,6 +310,7 @@ namespace ImapX
             }
             return result;
         }
+
         public void SendCommand(string command)
         {
             this._commandCount++;
@@ -325,6 +341,7 @@ namespace ImapX
             {
             }
         }
+
         public bool SendAndReceive(string command, ref ArrayList sResultArray)
         {
             bool result = true;
@@ -397,6 +414,7 @@ namespace ImapX
             }
             return result;
         }
+
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             if (sslPolicyErrors == SslPolicyErrors.None)

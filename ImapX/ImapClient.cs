@@ -5,6 +5,7 @@ namespace ImapX
     {
         public Imap _client;
         private FolderCollection _folders;
+
         public string SelectedFolder
         {
             get
@@ -12,6 +13,7 @@ namespace ImapX
                 return this._client._selectedFolder;
             }
         }
+
         public bool IsConnected
         {
             get
@@ -19,6 +21,7 @@ namespace ImapX
                 return this._client._isConnected;
             }
         }
+
         public bool IsDebug
         {
             get
@@ -30,6 +33,7 @@ namespace ImapX
                 this._client.IsDebug = value;
             }
         }
+
         public bool IsLogined
         {
             get
@@ -37,6 +41,7 @@ namespace ImapX
                 return this._client._isLogged;
             }
         }
+
         public FolderCollection Folders
         {
             get
@@ -52,6 +57,7 @@ namespace ImapX
                 this._folders = value;
             }
         }
+
         public FolderCollection GetFolders()
         {
             FolderCollection folders = this._client.GetFolders("");
@@ -61,29 +67,36 @@ namespace ImapX
             }
             return folders;
         }
+
         public ImapClient(string host, int port, bool useSsl)
         {
             this._client = new Imap(host, port, useSsl);
         }
+
         public bool Connection()
         {
             return this._client.Connect();
         }
+
         public bool LogIn(string login, string password)
         {
             return this._client.LogIn(login, password);
         }
+
         public bool Disconnect()
         {
             return this._client.Disconnect();
         }
+
         public bool LogOut()
         {
             return this._client.LogOut();
         }
-        public void AppendMessageForYahoo(string Folder, Message msg, string flags)
-        {
-        }
+
+        //public void AppendMessageForYahoo(string Folder, Message msg, string flags)
+        //{
+        //}
+
         public MessageCollection EndUtf8Searsh(byte[] b)
         {
             MessageCollection messageCollection = this._client.SearchUtf8Data(b);
@@ -96,6 +109,7 @@ namespace ImapX
             }
             return messageCollection;
         }
+
         public bool CreateFolder(string name)
         {
             return this._client.CreateFolder(name);

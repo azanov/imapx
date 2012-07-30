@@ -1,13 +1,13 @@
-﻿using EmailParser;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using ImapX.Helpers;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using EmailParser;
+
 namespace ImapX
 {
 	public class Message
@@ -37,6 +37,7 @@ namespace ImapX
 		private MessageContent _textBody;
 		private MessageContent _htmlBody;
 		private List<MessageContent> _bodyParts;
+
 		public Dictionary<string, string> Headers
 		{
 			get
@@ -44,6 +45,7 @@ namespace ImapX
 				return this._headers;
 			}
 		}
+
 		public List<string> Flags
 		{
 			get
@@ -51,6 +53,7 @@ namespace ImapX
 				return this._flags;
 			}
 		}
+
 		public List<Attachment> Attachments
 		{
 			get
@@ -62,6 +65,7 @@ namespace ImapX
 				this._attachments = value;
 			}
 		}
+
 		public MessageContent TextBody
 		{
 			get
@@ -73,6 +77,7 @@ namespace ImapX
 				this._textBody = value;
 			}
 		}
+
 		public MessageContent HtmlBody
 		{
 			get
@@ -84,6 +89,7 @@ namespace ImapX
 				this._htmlBody = value;
 			}
 		}
+
 		public string MimeVersion
 		{
 			get
@@ -95,6 +101,7 @@ namespace ImapX
 				this._mimeVersion = value;
 			}
 		}
+
 		public string Organization
 		{
 			get
@@ -106,6 +113,7 @@ namespace ImapX
 				this._organization = value;
 			}
 		}
+
 		public string Priority
 		{
 			get
@@ -117,6 +125,7 @@ namespace ImapX
 				this._priority = value;
 			}
 		}
+
 		public string Received
 		{
 			get
@@ -128,6 +137,7 @@ namespace ImapX
 				this._received = value;
 			}
 		}
+
 		public string References
 		{
 			get
@@ -139,6 +149,7 @@ namespace ImapX
 				this._references = value;
 			}
 		}
+
 		public string ReplyTo
 		{
 			get
@@ -150,6 +161,7 @@ namespace ImapX
 				this._replyTo = value;
 			}
 		}
+
 		public string XMailer
 		{
 			get
@@ -161,6 +173,7 @@ namespace ImapX
 				this._xMailer = value;
 			}
 		}
+
 		public string MessageId
 		{
 			get
@@ -172,6 +185,7 @@ namespace ImapX
 				this._messageId = value;
 			}
 		}
+
 		public string ContentType
 		{
 			get
@@ -183,6 +197,7 @@ namespace ImapX
 				this._contentType = value;
 			}
 		}
+
 		public string ContentTransferEncoding
 		{
 			get
@@ -194,6 +209,7 @@ namespace ImapX
 				this._contentTransferEncoding = value;
 			}
 		}
+
 		public List<MessageContent> BodyParts
 		{
 			get
@@ -205,6 +221,7 @@ namespace ImapX
 				this._bodyParts = value;
 			}
 		}
+
 		public List<MailAddress> To
 		{
 			get
@@ -216,6 +233,7 @@ namespace ImapX
 				this._to = value;
 			}
 		}
+
 		public List<MailAddress> From
 		{
 			get
@@ -227,6 +245,7 @@ namespace ImapX
 				this._from = value;
 			}
 		}
+
 		public string Cc
 		{
 			get
@@ -238,6 +257,7 @@ namespace ImapX
 				this._cc = value;
 			}
 		}
+
 		public string Bcc
 		{
 			get
@@ -249,6 +269,7 @@ namespace ImapX
 				this._bcc = value;
 			}
 		}
+
 		public DateTime Date
 		{
 			get
@@ -260,6 +281,7 @@ namespace ImapX
 				this._date = value;
 			}
 		}
+
 		public int MessageUid
 		{
 			get
@@ -271,17 +293,19 @@ namespace ImapX
 				this._msgUID = value;
 			}
 		}
+
 		public string Subject
 		{
 			get
 			{
-				return this._subject;
+				return this._subject ?? string.Empty;
 			}
 			set
 			{
 				this._subject = value;
 			}
 		}
+
 		public Message()
 		{
 			this._attachments = new List<Attachment>();
@@ -291,6 +315,7 @@ namespace ImapX
 			this._textBody = new MessageContent();
 			this._htmlBody = new MessageContent();
 		}
+
 		public bool SetFlag(string status)
 		{
 			bool result = true;
@@ -314,6 +339,7 @@ namespace ImapX
 			this.getFlags();
 			return result;
 		}
+
 		public void ProcessHeader()
 		{
 			this.getMessage("body[HEADER]", false);
@@ -414,6 +440,7 @@ namespace ImapX
 			}
 			return true;
 		}
+
 		private bool getFlags()
 		{
 			bool flag = true;
@@ -465,13 +492,13 @@ namespace ImapX
             if (this._htmlBody != null && !string.IsNullOrWhiteSpace(this._htmlBody.ContentStream))
             {
                 body = this._htmlBody.ContentStream;
-                encoding = DecodeHelper.ParseContentType(this._htmlBody.ContentType, out contentType);
+                encoding = ParseHelper.ParseContentType(this._htmlBody.ContentType, out contentType);
                 transferEncoding = string.IsNullOrWhiteSpace(this._htmlBody.ContentTransferEncoding) ? _contentTransferEncoding : this._htmlBody.ContentTransferEncoding;
             }
             else if (this._textBody != null && !string.IsNullOrWhiteSpace(this._textBody.ContentStream) && !(this._textBody.ContentDisposition != null && this._textBody.ContentDisposition.ToLower().Contains("attachment")))
             {
                 body = this._textBody.ContentStream;
-                encoding = DecodeHelper.ParseContentType(this._textBody.ContentType, out contentType);
+                encoding = ParseHelper.ParseContentType(this._textBody.ContentType, out contentType);
                 transferEncoding = string.IsNullOrWhiteSpace(this._textBody.ContentTransferEncoding) ? _contentTransferEncoding : this._textBody.ContentTransferEncoding;
             }
             else if (_bodyParts.Count > 0)
@@ -483,7 +510,7 @@ namespace ImapX
                     return string.Empty;
                 }
                 body = part.ContentStream;
-                encoding = DecodeHelper.ParseContentType(part.ContentType, out contentType);
+                encoding = ParseHelper.ParseContentType(part.ContentType, out contentType);
                 transferEncoding = string.IsNullOrWhiteSpace(part.ContentTransferEncoding) ? _contentTransferEncoding : part.ContentTransferEncoding;
             }
 
@@ -505,7 +532,7 @@ namespace ImapX
                     else if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
                         transferEncoding = m.Groups[2].Value;
                     else if (m.Groups[1].Value.ToLower().Trim() == "content-type")
-                        encoding = DecodeHelper.ParseContentType(m.Groups[2].Value, out contentType);
+                        encoding = ParseHelper.ParseContentType(m.Groups[2].Value, out contentType);
                 }
 
             }
@@ -515,10 +542,10 @@ namespace ImapX
             switch (transferEncoding)
             {
                 case "base64":
-                    body = DecodeHelper.DecodeBase64(body, encoding);
+                    body = ParseHelper.DecodeBase64(body, encoding);
                     break;
                 case "quoted-printable":
-                    body = DecodeHelper.DecodeQuotedPrintable(body, encoding);
+                    body = ParseHelper.DecodeQuotedPrintable(body, encoding);
                     break;
                 default:
                     break;
@@ -534,6 +561,8 @@ namespace ImapX
         /// <remarks>
         /// [27.07.2012] Fix by Pavel Azanov (coder13)
         ///              Added automated decoding of mail subject
+        /// [30.07.2012] Replaced weird if-clauses used for header
+        ///              parsing with an easy to read switch-case
         /// </remarks>
 		private void getMessage(string path, bool processBody)
 		{
@@ -556,37 +585,68 @@ namespace ImapX
 			}
 			this._emailParser.InitializeIndexes();
 			this._emailParser.ParseHeaders();
+
+
+
 			foreach (KeyValuePair<string, string> current in this._emailParser._headersCollection)
 			{
-				if (current.Key.ToLower().Trim().Equals("to"))
-				{
-					this._to = ParseHelper.AddressCollection(current.Value);
-				}
-				else
-				{
-					if (current.Key.ToLower().Trim().Equals("from"))
-					{
-						this._from = ParseHelper.AddressCollection(current.Value);
-					}
-					else
-					{
-						if (current.Key.ToLower().Trim().Equals("date"))
-						{
-							string s = current.Value.Trim();
-							DateTime.TryParse(s, out this._date);
-						}
-						else
-						{
-							if (!ParseHelper.MessageProperty(current.Key, current.Value, "content-transfer-encoding", ref this._contentTransferEncoding) && !ParseHelper.MessageProperty(current.Key, current.Value, "content-type", ref this._contentType) && !ParseHelper.MessageProperty(current.Key, current.Value, "message-id", ref this._messageId) && !ParseHelper.MessageProperty(current.Key, current.Value, "mime-version", ref this._mimeVersion) && !ParseHelper.MessageProperty(current.Key, current.Value, "organization", ref this._organization) && !ParseHelper.MessageProperty(current.Key, current.Value, "priority", ref this._priority) && !ParseHelper.MessageProperty(current.Key, current.Value, "received", ref this._received) && !ParseHelper.MessageProperty(current.Key, current.Value, "references", ref this._references) && !ParseHelper.MessageProperty(current.Key, current.Value, "reply-to", ref this._replyTo) && !ParseHelper.MessageProperty(current.Key, current.Value, "x-mailer", ref this._xMailer) && !ParseHelper.MessageProperty(current.Key, current.Value, "cc", ref this._cc) && !ParseHelper.MessageProperty(current.Key, current.Value, "bcc", ref this._bcc))
-							{
-								ParseHelper.MessageProperty(current.Key, current.Value, "subject", ref this._subject);
+                var key = current.Key.ToLower().Trim();
 
-                                this._subject = DecodeHelper.DecodeSubject(this._subject); // [27.07.2012]
+                switch (key)
+                { 
+                    case "to":
+                        this._to = ParseHelper.AddressCollection(current.Value);
+                        break;
+                    case "from":
+                        this._from = ParseHelper.AddressCollection(current.Value);
+                        break;
+                    case "date":
+                        DateTime.TryParse(current.Value.Trim(), out this._date);
+                        break;
+                    case "content-transfer-encoding":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "content-transfer-encoding", ref this._contentTransferEncoding);
+                        break;
+                    case "content-type":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "content-type", ref this._contentType);
+                        break;
+                    case  "message-id":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "message-id", ref this._messageId);
+                        break;
+                    case "mime-version":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "mime-version", ref this._mimeVersion);
+                        break;
+                    case "organization":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "organization", ref this._organization);
+                        break;
+                    case "priority":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "priority", ref this._priority);
+                        break;
+                    case "received":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "received", ref this._received);
+                        break;
+                    case "references":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "references", ref this._references);
+                        break;
+                    case "reply-to":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "reply-to", ref this._replyTo);
+                        break;
+                    case "x-mailer":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "x-mailer", ref this._xMailer);
+                        break;
+                    case "cc":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "cc", ref this._cc);
+                        break;
+                    case "bcc":
+                        ParseHelper.MessageProperty(current.Key, current.Value, "bcc", ref this._bcc);
+                        break;
+                    case "subject":
+                        this._subject = ParseHelper.DecodeSubject(current.Value); 
+                        break;
+                    default:
+                        break;
+                    
+                }
 
-							}
-						}
-					}
-				}
 			}
 			this._headers = this._emailParser._headersCollection;
 			if (processBody)
@@ -643,6 +703,7 @@ namespace ImapX
 				}
 			}
 		}
+
 		private StringBuilder getEml()
 		{
 			StringBuilder stringBuilder = new StringBuilder();
@@ -669,10 +730,12 @@ namespace ImapX
 			}
 			return stringBuilder;
 		}
+
 		public string GetAsString()
 		{
 			return this.getEml().ToString();
 		}
+
 		public void SaveAsEmlToFile(string path, string filename)
 		{
 			if (!Directory.Exists(path))
@@ -692,6 +755,7 @@ namespace ImapX
 				}
 			}
 		}
+
 		public string messageBuilder()
 		{
 			StringBuilder stringBuilder = new StringBuilder();

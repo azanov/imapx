@@ -20,6 +20,7 @@ namespace ImapX
         private string _contentDescription;
         private string _boundary;
         private Dictionary<string, string> _partHeaders;
+
         public string BoundaryName
         {
             get
@@ -31,6 +32,7 @@ namespace ImapX
                 this._boundary = value;
             }
         }
+
         public Dictionary<string, string> PartHeaders
         {
             get
@@ -42,6 +44,7 @@ namespace ImapX
                 this._partHeaders = value;
             }
         }
+
         public string ContentStream
         {
             get
@@ -53,6 +56,7 @@ namespace ImapX
                 this._contentStream = value;
             }
         }
+
         public string DecodedContentStream
         {
             get
@@ -60,6 +64,7 @@ namespace ImapX
                 return this._contentStream;
             }
         }
+
         public string ContentDescription
         {
             get
@@ -71,6 +76,7 @@ namespace ImapX
                 this._contentDescription = value;
             }
         }
+
         public string MIMEVersion
         {
             get
@@ -82,6 +88,7 @@ namespace ImapX
                 this._mimeVersion = value;
             }
         }
+
         public string ContentFilename
         {
             get
@@ -93,6 +100,7 @@ namespace ImapX
                 this._contentFilename = value;
             }
         }
+
         public string ContentDisposition
         {
             get
@@ -104,6 +112,7 @@ namespace ImapX
                 this._contentDisposition = value;
             }
         }
+
         public string ContentId
         {
             get
@@ -115,6 +124,7 @@ namespace ImapX
                 this._contentID = value;
             }
         }
+
         public string PartID
         {
             get
@@ -126,6 +136,7 @@ namespace ImapX
                 this._partID = value;
             }
         }
+
         public string TextData
         {
             get
@@ -137,6 +148,7 @@ namespace ImapX
                 this._textData = value;
             }
         }
+
         public byte[] BinaryData
         {
             get
@@ -148,6 +160,7 @@ namespace ImapX
                 this._binaryData = value;
             }
         }
+
         public string ContentType
         {
             get
@@ -159,6 +172,7 @@ namespace ImapX
                 this._contentType = value;
             }
         }
+
         public string ContentTransferEncoding
         {
             get
@@ -170,6 +184,7 @@ namespace ImapX
                 this._contentTransferEncoding = value;
             }
         }
+
         public int ContentSize
         {
             get
@@ -181,6 +196,7 @@ namespace ImapX
                 this._contentSize = value;
             }
         }
+
         public MessageContent()
         {
             this._contentStream = string.Empty;

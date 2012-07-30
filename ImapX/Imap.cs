@@ -6,6 +6,7 @@ namespace ImapX
     {
         private FolderCollection _folders;
         internal char _delimiter = '/';
+
         internal Imap _imap
         {
             get
@@ -13,9 +14,11 @@ namespace ImapX
                 return this;
             }
         }
+
         public Imap()
         {
         }
+
         public Imap(string host, int port, bool useSsl)
         {
             this._imapHost = host;
@@ -23,6 +26,7 @@ namespace ImapX
             this._useSSL = useSsl;
             this._folders = new FolderCollection();
         }
+
         public Imap(string host, int port, bool useSsl, string userLogin, string userPassword)
         {
             this._imapHost = host;
@@ -32,6 +36,7 @@ namespace ImapX
             this._userPassword = userPassword;
             this._folders = new FolderCollection();
         }
+
         public bool SelectFolder(string folderName)
         {
             if (this._imap == null && !this._imap._isConnected)
@@ -51,6 +56,7 @@ namespace ImapX
             this._selectedFolder = folderName;
             return true;
         }
+
         public MessageCollection SearchMessage(string path)
         {
             if (this._imap == null && !this._imap._isConnected)
@@ -87,6 +93,7 @@ namespace ImapX
             }
             return messageCollection;
         }
+
         public FolderCollection GetFolders(string parent)
         {
             if (this._imap == null && !this._imap._isConnected)
@@ -163,6 +170,7 @@ namespace ImapX
             }
             return folderCollection;
         }
+
         public bool CreateFolder(string name)
         {
             if (this._imap == null && !this._imap._isConnected)

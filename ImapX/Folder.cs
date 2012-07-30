@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using ImapX.Helpers;
 namespace ImapX
 {
     public class Folder
@@ -20,6 +19,7 @@ namespace ImapX
         private int _uidNext;
         private int _lastMessageUpdateCount;
         internal bool _hasChildren;
+
         public int LastUpdateMessagesCount
         {
             get
@@ -27,6 +27,7 @@ namespace ImapX
                 return this._lastMessageUpdateCount;
             }
         }
+
         public bool HasChildren
         {
             get
@@ -34,6 +35,7 @@ namespace ImapX
                 return this._hasChildren;
             }
         }
+
         public int Unseen
         {
             get
@@ -41,6 +43,7 @@ namespace ImapX
                 return this._unseen;
             }
         }
+
         public int Recents
         {
             get
@@ -52,6 +55,7 @@ namespace ImapX
                 this._recents = value;
             }
         }
+
         public int Exists
         {
             get
@@ -59,6 +63,7 @@ namespace ImapX
                 return this._exists;
             }
         }
+
         public int UidNext
         {
             get
@@ -66,6 +71,7 @@ namespace ImapX
                 return this._uidNext;
             }
         }
+
         public string UidValidity
         {
             get
@@ -73,6 +79,7 @@ namespace ImapX
                 return this._uidValidity;
             }
         }
+
         public MessageCollection Messages
         {
             get
@@ -92,6 +99,7 @@ namespace ImapX
                 this._messages = value;
             }
         }
+
         public string FolderPath
         {
             get
@@ -103,6 +111,7 @@ namespace ImapX
                 this._folderPath = value;
             }
         }
+
         public FolderCollection SubFolder
         {
             get
@@ -115,6 +124,7 @@ namespace ImapX
                 this._subFolders = value;
             }
         }
+
         public string Name
         {
             get
@@ -157,7 +167,7 @@ namespace ImapX
                         part += "=";
 
 
-                    sb.Append(DecodeHelper.DecodeBase64(part, encoding));
+                    sb.Append(ParseHelper.DecodeBase64(part, encoding));
                     sb.Append(" ");
 
                     return true;
@@ -170,6 +180,7 @@ namespace ImapX
                 return _folderName ?? string.Empty;
             }
         }
+
         private void SubfolderInit()
         {
             foreach (Folder current in this._subFolders)
@@ -177,15 +188,18 @@ namespace ImapX
                 current._client = this._client;
             }
         }
+
         public Folder(string folderName)
         {
             this._folderName = folderName;
             this._subFolders = new FolderCollection();
         }
+
         public override string ToString()
         {
             return this.Name;
         }
+
         public MessageCollection CheckNewMessage(bool processMessages)
         {
             MessageCollection messageCollection = new MessageCollection();
@@ -217,6 +231,7 @@ namespace ImapX
             }
             return messageCollection;
         }
+
         private MessageCollection setMessage()
         {
             this.Select();
@@ -228,6 +243,7 @@ namespace ImapX
             }
             return messageCollection;
         }
+
         public bool GetSubFolders()
         {
             bool result;
@@ -242,6 +258,7 @@ namespace ImapX
             }
             return result;
         }
+
         public bool Examine()
         {
             if (this._client == null && !this._client._isConnected)
@@ -263,6 +280,7 @@ namespace ImapX
             }
             return true;
         }
+
         public MessageCollection Search(string path, bool makeProcess)
         {
             if (this._client == null && !this._client._isConnected)
@@ -283,10 +301,12 @@ namespace ImapX
             this._client.SelectFolder(selectedFolder);
             return messageCollection;
         }
+
         public void Select()
         {
             this._client.SelectFolder(this._folderPath);
         }
+
         public bool EmptyFolder()
         {
             if (this._client == null && !this._client._isConnected)
@@ -314,6 +334,7 @@ namespace ImapX
             }
             return false;
         }
+
         public bool CreateFolder(string name)
         {
             if (this._client == null && !this._client._isConnected)
@@ -334,6 +355,7 @@ namespace ImapX
             }
             return false;
         }
+
         public bool DeleteFolder()
         {
             if (this._client == null && !this._client._isConnected)
@@ -346,6 +368,7 @@ namespace ImapX
             text = "DELETE \"{0}\"\r\n";
             return this._client.SendAndReceive(string.Format(text, this.FolderPath), ref arrayList);
         }
+
         public bool CopyMessageToFolder(Message msg, Folder folder)
         {
             if (this._client == null && !this._client._isConnected)
@@ -377,6 +400,7 @@ namespace ImapX
             this._client.SelectFolder(selectedFolder);
             return true;
         }
+
         public bool DeleteMessage(Message msg)
         {
             if (this._client == null && !this._client._isConnected)
@@ -405,6 +429,7 @@ namespace ImapX
             this._client.SelectFolder(selectedFolder);
             return false;
         }
+
         public bool MoveMessageToFolder(Message msg, Folder folder)
         {
             if (this._client == null && !this._client._isConnected)
@@ -413,6 +438,7 @@ namespace ImapX
             }
             return this.CopyMessageToFolder(msg, folder) && this.DeleteMessage(msg);
         }
+
         public bool AppendMessage(Message msg, string flag)
         {
             if (this._client == null && !this._client._isConnected)
