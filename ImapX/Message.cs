@@ -575,14 +575,14 @@ namespace ImapX
 				path, 
 				"\r\n"
 			});
+
 			this._client.SendAndReceive(command, ref arrayList);
-			try
-			{
+            try
+            {
                 this._emailParser = new EmailParser.EmailParser(arrayList.ToArray(typeof(string)) as string[]);
-			}
-			catch (Exception)
-			{
-			}
+            }
+            catch { }
+
 			this._emailParser.InitializeIndexes();
 			this._emailParser.ParseHeaders();
 
@@ -604,40 +604,40 @@ namespace ImapX
                         DateTime.TryParse(current.Value.Trim(), out this._date);
                         break;
                     case "content-transfer-encoding":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "content-transfer-encoding", ref this._contentTransferEncoding);
+                        this._contentTransferEncoding = current.Value;
                         break;
                     case "content-type":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "content-type", ref this._contentType);
+                        this._contentType = current.Value;
                         break;
                     case  "message-id":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "message-id", ref this._messageId);
+                        this._messageId = current.Value;
                         break;
                     case "mime-version":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "mime-version", ref this._mimeVersion);
+                        this._mimeVersion = current.Value;
                         break;
                     case "organization":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "organization", ref this._organization);
+                        this._organization = current.Value;
                         break;
                     case "priority":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "priority", ref this._priority);
+                        this._priority = current.Value;
                         break;
                     case "received":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "received", ref this._received);
+                        this._received = current.Value;
                         break;
                     case "references":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "references", ref this._references);
+                        this._references = current.Value;
                         break;
                     case "reply-to":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "reply-to", ref this._replyTo);
+                        this._replyTo = current.Value;
                         break;
                     case "x-mailer":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "x-mailer", ref this._xMailer);
+                        this._xMailer = current.Value;
                         break;
                     case "cc":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "cc", ref this._cc);
+                        this._cc = current.Value;
                         break;
                     case "bcc":
-                        ParseHelper.MessageProperty(current.Key, current.Value, "bcc", ref this._bcc);
+                        this._bcc = current.Value;
                         break;
                     case "subject":
                         this._subject = ParseHelper.DecodeSubject(current.Value); 
