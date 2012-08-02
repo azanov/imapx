@@ -594,55 +594,53 @@ namespace ImapX
 
                 switch (key)
                 { 
-                    case "to":
+                    case MessageProperty.TO:
                         this._to = ParseHelper.AddressCollection(current.Value);
                         break;
-                    case "from":
+                    case MessageProperty.FROM:
                         this._from = ParseHelper.AddressCollection(current.Value);
                         break;
-                    case "date":
+                    case MessageProperty.DATE:
                         DateTime.TryParse(current.Value.Trim(), out this._date);
                         break;
-                    case "content-transfer-encoding":
+                    case MessageProperty.CONTENT_TRANSFER_ENCODING:
                         this._contentTransferEncoding = current.Value;
                         break;
-                    case "content-type":
+                    case MessageProperty.CONTENT_TYPE:
                         this._contentType = current.Value;
                         break;
-                    case  "message-id":
+                    case MessageProperty.MESSAGE_ID:
                         this._messageId = current.Value;
                         break;
-                    case "mime-version":
+                    case MessageProperty.MIME_VERSION:
                         this._mimeVersion = current.Value;
                         break;
-                    case "organization":
+                    case MessageProperty.ORGANIZATION:
                         this._organization = current.Value;
                         break;
-                    case "priority":
+                    case MessageProperty.PRIORITY:
                         this._priority = current.Value;
                         break;
-                    case "received":
+                    case MessageProperty.RECEIVED:
                         this._received = current.Value;
                         break;
-                    case "references":
+                    case MessageProperty.REFERENCES:
                         this._references = current.Value;
                         break;
-                    case "reply-to":
+                    case MessageProperty.REPLY_TO:
                         this._replyTo = current.Value;
                         break;
-                    case "x-mailer":
+                    case MessageProperty.X_MAILER:
                         this._xMailer = current.Value;
                         break;
-                    case "cc":
+                    case MessageProperty.CC:
                         this._cc = current.Value;
                         break;
-                    case "bcc":
+                    case MessageProperty.BCC:
                         this._bcc = current.Value;
                         break;
-                    case "subject":
+                    case MessageProperty.SUBJECT:
                         this._subject = ParseHelper.DecodeSubject(current.Value); 
-                        break;
-                    default:
                         break;
                     
                 }

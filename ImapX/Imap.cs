@@ -47,7 +47,7 @@ namespace ImapX
             {
                 return false;
             }
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             string command = "SELECT \"" + folderName + "\"\r\n";
             if (!base.SendAndReceive(command, ref arrayList))
             {
@@ -96,7 +96,7 @@ namespace ImapX
 
         public FolderCollection GetFolders(string parent)
         {
-            if (this._imap == null && !this._imap._isConnected)
+            if (this._imap == null || !this._imap._isConnected)
             {
                 throw new ImapException("Not Connect");
             }
