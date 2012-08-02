@@ -46,6 +46,7 @@
     <Compile Include="EmailParser\EmailParser.cs" />
     <Compile Include="EmailParser\ParseError.cs" />
     <Compile Include="Attachment.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Folder.cs" />
     <Compile Include="FolderCollection.cs" />
     <Compile Include="FolderFlags.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseType.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
