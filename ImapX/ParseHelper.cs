@@ -8,31 +8,24 @@ namespace ImapX
 {
     internal static class ParseHelper
     {
-
-        internal static string DecodeSubject(string _subject)
+        internal static string DecodeSubject(string subject)
         {
-            if (string.IsNullOrWhiteSpace(_subject))
+            if (string.IsNullOrWhiteSpace(subject))
                 return string.Empty;
-
             try
             {
-
                 var regex = new Regex(@"=\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=");
-
                 var decodedString = string.Empty;
-
-                while (_subject.Length > 0)
+                while (subject.Length > 0)
                 {
-                    var match = regex.Match(_subject);
+                    var match = regex.Match(subject);
                     if (match.Success)
                     {
                         // If the match isn't at the start of the string, copy the initial few chars to the output
-                        decodedString += _subject.Substring(0, match.Index);
-
+                        decodedString += subject.Substring(0, match.Index);
                         var charset = match.Groups["charset"].Value;
                         var encoding = match.Groups["encoding"].Value.ToUpper();
                         var value = match.Groups["value"].Value;
-
                         if (encoding.Equals("B"))
                         {
                             decodedString += DecodeBase64(value, Encoding.GetEncoding(charset));
@@ -45,53 +38,44 @@ namespace ImapX
                         {
                             // Encoded value not known, return original string
                             // (Match should not be successful in this case, so this code may never get hit)
-                            decodedString += _subject;
+                            decodedString += subject;
                             break;
                         }
-
                         // Trim off up to and including the match, then we'll loop and try matching again.
-                        _subject = _subject.Substring(match.Index + match.Length);
+                        subject = subject.Substring(match.Index + match.Length);
                     }
                     else
                     {
                         // No match, not encoded, return original string
-                        decodedString += _subject;
+                        decodedString += subject;
                         break;
                     }
                 }
-
                 return decodedString;
-
             }
             catch
             {
-                return _subject ?? string.Empty;
+                return subject;
             }
         }
 
         internal static string DecodeBase64(string value, Encoding encoding)
         {
             if (encoding == null)
-                encoding = System.Text.Encoding.Default;
-
+                encoding = Encoding.Default;
             if (string.IsNullOrWhiteSpace(value))
                 return "";
-
             var bytes = Convert.FromBase64String(value);
             return encoding.GetString(bytes);
-
         }
 
         internal static string DecodeQuotedPrintable(string value, Encoding encoding)
         {
             if (encoding == null)
                 encoding = Encoding.Default;
-
-
             if (value.IndexOf('_') > -1 && value.IndexOf(' ') == -1)
                 value = value.Replace('_', ' ');
-
-            var data = System.Text.Encoding.ASCII.GetBytes(value);
+            var data = Encoding.ASCII.GetBytes(value);
             var eq = Convert.ToByte('=');
             var n = 0;
             for (int i = 0; i < data.Length; i++)
@@ -110,11 +94,9 @@ namespace ImapX
                         }
                         continue;
                     }
-
                     data[n] = (byte)int.Parse(value.Substring(i + 1, 2), NumberStyles.HexNumber);
                     n++;
                     i += 2;
-
                 }
                 else
                 {
@@ -122,7 +104,6 @@ namespace ImapX
                     n++;
                 }
             }
-
             value = encoding.GetString(data, 0, n);
             return value;
         }
@@ -135,19 +116,14 @@ namespace ImapX
             }
             value = value.ToLower().Trim();
             var rex = (new Regex("(.*);.*charset=(.*)[;]?"));
-
             value = value.Replace("\"", "").Replace("\'", "").Replace("\n", "").Replace("\t", "");
             var tmp = rex.Match(value);
-
             if (!tmp.Success)
             {
-
                 contentType = (new Regex(@"(.*)\/(.*)[;]?").IsMatch(value)) ? value.Replace(";", "").TrimEnd() : string.Empty;
                 return Encoding.Default;
             }
-
             contentType = tmp.Groups[tmp.Groups.Count - 2].Value.Split(new[] { ';' })[0].Trim();
-
             return Encoding.GetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] { ';' })[0].Trim());
         }
 
@@ -156,7 +132,7 @@ namespace ImapX
             if (line.Contains("EXISTS"))
             {
                 int num;
-                if (int.TryParse(line.Split(new char[]
+                if (int.TryParse(line.Split(new[]
 				{
 					' '
 				})[1], out num))
@@ -173,7 +149,7 @@ namespace ImapX
             if (line.Contains("RECENT"))
             {
                 int num;
-                if (int.TryParse(line.Split(new char[]
+                if (int.TryParse(line.Split(new[]
 				{
 					' '
 				})[1], out num))
@@ -190,7 +166,7 @@ namespace ImapX
             if (line.Contains("UNSEEN"))
             {
                 int num;
-                if (int.TryParse(line.Split(new char[]
+                if (int.TryParse(line.Split(new[]
 				{
 					' '
 				})[3].Replace("]", ""), out num))
@@ -206,7 +182,7 @@ namespace ImapX
         {
             if (line.Contains("UIDVALIDITY"))
             {
-                string text = line.Split(new char[]
+                string text = line.Split(new[]
 				{
 					' '
 				})[3].Replace("]", "");
@@ -221,7 +197,7 @@ namespace ImapX
             if (line.Contains("UIDNEXT"))
             {
                 int num;
-                if (int.TryParse(line.Split(new char[]
+                if (int.TryParse(line.Split(new[]
 				{
 					' '
 				})[3].Replace("]", ""), out num))
@@ -245,15 +221,15 @@ namespace ImapX
 
         public static MailAddress Address(string line)
         {
-            int num = line.LastIndexOf("<");
+            int num = line.LastIndexOf("<", StringComparison.Ordinal);
             if (num < 0)
             {
                 return new MailAddress(null, line.Trim());
             }
-            string addr = line.Substring(num).Trim().TrimStart(new char[]
+            string addr = line.Substring(num).Trim().TrimStart(new[]
 			{
 				'<'
-			}).TrimEnd(new char[]
+			}).TrimEnd(new[]
 			{
 				'>'
 			});
@@ -267,24 +243,23 @@ namespace ImapX
 
         public static List<MailAddress> AddressCollection(string value)
         {
-            List<MailAddress> list = new List<MailAddress>();
-            string[] array = value.Trim().Split(new string[]
+            var list = new List<MailAddress>();
+            string[] array = value.Trim().Split(new[]
 			{
 				">,", 
 				"> ,"
 			}, StringSplitOptions.None);
             string[] array2 = array;
-            for (int i = 0; i < array2.Length; i++)
+            foreach (string line in array2)
             {
-                string line = array2[i];
-                try
-                {
-                    list.Add(ParseHelper.Address(line));
-                }
-                catch (Exception)
-                {
-                    throw new Exception("Not correct mail address");
-                }
+            	try
+            	{
+            		list.Add(Address(line));
+            	}
+            	catch (Exception)
+            	{
+            		throw new Exception("Not correct mail address");
+            	}
             }
             return list;
         }

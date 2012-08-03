@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
-namespace EmailParser
+namespace ImapX.EmailParser
 {
     public class EmailParser
     {
@@ -50,7 +51,7 @@ namespace EmailParser
                 {
                     try
                     {
-                        string text = this._emailItems[i].Split(new string[]
+                        string text = this._emailItems[i].Split(new[]
 						{
 							"boundary="
 						}, StringSplitOptions.None)[1];
@@ -72,15 +73,15 @@ namespace EmailParser
                 int num = this._emailItems[i].IndexOf(':');
                 try
                 {
-                    if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString()) & !this._emailItems[i].StartsWith(' '.ToString()))
+                    if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
                     {
                         string text2 = this._emailItems[i].Substring(0, num);
                         string text3 = this._emailItems[i].Substring(num + 2);
                         this._headerLastKey = text2;
-                        this._headersCollection.Add(text2.Trim(new char[]
+                        this._headersCollection.Add(text2.Trim(new[]
 						{
 							' '
-						}), text3.Trim(new char[]
+						}), text3.Trim(new[]
 						{
 							' '
 						}));
@@ -100,7 +101,7 @@ namespace EmailParser
         }
         public string GetPart(BodyPart p)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             bool flag = true;
             foreach (int current in p.BodyIndexes)
             {
@@ -122,9 +123,8 @@ namespace EmailParser
         }
         public void ParseBody()
         {
-            BodyPart bodyPart = new BodyPart();
-            bodyPart.Boundary = null;
-            if (this._boundaryCollection.Count < 1)
+        	var bodyPart = new BodyPart {Boundary = null};
+        	if (this._boundaryCollection.Count < 1)
             {
                 for (int i = this._bodyStartIndex; i <= this._bodyEndIndex; i++)
                 {
@@ -144,16 +144,15 @@ namespace EmailParser
                             {
                                 this._parts.Add(bodyPart);
                             }
-                            bodyPart = new BodyPart();
-                            bodyPart.Boundary = current;
-                            num++;
+                        	bodyPart = new BodyPart {Boundary = current};
+                        	num++;
                             while (this._bodyEndIndex >= num && this._emailItems[num] != string.Empty)
                             {
                                 if (this._emailItems[num].Contains("boundary="))
                                 {
                                     try
                                     {
-                                        string text = this._emailItems[num].Split(new string[]
+                                        string text = this._emailItems[num].Split(new[]
 										{
 											"boundary="
 										}, StringSplitOptions.None)[1];
@@ -175,15 +174,16 @@ namespace EmailParser
                                 int num2 = this._emailItems[num].IndexOf(':');
                                 try
                                 {
-                                    if (num2 > 0 & !this._emailItems[num].StartsWith('\t'.ToString()) & !this._emailItems[num].StartsWith(' '.ToString()))
+                                    if (num2 > 0 & !this._emailItems[num].StartsWith('\t'
+										.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[num].StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
                                     {
                                         string text2 = this._emailItems[num].Substring(0, num2);
                                         string text3 = this._emailItems[num].Substring(num2 + 2);
                                         this._headerLastKey = text2;
-                                        bodyPart.Headers.Add(text2.Trim(new char[]
+                                        bodyPart.Headers.Add(text2.Trim(new[]
 										{
 											' '
-										}), text3.Trim(new char[]
+										}), text3.Trim(new[]
 										{
 											' '
 										}));

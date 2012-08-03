@@ -117,8 +117,8 @@ namespace ImapX
             {
                 throw new ImapException("Password is null or empty");
             }
-            ArrayList arrayList = new ArrayList();
-            string command = string.Concat(new string[]
+            var arrayList = new ArrayList();
+            string command = string.Concat(new[]
 			{
 				"LOGIN \"", 
 				login, 
@@ -142,8 +142,8 @@ namespace ImapX
             {
                 return true;
             }
-            ArrayList arrayList = new ArrayList();
-            string command = "LOGOUT\r\n";
+            var arrayList = new ArrayList();
+            const string command = "LOGOUT\r\n";
             if (!this.SendAndReceive(command, ref arrayList))
             {
                 return false;
@@ -169,7 +169,7 @@ namespace ImapX
                 this._imapStreamReader = new StreamReader(this._imapServer.GetStream());
                 if (useSSL)
                 {
-                    this._imapSslStream = new SslStream(this._imapServer.GetStream(), false, new RemoteCertificateValidationCallback(this.ValidateServerCertificate), null);
+                    this._imapSslStream = new SslStream(this._imapServer.GetStream(), false, this.ValidateServerCertificate, null);
                     try
                     {
                         this._imapSslStream.AuthenticateAsClient(sHost);
@@ -182,7 +182,7 @@ namespace ImapX
                     this._imapSslStreamReader = new StreamReader(this._imapSslStream);
                 }
                 string text = useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
-                if (text.StartsWith("* OK"))
+                if (text != null && text.StartsWith("* OK"))
                 {
                     this.Capability();
                 }
@@ -225,8 +225,8 @@ namespace ImapX
 
         public bool Capability()
         {
-            ArrayList arrayList = new ArrayList();
-            string command = "CAPABILITY\r\n";
+            var arrayList = new ArrayList();
+            const string command = "CAPABILITY\r\n";
             return this.SendAndReceive(command, ref arrayList);
         }
 
@@ -275,7 +275,7 @@ namespace ImapX
                     this._imapStream.Write(data, 0, data.Length);
                 }
                 bool flag = true;
-                MessageCollection messageCollection = new MessageCollection();
+                var messageCollection = new MessageCollection();
                 while (flag)
                 {
                     string text = this._useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
@@ -283,24 +283,26 @@ namespace ImapX
                     {
                         Console.WriteLine(text);
                     }
-                    string[] array = text.ToString().Split(new char[]
-					{
-						' '
-					});
-                    string[] array2 = array;
-                    for (int i = 0; i < array2.Length; i++)
-                    {
-                        string s = array2[i];
-                        int messageUid;
-                        if (int.TryParse(s, out messageUid))
-                        {
-                            messageCollection.Add(new Message
-                            {
-                                MessageUid = messageUid
-                            });
-                        }
-                    }
-                    flag = false;
+                	if (text != null)
+                	{
+                		string[] array = text.Split(new[]
+                		                            	{
+                		                            		' '
+                		                            	});
+                		string[] array2 = array;
+                		foreach (string s in array2)
+                		{
+                			int messageUid;
+                			if (int.TryParse(s, out messageUid))
+                			{
+                				messageCollection.Add(new Message
+                				                      	{
+                				                      		MessageUid = messageUid
+                				                      	});
+                			}
+                		}
+                	}
+                	flag = false;
                 }
                 result = messageCollection;
             }
@@ -376,36 +378,37 @@ namespace ImapX
                     {
                         Console.WriteLine(text2);
                     }
-                    sResultArray.Add(text2);
-                    if (text2.StartsWith("IMAP00" + this._commandCount + " OK"))
-                    {
-                        flag = false;
-                        result = true;
-                    }
-                    else
-                    {
-                        if (text2.StartsWith("IMAP00" + this._commandCount + " NO"))
-                        {
-                            flag = false;
-                            result = false;
-                        }
-                        else
-                        {
-                            if (text2.StartsWith("IMAP00" + this._commandCount + " BAD"))
-                            {
-                                flag = false;
-                                result = false;
-                            }
-                            else
-                            {
-                                if (text2.StartsWith("+ "))
-                                {
-                                    flag = false;
-                                    result = true;
-                                }
-                            }
-                        }
-                    }
+                	if (text2 != null)
+                	{
+                		sResultArray.Add(text2);
+                		if (text2.StartsWith("IMAP00" + this._commandCount + " OK"))
+                		{
+                			flag = false;
+                		}
+                		else
+                		{
+                			if (text2.StartsWith("IMAP00" + this._commandCount + " NO"))
+                			{
+                				flag = false;
+                				result = false;
+                			}
+                			else
+                			{
+                				if (text2.StartsWith("IMAP00" + this._commandCount + " BAD"))
+                				{
+                					flag = false;
+                					result = false;
+                				}
+                				else
+                				{
+                					if (text2.StartsWith("+ "))
+                					{
+                						flag = false;
+                					}
+                				}
+                			}
+                		}
+                	}
                 }
             }
             catch (Exception)

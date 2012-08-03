@@ -7,45 +7,12 @@ namespace ImapX
     public class MessageContent
     {
         private string _contentStream;
-        private string _partID;
-        private string _textData;
-        private byte[] _binaryData;
-        private string _contentType;
-        private string _contentTransferEncoding;
-        private int _contentSize;
-        private string _contentID;
-        private string _contentDisposition;
-        private string _contentFilename;
-        private string _mimeVersion;
-        private string _contentDescription;
-        private string _boundary;
-        private Dictionary<string, string> _partHeaders;
 
-        public string BoundaryName
-        {
-            get
-            {
-                return this._boundary;
-            }
-            set
-            {
-                this._boundary = value;
-            }
-        }
+    	public string BoundaryName { get; set; }
 
-        public Dictionary<string, string> PartHeaders
-        {
-            get
-            {
-                return this._partHeaders;
-            }
-            set
-            {
-                this._partHeaders = value;
-            }
-        }
+    	public Dictionary<string, string> PartHeaders { get; set; }
 
-        public string ContentStream
+    	public string ContentStream
         {
             get
             {
@@ -65,139 +32,29 @@ namespace ImapX
             }
         }
 
-        public string ContentDescription
-        {
-            get
-            {
-                return this._contentDescription;
-            }
-            set
-            {
-                this._contentDescription = value;
-            }
-        }
+    	public string ContentDescription { get; set; }
 
-        public string MIMEVersion
-        {
-            get
-            {
-                return this._mimeVersion;
-            }
-            set
-            {
-                this._mimeVersion = value;
-            }
-        }
+    	public string MIMEVersion { get; set; }
 
-        public string ContentFilename
-        {
-            get
-            {
-                return this._contentFilename;
-            }
-            set
-            {
-                this._contentFilename = value;
-            }
-        }
+    	public string ContentFilename { get; set; }
 
-        public string ContentDisposition
-        {
-            get
-            {
-                return this._contentDisposition;
-            }
-            set
-            {
-                this._contentDisposition = value;
-            }
-        }
+    	public string ContentDisposition { get; set; }
 
-        public string ContentId
-        {
-            get
-            {
-                return this._contentID;
-            }
-            set
-            {
-                this._contentID = value;
-            }
-        }
+    	public string ContentId { get; set; }
 
-        public string PartID
-        {
-            get
-            {
-                return this._partID;
-            }
-            set
-            {
-                this._partID = value;
-            }
-        }
+    	public string PartID { get; set; }
 
-        public string TextData
-        {
-            get
-            {
-                return this._textData;
-            }
-            set
-            {
-                this._textData = value;
-            }
-        }
+    	public string TextData { get; set; }
 
-        public byte[] BinaryData
-        {
-            get
-            {
-                return this._binaryData;
-            }
-            set
-            {
-                this._binaryData = value;
-            }
-        }
+    	public byte[] BinaryData { get; set; }
 
-        public string ContentType
-        {
-            get
-            {
-                return this._contentType;
-            }
-            set
-            {
-                this._contentType = value;
-            }
-        }
+    	public string ContentType { get; set; }
 
-        public string ContentTransferEncoding
-        {
-            get
-            {
-                return this._contentTransferEncoding;
-            }
-            set
-            {
-                this._contentTransferEncoding = value;
-            }
-        }
+    	public string ContentTransferEncoding { get; set; }
 
-        public int ContentSize
-        {
-            get
-            {
-                return this._contentSize;
-            }
-            set
-            {
-                this._contentSize = value;
-            }
-        }
+    	public int ContentSize { get; set; }
 
-        public MessageContent()
+    	public MessageContent()
         {
             this._contentStream = string.Empty;
         }
@@ -256,8 +113,6 @@ namespace ImapX
             {
                 case "base64":
                     attachment.FileData = Convert.FromBase64String(bodyPart);
-                    break;
-                default:
                     break;
             }
 

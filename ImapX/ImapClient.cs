@@ -1,5 +1,4 @@
-﻿using System;
-namespace ImapX
+﻿namespace ImapX
 {
     public class ImapClient
     {
@@ -44,15 +43,8 @@ namespace ImapX
 
         public FolderCollection Folders
         {
-            get
-            {
-                if (this._folders == null)
-                {
-                    this._folders = this.GetFolders();
-                }
-                return this._folders;
-            }
-            set
+            get { return this._folders ?? (this._folders = this.GetFolders()); }
+        	set
             {
                 this._folders = value;
             }
