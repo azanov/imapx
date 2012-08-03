@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -82,19 +81,12 @@ namespace ImapX
 
         public MessageCollection Messages
         {
-            get
+            get { return this._messages ?? (this._messages = this.SetMessage()); }
+        	set
             {
                 if (this._messages == null)
                 {
-                    this._messages = this.setMessage();
-                }
-                return this._messages;
-            }
-            set
-            {
-                if (this._messages == null)
-                {
-                    this._messages = this.setMessage();
+                    this._messages = this.SetMessage();
                 }
                 this._messages = value;
             }
@@ -177,7 +169,7 @@ namespace ImapX
             }
             catch
             {
-                return _folderName ?? string.Empty;
+                return _folderName;
             }
         }
 
@@ -202,16 +194,11 @@ namespace ImapX
 
         public MessageCollection CheckNewMessage(bool processMessages)
         {
-            MessageCollection messageCollection = new MessageCollection();
-            MessageCollection messageCollection2 = new MessageCollection();
-            messageCollection2 = this._client.SearchMessage("all");
-            int result = -1;
-            foreach (Message current in this._messages)
-            {
-                result = Math.Max(result, current.MessageUid);
-            }
-            List<Message> list = messageCollection2.FindAll((Message m) => m.MessageUid > result);
-            if (list != null && list.Count > 0)
+            var messageCollection = new MessageCollection();
+        	MessageCollection messageCollection2 = this._client.SearchMessage("all");
+            int result = this._messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
+        	List<Message> list = messageCollection2.FindAll(m => m.MessageUid > result);
+            if (list.Count > 0)
             {
                 this._lastMessageUpdateCount = list.Count;
                 foreach (Message current2 in list)
@@ -232,11 +219,10 @@ namespace ImapX
             return messageCollection;
         }
 
-        private MessageCollection setMessage()
+        private MessageCollection SetMessage()
         {
             this.Select();
-            MessageCollection messageCollection = new MessageCollection();
-            messageCollection = this._client.SearchMessage("all");
+        	MessageCollection messageCollection = this._client.SearchMessage("all");
             foreach (Message current in messageCollection)
             {
                 current._client = this._client;
@@ -265,7 +251,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             string command = "EXAMINE \"" + this.FolderPath + "\"\r\n";
             if (!this._client.SendAndReceive(command, ref arrayList))
             {
@@ -314,7 +300,7 @@ namespace ImapX
                 throw new ImapException("Dont Connect");
             }
             string text = "STORE {0}:{1} +FLAGS (\\Deleted)\r\n";
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             if (this.Messages.Count == 0)
             {
                 return true;
@@ -341,15 +327,13 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            string format = "CREATE \"{0}\"\r\n";
-            ArrayList arrayList = new ArrayList();
+            const string format = "CREATE \"{0}\"\r\n";
+            var arrayList = new ArrayList();
             string text = string.Format("{0}{1}{2}", this._folderPath, this._client._delimiter, name);
             if (this._client.SendAndReceive(string.Format(format, text), ref arrayList))
             {
-                Folder folder = new Folder(name);
-                folder.FolderPath = text;
-                folder._client = this._client;
-                this._subFolders.Add(folder);
+            	var folder = new Folder(name) {FolderPath = text, _client = this._client};
+            	this._subFolders.Add(folder);
                 this._subFolders[name].Examine();
                 return true;
             }
@@ -362,7 +346,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             string text = "CLOSE \"" + this._folderPath + "\"\r\n";
             this._client.SendAndReceive(text, ref arrayList);
             text = "DELETE \"{0}\"\r\n";
@@ -386,7 +370,7 @@ namespace ImapX
             string selectedFolder = this._client._selectedFolder;
             this.Select();
             string text = "COPY {0} \"{1}\"\r\n";
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             if (!this._client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
                 this._client.SelectFolder(selectedFolder);
@@ -414,7 +398,7 @@ namespace ImapX
             string selectedFolder = this._client._selectedFolder;
             this._client.SelectFolder(this._folderPath);
             string text = "STORE {0} +FLAGS (\\Deleted)\r\n";
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             this.Select();
             if (this._client._imap.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
             {
@@ -451,8 +435,8 @@ namespace ImapX
             }
             string selectedFolder = this._client._selectedFolder;
             this.Select();
-            ArrayList arrayList = new ArrayList();
-            string text = msg.messageBuilder();
+            var arrayList = new ArrayList();
+            string text = msg.MessageBuilder();
             int length = text.Length;
             if (string.IsNullOrEmpty(flag))
             {

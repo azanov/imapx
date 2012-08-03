@@ -3,7 +3,7 @@ namespace ImapX
 {
     public class ImapException : Exception
     {
-        private string _message;
+        private readonly string _message;
 
         public override string Message
         {

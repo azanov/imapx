@@ -1,36 +1,17 @@
 ﻿using System;
-namespace EmailParser
+
+namespace ImapX.EmailParser
 {
     public class ParseError
     {
-        private string _item;
-        private Exception _exception;
-        public string ItemString
+    	public string ItemString { get; set; }
+
+    	public Exception ThrowedException { get; set; }
+
+    	public ParseError(string item, Exception e)
         {
-            get
-            {
-                return this._item;
-            }
-            set
-            {
-                this._item = value;
-            }
-        }
-        public Exception ThrowedException
-        {
-            get
-            {
-                return this._exception;
-            }
-            set
-            {
-                this._exception = value;
-            }
-        }
-        public ParseError(string item, Exception e)
-        {
-            this._item = item;
-            this._exception = e;
+            this.ItemString = item;
+            this.ThrowedException = e;
         }
     }
 }

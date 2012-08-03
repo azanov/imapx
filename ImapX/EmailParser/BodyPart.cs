@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-namespace EmailParser
+﻿using System.Collections.Generic;
+
+namespace ImapX.EmailParser
 {
     public class BodyPart
     {
-        private string _boundary;
-        private List<int> _body = new List<int>();
+    	private List<int> _body = new List<int>();
         private Dictionary<string, string> _headers = new Dictionary<string, string>();
         public Dictionary<string, string> Headers
         {
@@ -18,18 +17,10 @@ namespace EmailParser
                 this._headers = value;
             }
         }
-        public string Boundary
-        {
-            get
-            {
-                return this._boundary;
-            }
-            set
-            {
-                this._boundary = value;
-            }
-        }
-        public List<int> BodyIndexes
+
+    	public string Boundary { get; set; }
+
+    	public List<int> BodyIndexes
         {
             get
             {

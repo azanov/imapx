@@ -1,50 +1,26 @@
-﻿using System;
-namespace ImapX
+﻿namespace ImapX
 {
     public class MailAddress
     {
-        private string _address;
-        private string _displayName;
+    	public string DisplayName { get; set; }
 
-        public string DisplayName
-        {
-            get
-            {
-                return this._displayName;
-            }
-            set
-            {
-                this._displayName = value;
-            }
-        }
+    	public string Address { get; set; }
 
-        public string Address
+    	public MailAddress()
         {
-            get
-            {
-                return this._address;
-            }
-            set
-            {
-                this._address = value;
-            }
-        }
-
-        public MailAddress()
-        {
-            this._displayName = string.Empty;
-            this._address = string.Empty;
+            this.DisplayName = string.Empty;
+            this.Address = string.Empty;
         }
 
         public MailAddress(string display, string addr)
         {
-            this._address = addr;
-            this._displayName = display;
+            this.Address = addr;
+            this.DisplayName = display;
         }
 
         public override string ToString()
         {
-            if (!(this.DisplayName == string.Empty))
+            if (this.DisplayName != string.Empty)
             {
                 return string.Format("{0} <{1}>", this.DisplayName, this.Address);
             }

@@ -1,5 +1,4 @@
-﻿using System;
-namespace ImapX
+﻿namespace ImapX
 {
     public class ResponseType
     {
@@ -12,3 +11,4 @@ namespace ImapX
         public const string PREFIX = "*";
     }
 }
+

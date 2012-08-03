@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 namespace ImapX
 {
     public class Imap : ImapBase
@@ -49,7 +48,7 @@ namespace ImapX
             }
             var arrayList = new ArrayList();
             string command = "SELECT \"" + folderName + "\"\r\n";
-            if (!base.SendAndReceive(command, ref arrayList))
+            if (!SendAndReceive(command, ref arrayList))
             {
                 return false;
             }
@@ -67,29 +66,28 @@ namespace ImapX
             {
                 throw new ImapException("Not Set Search Path");
             }
-            ArrayList arrayList = new ArrayList();
+            var arrayList = new ArrayList();
             string command = "SEARCH " + path + "\r\n";
-            if (!base.SendAndReceive(command, ref arrayList))
+            if (!SendAndReceive(command, ref arrayList))
             {
                 throw new ImapException("Bad or not correct search query");
             }
-            string[] array = arrayList[0].ToString().Split(new char[]
+            string[] array = arrayList[0].ToString().Split(new[]
 			{
 				' '
 			});
-            MessageCollection messageCollection = new MessageCollection();
+            var messageCollection = new MessageCollection();
             string[] array2 = array;
-            for (int i = 0; i < array2.Length; i++)
+            foreach (string s in array2)
             {
-                string s = array2[i];
-                int messageUid;
-                if (int.TryParse(s, out messageUid))
-                {
-                    messageCollection.Add(new Message
-                    {
-                        MessageUid = messageUid
-                    });
-                }
+            	int messageUid;
+            	if (int.TryParse(s, out messageUid))
+            	{
+            		messageCollection.Add(new Message
+            		                      	{
+            		                      		MessageUid = messageUid
+            		                      	});
+            	}
             }
             return messageCollection;
         }
@@ -100,16 +98,16 @@ namespace ImapX
             {
                 throw new ImapException("Not Connect");
             }
-            FolderCollection folderCollection = new FolderCollection();
-            ArrayList arrayList = new ArrayList();
+            var folderCollection = new FolderCollection();
+            var arrayList = new ArrayList();
             string command = "LIST \"" + parent + "\" *\r\n";
-            if (!base.SendAndReceive(command, ref arrayList))
+            if (!SendAndReceive(command, ref arrayList))
             {
                 throw new ImapException("Bad or not correct Path");
             }
             if (arrayList[0].ToString().StartsWith("* "))
             {
-                this._delimiter = arrayList[0].ToString()[arrayList[0].ToString().IndexOf("\"") + 1];
+                this._delimiter = arrayList[0].ToString()[arrayList[0].ToString().IndexOf("\"", System.StringComparison.Ordinal) + 1];
                 if (arrayList[0].ToString().Contains("NIL"))
                 {
                     this._delimiter = '"';
@@ -119,13 +117,13 @@ namespace ImapX
             {
                 if (text.StartsWith("* "))
                 {
-                    string[] array = text.Split(new char[]
+                    string[] array = text.Split(new[]
 					{
 						this._delimiter
 					});
                     if (this._delimiter == '"')
                     {
-                        array = new string[]
+                        array = new[]
 						{
 							array[0], 
 							array[1]
@@ -133,16 +131,15 @@ namespace ImapX
                     }
                     if (array.Length == 2)
                     {
-                        Folder folder = new Folder(array[array.Length - 1].Replace("\"", "").Trim());
-                        if (this._delimiter != '"')
-                        {
-                            folder.FolderPath = text.Substring(text.IndexOf("\"" + this._delimiter + "\"")).Replace("\"" + this._delimiter + "\"", "").Replace("\"", "").Trim();
-                        }
-                        else
-                        {
-                            folder.FolderPath = text.Substring(text.IndexOf(this._delimiter)).Replace("\"", "");
-                        }
-                        if (text.Contains("\\HasChildren"))
+                    	var folder = new Folder(array[array.Length - 1].Replace("\"", "").Trim())
+                    	             	{
+                    	             		FolderPath = this._delimiter != '"'
+                    	             		             	? text.Substring(text.IndexOf("\"" + this._delimiter + "\"", System.StringComparison.Ordinal)).
+                    	             		             	  	Replace("\""
+                    	             		             	  	        + this._delimiter + "\"", "").Replace("\"", "").Trim()
+                    	             		             	: text.Substring(text.IndexOf(this._delimiter)).Replace("\"", "")
+                    	             	};
+                    	if (text.Contains("\\HasChildren"))
                         {
                             folder._hasChildren = true;
                             folder._client = this._imap;
@@ -155,9 +152,13 @@ namespace ImapX
                         if (array.Length == 3 & !parent.Equals("\"\""))
                         {
                             string folderName = array[array.Length - 1].Replace("\"", "").Trim();
-                            Folder folder2 = new Folder(folderName);
-                            folder2.FolderPath = text.Substring(text.IndexOf("\"" + this._delimiter + "\"")).Replace("\"" + this._delimiter + "\"", "").Replace("\"", "").Trim();
-                            if (text.Contains("\\HasChildren"))
+                        	var folder2 = new Folder(folderName)
+                        	              	{
+                        	              		FolderPath =
+                        	              			text.Substring(text.IndexOf("\"" + this._delimiter + "\"", System.StringComparison.Ordinal)).Replace(
+                        	              				"\"" + this._delimiter + "\"", "").Replace("\"", "").Trim()
+                        	              	};
+                        	if (text.Contains("\\HasChildren"))
                             {
                                 folder2._hasChildren = true;
                                 folder2._client = this._imap;
@@ -181,13 +182,12 @@ namespace ImapX
             {
                 throw new ImapException("Not Set Folder Name");
             }
-            string format = "CREATE \"{0}\"\r\n";
-            ArrayList arrayList = new ArrayList();
-            if (base.SendAndReceive(string.Format(format, name), ref arrayList))
+            const string format = "CREATE \"{0}\"\r\n";
+            var arrayList = new ArrayList();
+            if (SendAndReceive(string.Format(format, name), ref arrayList))
             {
-                Folder folder = new Folder(name);
-                folder.FolderPath = name;
-                return true;
+            	var folder = new Folder(name) {FolderPath = name};
+            	return true;
             }
             return false;
         }

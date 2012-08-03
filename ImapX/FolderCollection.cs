@@ -4,7 +4,6 @@ namespace ImapX
 {
     public class FolderCollection : List<Folder>
     {
-
         public Folder this[string name]
         {
             get

@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using EmailParser;
+using ImapX.EmailParser;
 
 namespace ImapX
 {
@@ -21,8 +21,8 @@ namespace ImapX
 		private string _cc;
 		private string _bcc;
 		private DateTime _date;
-		private Dictionary<string, string> _headers = new Dictionary<string, string>();
-		private List<string> _flags = new List<string>();
+		private Dictionary<string, string> _headers;
+		private List<string> _flags;
 		private string _mimeVersion;
 		private string _organization;
 		private string _priority;
@@ -308,6 +308,8 @@ namespace ImapX
 
 		public Message()
 		{
+			this._headers = new Dictionary<string, string>();
+			this._flags = new List<string>();
 			this._attachments = new List<Attachment>();
 			this._bodyParts = new List<MessageContent>();
 			this._to = new List<MailAddress>();
@@ -318,8 +320,8 @@ namespace ImapX
 
 		public bool SetFlag(string status)
 		{
-			bool result = true;
-			ArrayList arrayList = new ArrayList();
+			bool result;
+			var arrayList = new ArrayList();
 			string command = string.Concat(new object[]
 			{
 				"STORE ", 
@@ -336,13 +338,13 @@ namespace ImapX
 			{
 				result = false;
 			}
-			this.getFlags();
+			this.GetFlags();
 			return result;
 		}
 
 		public void ProcessHeader()
 		{
-			this.getMessage("body[HEADER]", false);
+			this.GetMessage("body[HEADER]", false);
 		}
 
         /* Method not used
@@ -394,7 +396,7 @@ namespace ImapX
 
 		public void ProcessFlags()
 		{
-			this.getFlags();
+			this.GetFlags();
 		}
 
         /// <remarks>
@@ -404,8 +406,8 @@ namespace ImapX
         /// </remarks>
 		public bool Process()
 		{
-			this.getFlags();
-			this.getMessage("BODY.PEEK[]", true);
+			this.GetFlags();
+			this.GetMessage("BODY.PEEK[]", true);
 			foreach (MessageContent current in this._bodyParts)
 			{
 				if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
@@ -428,12 +430,14 @@ namespace ImapX
                     continue;
                 else if (current3.ContentDisposition.ToLower().Contains("attachment"))
                 {
-                    Attachment attachment = new Attachment();
-                    attachment.FileName = current3.ContentFilename;
-                    attachment.FileType = current3.ContentType;
-                    attachment.FileEncoding = current3.ContentTransferEncoding;
-                    attachment.FileData = Convert.FromBase64String(current3.ContentStream);
-                    this._attachments.Add(attachment);
+                	var attachment = new Attachment
+                	                 	{
+                	                 		FileName = current3.ContentFilename,
+                	                 		FileType = current3.ContentType,
+                	                 		FileEncoding = current3.ContentTransferEncoding,
+                	                 		FileData = Convert.FromBase64String(current3.ContentStream)
+                	                 	};
+                	this._attachments.Add(attachment);
                 }
                 else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
                     this._attachments.Add(current3.ToAttachment());               // [27.07.2012]
@@ -441,10 +445,10 @@ namespace ImapX
 			return true;
 		}
 
-		private bool getFlags()
+		private bool GetFlags()
 		{
-			bool flag = true;
-			ArrayList arrayList = new ArrayList();
+			bool flag;
+			var arrayList = new ArrayList();
 			string command = "FETCH " + this._msgUID + " (FLAGS)\r\n";
 			try
 			{
@@ -503,7 +507,7 @@ namespace ImapX
             }
             else if (_bodyParts.Count > 0)
             {
-                var part =_bodyParts.Where(_ => !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment"))).FirstOrDefault();
+                var part =_bodyParts.FirstOrDefault(_ => !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment")));
                 if (part == null)
                 {
                     isHtml = false;
@@ -523,16 +527,16 @@ namespace ImapX
                 {
                     if (string.IsNullOrWhiteSpace(tmp[i])) continue;
                     var m = rex.Match(tmp[i]);
-                    if (m == null || !m.Success)
+                    if (!m.Success)
                     {
                         //all headers passed
                         body = string.Join("\r\n", tmp.Skip(i));
                         break;
                     }
-                    else if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
-                        transferEncoding = m.Groups[2].Value;
-                    else if (m.Groups[1].Value.ToLower().Trim() == "content-type")
-                        encoding = ParseHelper.ParseContentType(m.Groups[2].Value, out contentType);
+                	if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
+                		transferEncoding = m.Groups[2].Value;
+                	else if (m.Groups[1].Value.ToLower().Trim() == "content-type")
+                		encoding = ParseHelper.ParseContentType(m.Groups[2].Value, out contentType);
                 }
 
             }
@@ -546,8 +550,6 @@ namespace ImapX
                     break;
                 case "quoted-printable":
                     body = ParseHelper.DecodeQuotedPrintable(body, encoding);
-                    break;
-                default:
                     break;
             }
 
@@ -564,9 +566,9 @@ namespace ImapX
         /// [30.07.2012] Replaced weird if-clauses used for header
         ///              parsing with an easy to read switch-case
         /// </remarks>
-		private void getMessage(string path, bool processBody)
+		private void GetMessage(string path, bool processBody)
 		{
-			ArrayList arrayList = new ArrayList();
+			var arrayList = new ArrayList();
 			string command = string.Concat(new object[]
 			{
 				"FETCH ", 
@@ -581,7 +583,8 @@ namespace ImapX
             {
                 this._emailParser = new EmailParser.EmailParser(arrayList.ToArray(typeof(string)) as string[]);
             }
-            catch { }
+            catch (Exception)
+            { }
 
 			this._emailParser.InitializeIndexes();
 			this._emailParser.ParseHeaders();
@@ -652,7 +655,7 @@ namespace ImapX
 				this._emailParser.ParseBody();
 				foreach (BodyPart current2 in this._emailParser._parts)
 				{
-					MessageContent messageContent = new MessageContent();
+					var messageContent = new MessageContent();
 					foreach (KeyValuePair<string, string> current3 in current2.Headers)
 					{
 						if (current3.Key.ToLower().Equals("content-type"))
@@ -666,10 +669,10 @@ namespace ImapX
 								messageContent.ContentDisposition = current3.Value;
 								if (current3.Value.ToLower().Contains("filename="))
 								{
-									string contentFilename = current3.Value.Split(new string[]
+									string contentFilename = current3.Value.Split(new[]
 									{
 										"filename="
-									}, StringSplitOptions.None)[1].Trim(new char[]
+									}, StringSplitOptions.None)[1].Trim(new[]
 									{
 										'"'
 									});
@@ -702,16 +705,16 @@ namespace ImapX
 			}
 		}
 
-		private StringBuilder getEml()
+		private StringBuilder GetEml()
 		{
-			StringBuilder stringBuilder = new StringBuilder();
+			var stringBuilder = new StringBuilder();
 			if (this._emailParser != null && this._emailParser._emailItems != null && this._emailParser._emailItems.Length > 0)
 			{
 				for (int i = 1; i <= this._emailParser._emailItems.Length - 2; i++)
 				{
 					if (i == this._emailParser._emailItems.Length - 2 && this._emailParser._emailItems[i].Length > 0)
 					{
-						stringBuilder.AppendFormat("{0}{1}", this._emailParser._emailItems[i].TrimEnd(new char[]
+						stringBuilder.AppendFormat("{0}{1}", this._emailParser._emailItems[i].TrimEnd(new[]
 						{
 							')'
 						}), "\r\n");
@@ -724,14 +727,14 @@ namespace ImapX
 			}
 			else
 			{
-				stringBuilder.Append(this.messageBuilder());
+				stringBuilder.Append(this.MessageBuilder());
 			}
 			return stringBuilder;
 		}
 
 		public string GetAsString()
 		{
-			return this.getEml().ToString();
+			return this.GetEml().ToString();
 		}
 
 		public void SaveAsEmlToFile(string path, string filename)
@@ -744,8 +747,8 @@ namespace ImapX
 			{
 				filename = Guid.NewGuid().ToString();
 			}
-			StringBuilder eml = this.getEml();
-			using (FileStream fileStream = new FileStream(path + filename + ".eml", FileMode.Create, FileAccess.Write))
+			StringBuilder eml = this.GetEml();
+			using (var fileStream = new FileStream(path + filename + ".eml", FileMode.Create, FileAccess.Write))
 			{
 				using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.ASCII))
 				{
@@ -754,18 +757,17 @@ namespace ImapX
 			}
 		}
 
-		public string messageBuilder()
+		public string MessageBuilder()
 		{
-			StringBuilder stringBuilder = new StringBuilder();
+			var stringBuilder = new StringBuilder();
 			DateTime now = DateTime.Now;
-			now = DateTime.Now;
 			stringBuilder.AppendFormat("Date: {0}{1}", now.ToString("dd-MM-yyyy hh:mm:ss", CultureInfo.CreateSpecificCulture("en-US")), "\r\n");
 			if (this._from.Count > 0)
 			{
 				stringBuilder.Append("From: ");
 				foreach (MailAddress current in this._from)
 				{
-					stringBuilder.AppendFormat("{0}, ", current.ToString());
+					stringBuilder.AppendFormat("{0}, ", current);
 				}
 				stringBuilder.Remove(stringBuilder.Length - 2, 2);
 				stringBuilder.Append("\r\n");
@@ -775,7 +777,7 @@ namespace ImapX
 				stringBuilder.Append("To: ");
 				foreach (MailAddress current2 in this._to)
 				{
-					stringBuilder.AppendFormat("{0}, ", current2.ToString());
+					stringBuilder.AppendFormat("{0}, ", current2);
 				}
 				stringBuilder.Remove(stringBuilder.Length - 2, 1);
 				stringBuilder.Append("\r\n");
@@ -853,7 +855,7 @@ namespace ImapX
 				foreach (Attachment current3 in this._attachments)
 				{
 					stringBuilder.AppendFormat("--part000{0}", Environment.NewLine);
-					stringBuilder.AppendFormat("Content-Type: {0}; name=\"{1}\"{2}", current3.FileType, current3.FileName.Substring(current3.FileName.IndexOf('/')).Trim(new char[]
+					stringBuilder.AppendFormat("Content-Type: {0}; name=\"{1}\"{2}", current3.FileType, current3.FileName.Substring(current3.FileName.IndexOf('/')).Trim(new[]
 					{
 						'/'
 					}), Environment.NewLine);
@@ -865,7 +867,7 @@ namespace ImapX
 					{
 						stringBuilder.AppendFormat("Content-Transfer-Encoding: {0}{1}", current3.FileEncoding, Environment.NewLine);
 					}
-					stringBuilder.AppendFormat("Content-Disposition: attachment; filename=\"{0}\"{1}", current3.FileName.Substring(current3.FileName.LastIndexOf('/')).Trim(new char[]
+					stringBuilder.AppendFormat("Content-Disposition: attachment; filename=\"{0}\"{1}", current3.FileName.Substring(current3.FileName.LastIndexOf('/')).Trim(new[]
 					{
 						'/'
 					}), Environment.NewLine);
