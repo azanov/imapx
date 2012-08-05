@@ -46,7 +46,6 @@
     <Compile Include="EmailParser\EmailParser.cs" />
     <Compile Include="EmailParser\ParseError.cs" />
     <Compile Include="Attachment.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Folder.cs" />
     <Compile Include="FolderCollection.cs" />
     <Compile Include="FolderFlags.cs" />
@@ -55,6 +54,7 @@
     <Compile Include="ImapClient.cs" />
     <Compile Include="ImapException.cs" />
     <Compile Include="ImapFlags.cs" />
+    <Compile Include="ImapUTF7.cs" />
     <Compile Include="MailAddress.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageCollection.cs" />

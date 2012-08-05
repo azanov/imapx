@@ -55,7 +55,7 @@
             FolderCollection folders = this._client.GetFolders("");
             foreach (Folder current in folders)
             {
-                current._client = this._client;
+                current.Client = this._client;
             }
             return folders;
         }

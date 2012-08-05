@@ -8,7 +8,7 @@ namespace ImapX
         {
             get
             {
-                var result = Find(_ => _.Name.Equals(name));
+                var result = Find(_ => _.Name.Equals(name) || _.ImapUtf7FolderName.Equals(name));
                 if (result != null)
                     result.Examine();
                 return result;

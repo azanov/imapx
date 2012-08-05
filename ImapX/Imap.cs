@@ -4,7 +4,7 @@ namespace ImapX
     public class Imap : ImapBase
     {
         private FolderCollection _folders;
-        internal char _delimiter = '/';
+        internal char Delimiter = '/';
 
         internal Imap _imap
         {
@@ -20,25 +20,25 @@ namespace ImapX
 
         public Imap(string host, int port, bool useSsl)
         {
-            this._imapHost = host;
-            this._imapPort = port;
-            this._useSSL = useSsl;
-            this._folders = new FolderCollection();
+            _imapHost = host;
+            _imapPort = port;
+            _useSSL = useSsl;
+            _folders = new FolderCollection();
         }
 
         public Imap(string host, int port, bool useSsl, string userLogin, string userPassword)
         {
-            this._imapHost = host;
-            this._imapPort = port;
-            this._useSSL = useSsl;
-            this._userLogin = userLogin;
-            this._userPassword = userPassword;
-            this._folders = new FolderCollection();
+            _imapHost = host;
+            _imapPort = port;
+            _useSSL = useSsl;
+            _userLogin = userLogin;
+            _userPassword = userPassword;
+            _folders = new FolderCollection();
         }
 
         public bool SelectFolder(string folderName)
         {
-            if (this._imap == null && !this._imap._isConnected)
+            if (_imap == null || !_imap._isConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -52,13 +52,13 @@ namespace ImapX
             {
                 return false;
             }
-            this._selectedFolder = folderName;
+            _selectedFolder = folderName;
             return true;
         }
 
         public MessageCollection SearchMessage(string path)
         {
-            if (this._imap == null && !this._imap._isConnected)
+            if (_imap == null || !_imap._isConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -94,7 +94,7 @@ namespace ImapX
 
         public FolderCollection GetFolders(string parent)
         {
-            if (this._imap == null || !this._imap._isConnected)
+            if (_imap == null || !_imap._isConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -107,10 +107,10 @@ namespace ImapX
             }
             if (arrayList[0].ToString().StartsWith("* "))
             {
-                this._delimiter = arrayList[0].ToString()[arrayList[0].ToString().IndexOf("\"", System.StringComparison.Ordinal) + 1];
+                Delimiter = arrayList[0].ToString()[arrayList[0].ToString().IndexOf("\"", System.StringComparison.Ordinal) + 1];
                 if (arrayList[0].ToString().Contains("NIL"))
                 {
-                    this._delimiter = '"';
+                    Delimiter = '"';
                 }
             }
             foreach (string text in arrayList)
@@ -119,9 +119,9 @@ namespace ImapX
                 {
                     string[] array = text.Split(new[]
 					{
-						this._delimiter
+						Delimiter
 					});
-                    if (this._delimiter == '"')
+                    if (Delimiter == '"')
                     {
                         array = new[]
 						{
@@ -133,16 +133,16 @@ namespace ImapX
                     {
                     	var folder = new Folder(array[array.Length - 1].Replace("\"", "").Trim())
                     	             	{
-                    	             		FolderPath = this._delimiter != '"'
-                    	             		             	? text.Substring(text.IndexOf("\"" + this._delimiter + "\"", System.StringComparison.Ordinal)).
+                    	             		FolderPath = Delimiter != '"'
+                    	             		             	? text.Substring(text.IndexOf("\"" + Delimiter + "\"", System.StringComparison.Ordinal)).
                     	             		             	  	Replace("\""
-                    	             		             	  	        + this._delimiter + "\"", "").Replace("\"", "").Trim()
-                    	             		             	: text.Substring(text.IndexOf(this._delimiter)).Replace("\"", "")
+                    	             		             	  	        + Delimiter + "\"", "").Replace("\"", "").Trim()
+                    	             		             	: text.Substring(text.IndexOf(Delimiter)).Replace("\"", "")
                     	             	};
                     	if (text.Contains("\\HasChildren"))
                         {
-                            folder._hasChildren = true;
-                            folder._client = this._imap;
+                            folder.HasChildren = true;
+                            folder.Client = _imap;
                             folder.GetSubFolders();
                         }
                         folderCollection.Add(folder);
@@ -155,13 +155,13 @@ namespace ImapX
                         	var folder2 = new Folder(folderName)
                         	              	{
                         	              		FolderPath =
-                        	              			text.Substring(text.IndexOf("\"" + this._delimiter + "\"", System.StringComparison.Ordinal)).Replace(
-                        	              				"\"" + this._delimiter + "\"", "").Replace("\"", "").Trim()
+                        	              			text.Substring(text.IndexOf("\"" + Delimiter + "\"", System.StringComparison.Ordinal)).Replace(
+                        	              				"\"" + Delimiter + "\"", "").Replace("\"", "").Trim()
                         	              	};
                         	if (text.Contains("\\HasChildren"))
                             {
-                                folder2._hasChildren = true;
-                                folder2._client = this._imap;
+                                folder2.HasChildren = true;
+                                folder2.Client = _imap;
                                 folder2.GetSubFolders();
                             }
                             folderCollection.Add(folder2);
@@ -174,7 +174,7 @@ namespace ImapX
 
         public bool CreateFolder(string name)
         {
-            if (this._imap == null && !this._imap._isConnected)
+            if (_imap == null || !_imap._isConnected)
             {
                 throw new ImapException("Not Connect");
             }
