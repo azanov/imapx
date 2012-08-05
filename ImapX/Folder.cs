@@ -1,231 +1,136 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+
 namespace ImapX
 {
     public class Folder
     {
-        public Imap _client;
-        private string _folderName;
-        private string _folderPath;
-        private FolderCollection _subFolders;
-        private MessageCollection _messages;
-        private int _unseen;
-        private int _recents;
+        public Imap Client;
         private int _exists;
-        private string _uidValidity;
+        private string _friendlyFolderName;
+        private MessageCollection _messages;
+        private int _recents;
+        private FolderCollection _subFolders;
         private int _uidNext;
-        private int _lastMessageUpdateCount;
-        internal bool _hasChildren;
+        private string _uidValidity;
+        private int _unseen;
 
-        public int LastUpdateMessagesCount
+        public Folder(string folderName)
         {
-            get
-            {
-                return this._lastMessageUpdateCount;
-            }
+            ImapUtf7FolderName = folderName;
+            _subFolders = new FolderCollection();
         }
 
-        public bool HasChildren
-        {
-            get
-            {
-                return this._hasChildren;
-            }
-        }
+        public int LastUpdateMessagesCount { get; private set; }
+
+        public bool HasChildren { get; internal set; }
 
         public int Unseen
         {
-            get
-            {
-                return this._unseen;
-            }
+            get { return _unseen; }
         }
 
         public int Recents
         {
-            get
-            {
-                return this._recents;
-            }
-            set
-            {
-                this._recents = value;
-            }
+            get { return _recents; }
+            set { _recents = value; }
         }
 
         public int Exists
         {
-            get
-            {
-                return this._exists;
-            }
+            get { return _exists; }
         }
 
         public int UidNext
         {
-            get
-            {
-                return this._uidNext;
-            }
+            get { return _uidNext; }
         }
 
         public string UidValidity
         {
-            get
-            {
-                return this._uidValidity;
-            }
+            get { return _uidValidity; }
         }
 
         public MessageCollection Messages
         {
-            get { return this._messages ?? (this._messages = this.SetMessage()); }
-        	set
+            get { return _messages ?? (_messages = SetMessage()); }
+            set
             {
-                if (this._messages == null)
-                {
-                    this._messages = this.SetMessage();
-                }
-                this._messages = value;
+                if (_messages == null)
+                    _messages = SetMessage();
+                _messages = value;
             }
         }
 
-        public string FolderPath
-        {
-            get
-            {
-                return this._folderPath;
-            }
-            set
-            {
-                this._folderPath = value;
-            }
-        }
+        public string FolderPath { get; set; }
 
         public FolderCollection SubFolder
         {
             get
             {
-                this.SubfolderInit();
-                return this._subFolders;
+                SubfolderInit();
+                return _subFolders;
             }
-            set
-            {
-                this._subFolders = value;
-            }
+            set { _subFolders = value; }
         }
 
         public string Name
         {
             get
             {
-                return this._folderName;
-            }
-            set
-            {
-                this._folderName = value;
+                return string.IsNullOrWhiteSpace(_friendlyFolderName)
+                           ? (_friendlyFolderName = ImapUTF7.Decode(ImapUtf7FolderName))
+                           : _friendlyFolderName;
             }
         }
 
-        /// <summary>
-        /// Decodes the folder name using the specified encoding and 
-        /// returns a friendly string
-        /// </summary>
-        /// <param name="encoding">The encoding to use. If null, 1201 (russian) is used by default</param>
-        /// <remarks>
-        /// [27.07.2012] Fix by Pavel Azanov (coder13)
-        /// </remarks>
-        public string GetDecodedName(Encoding encoding)
-        {
-            if (string.IsNullOrWhiteSpace(this._folderName))
-                return string.Empty;
-
-            try
-            {
-
-                if (!this._folderName.StartsWith("&") && !this._folderName.EndsWith("-"))
-                    return this._folderName;
-
-                var sb = new StringBuilder();
-
-                this._folderName.Split(' ').All(delegate(string part)
-                {
-
-                    part = part.Replace(",", "/").TrimStart('&').TrimEnd('-');
-
-                    while (part.Length % 4 != 0)
-                        part += "=";
-
-
-                    sb.Append(ParseHelper.DecodeBase64(part, encoding));
-                    sb.Append(" ");
-
-                    return true;
-                });
-
-                return sb.ToString().Trim();
-            }
-            catch
-            {
-                return _folderName;
-            }
-        }
+        internal string ImapUtf7FolderName { get; set; }
 
         private void SubfolderInit()
         {
-            foreach (Folder current in this._subFolders)
-            {
-                current._client = this._client;
-            }
-        }
-
-        public Folder(string folderName)
-        {
-            this._folderName = folderName;
-            this._subFolders = new FolderCollection();
+            foreach (var current in _subFolders)
+                current.Client = Client;
         }
 
         public override string ToString()
         {
-            return this.Name;
+            return Name;
         }
 
         public MessageCollection CheckNewMessage(bool processMessages)
         {
             var messageCollection = new MessageCollection();
-        	MessageCollection messageCollection2 = this._client.SearchMessage("all");
-            int result = this._messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
-        	List<Message> list = messageCollection2.FindAll(m => m.MessageUid > result);
+            var messageCollection2 = Client.SearchMessage("all");
+            var result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
+            var list = messageCollection2.FindAll(m => m.MessageUid > result);
             if (list.Count > 0)
             {
-                this._lastMessageUpdateCount = list.Count;
-                foreach (Message current2 in list)
+                LastUpdateMessagesCount = list.Count;
+                foreach (var current2 in list)
                 {
-                    current2._client = this._client;
+                    current2._client = Client;
                     if (processMessages)
                     {
                         current2.Process();
                     }
                 }
-                this._messages.AddRange(list);
+                _messages.AddRange(list);
                 messageCollection.AddRange(list);
             }
             else
             {
-                this._lastMessageUpdateCount = 0;
+                LastUpdateMessagesCount = 0;
             }
             return messageCollection;
         }
 
         private MessageCollection SetMessage()
         {
-            this.Select();
-        	MessageCollection messageCollection = this._client.SearchMessage("all");
-            foreach (Message current in messageCollection)
+            Select();
+            var messageCollection = Client.SearchMessage("all");
+            foreach (var current in messageCollection)
             {
-                current._client = this._client;
+                current._client = Client;
             }
             return messageCollection;
         }
@@ -235,7 +140,7 @@ namespace ImapX
             bool result;
             try
             {
-                this._subFolders = this._client.GetFolders(this._folderPath + this._client._delimiter);
+                _subFolders = Client.GetFolders(FolderPath + Client.Delimiter);
                 result = true;
             }
             catch
@@ -247,21 +152,22 @@ namespace ImapX
 
         public bool Examine()
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
             var arrayList = new ArrayList();
-            string command = "EXAMINE \"" + this.FolderPath + "\"\r\n";
-            if (!this._client.SendAndReceive(command, ref arrayList))
+            string command = "EXAMINE \"" + FolderPath + "\"\r\n";
+            if (!Client.SendAndReceive(command, ref arrayList))
             {
                 return false;
             }
             foreach (string line in arrayList)
             {
-                if (!ParseHelper.Exists(line, ref this._exists) && !ParseHelper.Recent(line, ref this._recents) && !ParseHelper.UidNext(line, ref this._uidNext) && !ParseHelper.Unseen(line, ref this._unseen))
+                if (!ParseHelper.Exists(line, ref _exists) && !ParseHelper.Recent(line, ref _recents) &&
+                    !ParseHelper.UidNext(line, ref _uidNext) && !ParseHelper.Unseen(line, ref _unseen))
                 {
-                    ParseHelper.UidValidity(line, ref this._uidValidity);
+                    ParseHelper.UidValidity(line, ref _uidValidity);
                 }
             }
             return true;
@@ -269,52 +175,52 @@ namespace ImapX
 
         public MessageCollection Search(string path, bool makeProcess)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
-            string selectedFolder = this._client._selectedFolder;
-            this.Select();
-            MessageCollection messageCollection = this._client.SearchMessage(path);
-            foreach (Message current in messageCollection)
+            var selectedFolder = Client._selectedFolder;
+            Select();
+            var messageCollection = Client.SearchMessage(path);
+            foreach (var current in messageCollection)
             {
-                current._client = this._client;
+                current._client = Client;
                 if (makeProcess)
                 {
                     current.Process();
                 }
             }
-            this._client.SelectFolder(selectedFolder);
+            Client.SelectFolder(selectedFolder);
             return messageCollection;
         }
 
         public void Select()
         {
-            this._client.SelectFolder(this._folderPath);
+            Client.SelectFolder(FolderPath);
         }
 
         public bool EmptyFolder()
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
             string text = "STORE {0}:{1} +FLAGS (\\Deleted)\r\n";
             var arrayList = new ArrayList();
-            if (this.Messages.Count == 0)
+            if (Messages.Count == 0)
             {
                 return true;
             }
-            int messageUid = this.Messages[0].MessageUid;
-            int messageUid2 = this.Messages[this.Messages.Count - 1].MessageUid;
-            this.Select();
-            if (this._client.SendAndReceive(string.Format(text, messageUid, messageUid2), ref arrayList))
+            int messageUid = Messages[0].MessageUid;
+            int messageUid2 = Messages[Messages.Count - 1].MessageUid;
+            Select();
+            if (Client.SendAndReceive(string.Format(text, messageUid, messageUid2), ref arrayList))
             {
                 text = "EXPUNGE\r\n";
-                if (this._client.SendAndReceive(text, ref arrayList))
+                if (Client.SendAndReceive(text, ref arrayList))
                 {
-                    this._messages.Clear();
-                    this.Examine();
+                    _messages.Clear();
+                    Examine();
                     return true;
                 }
             }
@@ -323,18 +229,18 @@ namespace ImapX
 
         public bool CreateFolder(string name)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
             const string format = "CREATE \"{0}\"\r\n";
             var arrayList = new ArrayList();
-            string text = string.Format("{0}{1}{2}", this._folderPath, this._client._delimiter, name);
-            if (this._client.SendAndReceive(string.Format(format, text), ref arrayList))
+            string text = string.Format("{0}{1}{2}", FolderPath, Client.Delimiter, name);
+            if (Client.SendAndReceive(string.Format(format, text), ref arrayList))
             {
-            	var folder = new Folder(name) {FolderPath = text, _client = this._client};
-            	this._subFolders.Add(folder);
-                this._subFolders[name].Examine();
+                var folder = new Folder(name) {FolderPath = text, Client = Client};
+                _subFolders.Add(folder);
+                _subFolders[name].Examine();
                 return true;
             }
             return false;
@@ -342,20 +248,20 @@ namespace ImapX
 
         public bool DeleteFolder()
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
             var arrayList = new ArrayList();
-            string text = "CLOSE \"" + this._folderPath + "\"\r\n";
-            this._client.SendAndReceive(text, ref arrayList);
+            string text = "CLOSE \"" + FolderPath + "\"\r\n";
+            Client.SendAndReceive(text, ref arrayList);
             text = "DELETE \"{0}\"\r\n";
-            return this._client.SendAndReceive(string.Format(text, this.FolderPath), ref arrayList);
+            return Client.SendAndReceive(string.Format(text, FolderPath), ref arrayList);
         }
 
         public bool CopyMessageToFolder(Message msg, Folder folder)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -367,27 +273,27 @@ namespace ImapX
             {
                 throw new ImapException("Folder is null");
             }
-            string selectedFolder = this._client._selectedFolder;
-            this.Select();
+            string selectedFolder = Client._selectedFolder;
+            Select();
             string text = "COPY {0} \"{1}\"\r\n";
             var arrayList = new ArrayList();
-            if (!this._client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
+            if (!Client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
-                this._client.SelectFolder(selectedFolder);
+                Client.SelectFolder(selectedFolder);
                 return false;
             }
             text = "EXPUNGE\r\n";
-            if (!this._client.SendAndReceive(text, ref arrayList))
+            if (!Client.SendAndReceive(text, ref arrayList))
             {
                 return false;
             }
-            this._client.SelectFolder(selectedFolder);
+            Client.SelectFolder(selectedFolder);
             return true;
         }
 
         public bool DeleteMessage(Message msg)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -395,37 +301,37 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = this._client._selectedFolder;
-            this._client.SelectFolder(this._folderPath);
+            string selectedFolder = Client._selectedFolder;
+            Client.SelectFolder(FolderPath);
             string text = "STORE {0} +FLAGS (\\Deleted)\r\n";
             var arrayList = new ArrayList();
-            this.Select();
-            if (this._client._imap.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
+            Select();
+            if (Client._imap.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
             {
                 text = "EXPUNGE\r\n";
-                if (this._client.SendAndReceive(text, ref arrayList))
+                if (Client.SendAndReceive(text, ref arrayList))
                 {
-                    this.Examine();
+                    Examine();
                 }
-                this._client.SelectFolder(selectedFolder);
+                Client.SelectFolder(selectedFolder);
                 return true;
             }
-            this._client.SelectFolder(selectedFolder);
+            Client.SelectFolder(selectedFolder);
             return false;
         }
 
         public bool MoveMessageToFolder(Message msg, Folder folder)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
-            return this.CopyMessageToFolder(msg, folder) && this.DeleteMessage(msg);
+            return CopyMessageToFolder(msg, folder) && DeleteMessage(msg);
         }
 
         public bool AppendMessage(Message msg, string flag)
         {
-            if (this._client == null && !this._client._isConnected)
+            if (Client == null || !Client._isConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -433,8 +339,8 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = this._client._selectedFolder;
-            this.Select();
+            string selectedFolder = Client._selectedFolder;
+            Select();
             var arrayList = new ArrayList();
             string text = msg.MessageBuilder();
             int length = text.Length;
@@ -443,21 +349,21 @@ namespace ImapX
                 flag = "\\draft";
             }
             string command = string.Concat(new object[]
-			{
-				"APPEND \"", 
-				this.FolderPath, 
-				"\" (", 
-				flag, 
-				") {", 
-				length - 2, 
-				"}\r\n"
-			});
-            if (this._client.SendAndReceive(command, ref arrayList) && this._client.SendData(text))
+                                               {
+                                                   "APPEND \"",
+                                                   FolderPath,
+                                                   "\" (",
+                                                   flag,
+                                                   ") {",
+                                                   length - 2,
+                                                   "}\r\n"
+                                               });
+            if (Client.SendAndReceive(command, ref arrayList) && Client.SendData(text))
             {
-                this._client.SelectFolder(selectedFolder);
+                Client.SelectFolder(selectedFolder);
                 return true;
             }
-            this._client.SelectFolder(selectedFolder);
+            Client.SelectFolder(selectedFolder);
             return false;
         }
     }
