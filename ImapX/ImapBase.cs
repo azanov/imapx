@@ -11,30 +11,32 @@ namespace ImapX
     public class ImapBase
     {
         protected bool isDebug;
-        protected int _commandCount;
-        protected TcpClient _imapServer;
-        protected NetworkStream _imapStream;
-        protected SslStream _imapSslStream;
-        protected StreamReader _imapStreamReader;
-        protected StreamReader _imapSslStreamReader;
-        protected string _imapHost = "localhost";
-        protected int _imapPort = 146;
-        protected bool _useSSL;
-        internal bool _isConnected;
-        internal bool _isLogged;
+        protected int CommandCount;
+        protected TcpClient ImapServer;
+        protected NetworkStream ImapStream;
+        protected SslStream ImapSslStream;
+        
+        protected StreamReader ImapStreamReader;
+        protected StreamReader ImapSslStreamReader;
+        protected string ImapHost = "localhost";
+        protected int ImapPort = 146;
+        protected bool UseSSL;
+        protected SslProtocols SSLProtocols;
+        internal bool IsConnected;
+        internal bool IsLogged;
         protected string _userLogin;
         protected string _userPassword;
-        internal string _selectedFolder;
+        internal string SelectedFolder;
 
         public bool IsDebug
         {
             get
             {
-                return this.isDebug;
+                return isDebug;
             }
             set
             {
-                this.isDebug = value;
+                isDebug = value;
             }
         }
 
@@ -42,11 +44,11 @@ namespace ImapX
         {
             get
             {
-                return this._imapHost;
+                return ImapHost;
             }
             set
             {
-                this._imapHost = value;
+                ImapHost = value;
             }
         }
 
@@ -54,11 +56,11 @@ namespace ImapX
         {
             get
             {
-                return this._imapPort;
+                return ImapPort;
             }
             set
             {
-                this._imapPort = value;
+                ImapPort = value;
             }
         }
 
@@ -66,11 +68,11 @@ namespace ImapX
         {
             get
             {
-                return this._useSSL;
+                return UseSSL;
             }
             set
             {
-                this._useSSL = value;
+                UseSSL = value;
             }
         }
 
@@ -78,11 +80,11 @@ namespace ImapX
         {
             get
             {
-                return this._userLogin;
+                return _userLogin;
             }
             set
             {
-                this._userLogin = value;
+                _userLogin = value;
             }
         }
 
@@ -90,22 +92,22 @@ namespace ImapX
         {
             get
             {
-                return this._userPassword;
+                return _userPassword;
             }
             set
             {
-                this._userPassword = value;
+                _userPassword = value;
             }
         }
 
         public bool LogIn()
         {
-            return this.LogIn(this._userLogin, this._userPassword);
+            return LogIn(_userLogin, _userPassword);
         }
 
         public bool LogIn(string login, string password)
         {
-            if (!this._isConnected)
+            if (!IsConnected)
             {
                 throw new ImapException("Not Connection");
             }
@@ -126,11 +128,11 @@ namespace ImapX
 				password, 
 				"\"\r\n"
 			});
-            if (this.SendAndReceive(command, ref arrayList))
+            if (SendAndReceive(command, ref arrayList))
             {
-                this._isLogged = true;
-                this._userLogin = login;
-                this._userPassword = password;
+                IsLogged = true;
+                _userLogin = login;
+                _userPassword = password;
                 return true;
             }
             return false;
@@ -138,53 +140,53 @@ namespace ImapX
 
         public bool LogOut()
         {
-            if (!this._isLogged)
+            if (!IsLogged)
             {
                 return true;
             }
             var arrayList = new ArrayList();
             const string command = "LOGOUT\r\n";
-            if (!this.SendAndReceive(command, ref arrayList))
+            if (!SendAndReceive(command, ref arrayList))
             {
                 return false;
             }
-            this._isLogged = false;
+            IsLogged = false;
             return true;
         }
 
         public bool Connect()
         {
-            return this.Connect(this._imapHost, this._imapPort, this._useSSL);
+            return Connect(ImapHost, ImapPort, UseSSL);
         }
 
         public bool Connect(string sHost, int nPort, bool useSSL)
         {
-            this._useSSL = useSSL;
+            UseSSL = useSSL;
             bool result = true;
-            this._commandCount = 0;
+            CommandCount = 0;
             try
             {
-                this._imapServer = new TcpClient(sHost, nPort);
-                this._imapStream = this._imapServer.GetStream();
-                this._imapStreamReader = new StreamReader(this._imapServer.GetStream());
+                ImapServer = new TcpClient(sHost, nPort);
+                ImapStream = ImapServer.GetStream();
+                ImapStreamReader = new StreamReader(ImapServer.GetStream());
                 if (useSSL)
                 {
-                    this._imapSslStream = new SslStream(this._imapServer.GetStream(), false, this.ValidateServerCertificate, null);
+                    ImapSslStream = new SslStream(ImapServer.GetStream(), false, ValidateServerCertificate, null);
                     try
                     {
-                        this._imapSslStream.AuthenticateAsClient(sHost);
+                        ImapSslStream.AuthenticateAsClient(sHost, null, SSLProtocols, false);
                     }
                     catch (AuthenticationException)
                     {
                         result = false;
-                        this._imapServer.Close();
+                        ImapServer.Close();
                     }
-                    this._imapSslStreamReader = new StreamReader(this._imapSslStream);
+                    ImapSslStreamReader = new StreamReader(ImapSslStream);
                 }
-                string text = useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
+                string text = useSSL ? ImapSslStreamReader.ReadLine() : ImapStreamReader.ReadLine();
                 if (text != null && text.StartsWith("* OK"))
                 {
-                    this.Capability();
+                    Capability();
                 }
                 else
                 {
@@ -195,31 +197,31 @@ namespace ImapX
             {
                 throw new ImapException("dont connect");
             }
-            this._imapHost = sHost;
-            this._imapPort = nPort;
-            this._isConnected = true;
+            ImapHost = sHost;
+            ImapPort = nPort;
+            IsConnected = true;
             return result;
         }
 
         public bool Disconnect()
         {
-            this._commandCount = 0;
-            if (this._isConnected)
+            CommandCount = 0;
+            if (IsConnected)
             {
-                if (this._imapSslStream != null)
+                if (ImapSslStream != null)
                 {
-                    this._imapSslStream.Close();
+                    ImapSslStream.Close();
                 }
-                if (this._imapStream != null)
+                if (ImapStream != null)
                 {
-                    this._imapStream.Close();
+                    ImapStream.Close();
                 }
-                if (this._imapServer != null)
+                if (ImapServer != null)
                 {
-                    this._imapServer.Close();
+                    ImapServer.Close();
                 }
             }
-            this._isConnected = false;
+            IsConnected = false;
             return true;
         }
 
@@ -227,7 +229,7 @@ namespace ImapX
         {
             var arrayList = new ArrayList();
             const string command = "CAPABILITY\r\n";
-            return this.SendAndReceive(command, ref arrayList);
+            return SendAndReceive(command, ref arrayList);
         }
 
         public bool SendData(string data)
@@ -235,19 +237,19 @@ namespace ImapX
             byte[] bytes = Encoding.ASCII.GetBytes(data.ToCharArray());
             try
             {
-                if (this._useSSL)
+                if (UseSSL)
                 {
-                    this._imapSslStream.Write(bytes, 0, data.Length);
+                    ImapSslStream.Write(bytes, 0, data.Length);
                 }
                 else
                 {
-                    this._imapStream.Write(bytes, 0, data.Length);
+                    ImapStream.Write(bytes, 0, data.Length);
                 }
                 bool flag = true;
                 while (flag)
                 {
-                    string value = this._useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
-                    if (this.isDebug)
+                    string value = UseSSL ? ImapSslStreamReader.ReadLine() : ImapStreamReader.ReadLine();
+                    if (isDebug)
                     {
                         Console.WriteLine(value);
                     }
@@ -266,20 +268,20 @@ namespace ImapX
             MessageCollection result;
             try
             {
-                if (this._useSSL)
+                if (UseSSL)
                 {
-                    this._imapSslStream.Write(data, 0, data.Length);
+                    ImapSslStream.Write(data, 0, data.Length);
                 }
                 else
                 {
-                    this._imapStream.Write(data, 0, data.Length);
+                    ImapStream.Write(data, 0, data.Length);
                 }
                 bool flag = true;
                 var messageCollection = new MessageCollection();
                 while (flag)
                 {
-                    string text = this._useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
-                    if (this.isDebug)
+                    string text = UseSSL ? ImapSslStreamReader.ReadLine() : ImapStreamReader.ReadLine();
+                    if (isDebug)
                     {
                         Console.WriteLine(text);
                     }
@@ -315,28 +317,28 @@ namespace ImapX
 
         public void SendCommand(string command)
         {
-            this._commandCount++;
+            CommandCount++;
             string text = string.Concat(new object[]
 			{
 				"IMAP00", 
-				this._commandCount, 
+				CommandCount, 
 				" ", 
 				command
 			});
             byte[] bytes = Encoding.ASCII.GetBytes(text.ToCharArray());
-            if (this.isDebug)
+            if (isDebug)
             {
                 Console.WriteLine(text);
             }
             try
             {
-                if (this._useSSL)
+                if (UseSSL)
                 {
-                    this._imapSslStream.Write(bytes, 0, bytes.Length);
+                    ImapSslStream.Write(bytes, 0, bytes.Length);
                 }
                 else
                 {
-                    this._imapStream.Write(bytes, 0, bytes.Length);
+                    ImapStream.Write(bytes, 0, bytes.Length);
                 }
             }
             catch (Exception)
@@ -347,54 +349,55 @@ namespace ImapX
         public bool SendAndReceive(string command, ref ArrayList sResultArray)
         {
             bool result = true;
-            this._commandCount++;
+            CommandCount++;
             string text = string.Concat(new object[]
 			{
 				"IMAP00", 
-				this._commandCount, 
+				CommandCount, 
 				" ", 
 				command
 			});
             byte[] bytes = Encoding.ASCII.GetBytes(text.ToCharArray());
-            if (this.isDebug)
+            if (isDebug)
             {
                 Console.WriteLine(text);
             }
             try
             {
-                if (this._useSSL)
+                if (UseSSL)
                 {
-                    this._imapSslStream.Write(bytes, 0, bytes.Length);
+                    
+                    ImapSslStream.Write(bytes, 0, bytes.Length);
                 }
                 else
                 {
-                    this._imapStream.Write(bytes, 0, bytes.Length);
+                    ImapStream.Write(bytes, 0, bytes.Length);
                 }
                 bool flag = true;
                 while (flag)
                 {
-                    string text2 = this._useSSL ? this._imapSslStreamReader.ReadLine() : this._imapStreamReader.ReadLine();
-                    if (this.isDebug)
+                    string text2 = UseSSL ? ImapSslStreamReader.ReadLine() : ImapStreamReader.ReadLine();
+                    if (isDebug)
                     {
                         Console.WriteLine(text2);
                     }
                 	if (text2 != null)
                 	{
                 		sResultArray.Add(text2);
-                		if (text2.StartsWith("IMAP00" + this._commandCount + " OK"))
+                		if (text2.StartsWith("IMAP00" + CommandCount + " OK"))
                 		{
                 			flag = false;
                 		}
                 		else
                 		{
-                			if (text2.StartsWith("IMAP00" + this._commandCount + " NO"))
+                			if (text2.StartsWith("IMAP00" + CommandCount + " NO"))
                 			{
                 				flag = false;
                 				result = false;
                 			}
                 			else
                 			{
-                				if (text2.StartsWith("IMAP00" + this._commandCount + " BAD"))
+                				if (text2.StartsWith("IMAP00" + CommandCount + " BAD"))
                 				{
                 					flag = false;
                 					result = false;

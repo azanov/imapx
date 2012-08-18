@@ -108,7 +108,7 @@ namespace ImapX
                 LastUpdateMessagesCount = list.Count;
                 foreach (var current2 in list)
                 {
-                    current2._client = Client;
+                    current2.Client = Client;
                     if (processMessages)
                     {
                         current2.Process();
@@ -130,7 +130,7 @@ namespace ImapX
             var messageCollection = Client.SearchMessage("all");
             foreach (var current in messageCollection)
             {
-                current._client = Client;
+                current.Client = Client;
             }
             return messageCollection;
         }
@@ -152,7 +152,7 @@ namespace ImapX
 
         public bool Examine()
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -175,16 +175,16 @@ namespace ImapX
 
         public MessageCollection Search(string path, bool makeProcess)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
-            var selectedFolder = Client._selectedFolder;
+            var selectedFolder = Client.SelectedFolder;
             Select();
             var messageCollection = Client.SearchMessage(path);
             foreach (var current in messageCollection)
             {
-                current._client = Client;
+                current.Client = Client;
                 if (makeProcess)
                 {
                     current.Process();
@@ -201,7 +201,7 @@ namespace ImapX
 
         public bool EmptyFolder()
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -229,7 +229,7 @@ namespace ImapX
 
         public bool CreateFolder(string name)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -248,7 +248,7 @@ namespace ImapX
 
         public bool DeleteFolder()
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -261,7 +261,7 @@ namespace ImapX
 
         public bool CopyMessageToFolder(Message msg, Folder folder)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -273,7 +273,7 @@ namespace ImapX
             {
                 throw new ImapException("Folder is null");
             }
-            string selectedFolder = Client._selectedFolder;
+            string selectedFolder = Client.SelectedFolder;
             Select();
             string text = "COPY {0} \"{1}\"\r\n";
             var arrayList = new ArrayList();
@@ -293,7 +293,7 @@ namespace ImapX
 
         public bool DeleteMessage(Message msg)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -301,7 +301,7 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = Client._selectedFolder;
+            string selectedFolder = Client.SelectedFolder;
             Client.SelectFolder(FolderPath);
             string text = "STORE {0} +FLAGS (\\Deleted)\r\n";
             var arrayList = new ArrayList();
@@ -322,7 +322,7 @@ namespace ImapX
 
         public bool MoveMessageToFolder(Message msg, Folder folder)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -331,7 +331,7 @@ namespace ImapX
 
         public bool AppendMessage(Message msg, string flag)
         {
-            if (Client == null || !Client._isConnected)
+            if (Client == null || !Client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -339,7 +339,7 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = Client._selectedFolder;
+            string selectedFolder = Client.SelectedFolder;
             Select();
             var arrayList = new ArrayList();
             string text = msg.MessageBuilder();

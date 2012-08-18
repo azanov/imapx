@@ -12,310 +12,87 @@ namespace ImapX
 {
 	public class Message
 	{
-		private int _msgUID;
-		internal Imap _client;
+	    internal Imap Client;
 		private string _subject;
-		private List<MailAddress> _to;
-		private List<MailAddress> _from;
-		private List<Attachment> _attachments;
-		private string _cc;
-		private string _bcc;
-		private DateTime _date;
-		private Dictionary<string, string> _headers;
-		private List<string> _flags;
-		private string _mimeVersion;
-		private string _organization;
-		private string _priority;
-		private string _received;
-		private string _references;
-		private string _replyTo;
-		private string _xMailer;
-		private string _messageId;
-		private string _contentType;
-		private string _contentTransferEncoding;
-        private EmailParser.EmailParser _emailParser;
-		private MessageContent _textBody;
-		private MessageContent _htmlBody;
-		private List<MessageContent> _bodyParts;
+	    private DateTime _date;
+	    private EmailParser.EmailParser _emailParser;
 
-		public Dictionary<string, string> Headers
+	    public Dictionary<string, string> Headers { get; private set; }
+
+	    public List<string> Flags { get; private set; }
+
+	    public List<Attachment> Attachments { get; set; }
+
+	    public MessageContent TextBody { get; set; }
+
+	    public MessageContent HtmlBody { get; set; }
+
+	    public string MimeVersion { get; set; }
+
+	    public string Organization { get; set; }
+
+	    public string Priority { get; set; }
+
+	    public string Received { get; set; }
+
+	    public string References { get; set; }
+
+	    public string ReplyTo { get; set; }
+
+	    public string XMailer { get; set; }
+
+	    public string MessageId { get; set; }
+
+	    public string ContentType { get; set; }
+
+	    public string ContentTransferEncoding { get; set; }
+
+	    public List<MessageContent> BodyParts { get; set; }
+
+	    public List<MailAddress> To { get; set; }
+
+	    public List<MailAddress> From { get; set; }
+
+	    public string Cc { get; set; }
+
+	    public string Bcc { get; set; }
+
+	    public DateTime Date
 		{
 			get
 			{
-				return this._headers;
-			}
-		}
-
-		public List<string> Flags
-		{
-			get
-			{
-				return this._flags;
-			}
-		}
-
-		public List<Attachment> Attachments
-		{
-			get
-			{
-				return this._attachments;
+				return _date;
 			}
 			set
 			{
-				this._attachments = value;
+				_date = value;
 			}
 		}
 
-		public MessageContent TextBody
-		{
-			get
-			{
-				return this._textBody;
-			}
-			set
-			{
-				this._textBody = value;
-			}
-		}
+	    public int MessageUid { get; set; }
 
-		public MessageContent HtmlBody
+	    public string Subject
 		{
 			get
 			{
-				return this._htmlBody;
+				return _subject ?? string.Empty;
 			}
 			set
 			{
-				this._htmlBody = value;
-			}
-		}
-
-		public string MimeVersion
-		{
-			get
-			{
-				return this._mimeVersion;
-			}
-			set
-			{
-				this._mimeVersion = value;
-			}
-		}
-
-		public string Organization
-		{
-			get
-			{
-				return this._organization;
-			}
-			set
-			{
-				this._organization = value;
-			}
-		}
-
-		public string Priority
-		{
-			get
-			{
-				return this._priority;
-			}
-			set
-			{
-				this._priority = value;
-			}
-		}
-
-		public string Received
-		{
-			get
-			{
-				return this._received;
-			}
-			set
-			{
-				this._received = value;
-			}
-		}
-
-		public string References
-		{
-			get
-			{
-				return this._references;
-			}
-			set
-			{
-				this._references = value;
-			}
-		}
-
-		public string ReplyTo
-		{
-			get
-			{
-				return this._replyTo;
-			}
-			set
-			{
-				this._replyTo = value;
-			}
-		}
-
-		public string XMailer
-		{
-			get
-			{
-				return this._xMailer;
-			}
-			set
-			{
-				this._xMailer = value;
-			}
-		}
-
-		public string MessageId
-		{
-			get
-			{
-				return this._messageId;
-			}
-			set
-			{
-				this._messageId = value;
-			}
-		}
-
-		public string ContentType
-		{
-			get
-			{
-				return this._contentType;
-			}
-			set
-			{
-				this._contentType = value;
-			}
-		}
-
-		public string ContentTransferEncoding
-		{
-			get
-			{
-				return this._contentTransferEncoding;
-			}
-			set
-			{
-				this._contentTransferEncoding = value;
-			}
-		}
-
-		public List<MessageContent> BodyParts
-		{
-			get
-			{
-				return this._bodyParts;
-			}
-			set
-			{
-				this._bodyParts = value;
-			}
-		}
-
-		public List<MailAddress> To
-		{
-			get
-			{
-				return this._to;
-			}
-			set
-			{
-				this._to = value;
-			}
-		}
-
-		public List<MailAddress> From
-		{
-			get
-			{
-				return this._from;
-			}
-			set
-			{
-				this._from = value;
-			}
-		}
-
-		public string Cc
-		{
-			get
-			{
-				return this._cc;
-			}
-			set
-			{
-				this._cc = value;
-			}
-		}
-
-		public string Bcc
-		{
-			get
-			{
-				return this._bcc;
-			}
-			set
-			{
-				this._bcc = value;
-			}
-		}
-
-		public DateTime Date
-		{
-			get
-			{
-				return this._date;
-			}
-			set
-			{
-				this._date = value;
-			}
-		}
-
-		public int MessageUid
-		{
-			get
-			{
-				return this._msgUID;
-			}
-			set
-			{
-				this._msgUID = value;
-			}
-		}
-
-		public string Subject
-		{
-			get
-			{
-				return this._subject ?? string.Empty;
-			}
-			set
-			{
-				this._subject = value;
+				_subject = value;
 			}
 		}
 
 		public Message()
 		{
-			this._headers = new Dictionary<string, string>();
-			this._flags = new List<string>();
-			this._attachments = new List<Attachment>();
-			this._bodyParts = new List<MessageContent>();
-			this._to = new List<MailAddress>();
-			this._from = new List<MailAddress>();
-			this._textBody = new MessageContent();
-			this._htmlBody = new MessageContent();
+			Headers = new Dictionary<string, string>();
+			Flags = new List<string>();
+			Attachments = new List<Attachment>();
+			BodyParts = new List<MessageContent>();
+			To = new List<MailAddress>();
+			From = new List<MailAddress>();
+			TextBody = new MessageContent();
+			HtmlBody = new MessageContent();
 		}
 
 		public bool SetFlag(string status)
@@ -325,78 +102,31 @@ namespace ImapX
 			string command = string.Concat(new object[]
 			{
 				"STORE ", 
-				this._msgUID, 
+				MessageUid, 
 				" +FLAGS (", 
 				status, 
 				")\r\n"
 			});
 			try
 			{
-				result = this._client.SendAndReceive(command, ref arrayList);
+				result = Client.SendAndReceive(command, ref arrayList);
 			}
 			catch
 			{
 				result = false;
 			}
-			this.GetFlags();
+			GetFlags();
 			return result;
 		}
 
 		public void ProcessHeader()
 		{
-			this.GetMessage("body[HEADER]", false);
+			GetMessage("body[HEADER]", false);
 		}
-
-        /* Method not used
-
-        /// <remarks>
-        /// [27.07.2012] Fix by Pavel Azanov (coder13)
-        ///              Some messages contain attachments that are not described in the ContentDisposition,
-        ///              but in the ContentStream directly.
-        /// </remarks>
-		public void ProcessBody()
-		{
-			this.getMessage("BODY.PEEK[]", true);
-			foreach (MessageContent current in this._bodyParts)
-			{
-				if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
-				{
-					this._textBody = current;
-					this._textBody.TextData = this._textBody.ContentStream;
-				}
-			}
-			foreach (MessageContent current2 in this._bodyParts)
-			{
-				if (current2.ContentType != null && current2.ContentType.ToLower().Contains("text/html"))
-				{
-					this._htmlBody = current2;
-					this._htmlBody.TextData = this._htmlBody.ContentStream;
-				}
-			}
-			foreach (MessageContent current3 in this._bodyParts)
-			{
-                if (current3.ContentDisposition == null)
-                    continue;
-                else if (current3.ContentDisposition.ToLower().Contains("attachment"))
-                {
-                    Attachment attachment = new Attachment();
-                    attachment.FileName = current3.ContentFilename;
-                    attachment.FileType = current3.ContentType;
-                    attachment.FileEncoding = current3.ContentTransferEncoding;
-                    attachment.FileData = Convert.FromBase64String(current3.ContentStream);
-                    this._attachments.Add(attachment);
-                }
-                else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
-                    this._attachments.Add(current3.ToAttachment());               // [27.07.2012]
-			}
-
-        }
-        
-        */
 
 		public void ProcessFlags()
 		{
-			this.GetFlags();
+			GetFlags();
 		}
 
         /// <remarks>
@@ -406,84 +136,81 @@ namespace ImapX
         /// </remarks>
 		public bool Process()
 		{
-			this.GetFlags();
-			this.GetMessage("BODY.PEEK[]", true);
-			foreach (MessageContent current in this._bodyParts)
+			GetFlags();
+			GetMessage("BODY.PEEK[]", true);
+			foreach (MessageContent current in BodyParts)
 			{
 				if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
 				{
-					this._textBody = current;
-					this._textBody.TextData = this._textBody.ContentStream;
+					TextBody = current;
+					TextBody.TextData = TextBody.ContentStream;
 				}
 			}
-			foreach (MessageContent current2 in this._bodyParts)
+			foreach (MessageContent current2 in BodyParts)
 			{
 				if (current2.ContentType != null && current2.ContentType.ToLower().Contains("text/html"))
 				{
-					this._htmlBody = current2;
-					this._htmlBody.TextData = this._htmlBody.ContentStream;
+					HtmlBody = current2;
+					HtmlBody.TextData = HtmlBody.ContentStream;
 				}
 			}
-			foreach (MessageContent current3 in this._bodyParts)
+			foreach (MessageContent current3 in BodyParts)
 			{
-                if (current3.ContentDisposition == null)
+			    if (current3.ContentDisposition == null)
                     continue;
-                else if (current3.ContentDisposition.ToLower().Contains("attachment"))
-                {
-                	var attachment = new Attachment
-                	                 	{
-                	                 		FileName = current3.ContentFilename,
-                	                 		FileType = current3.ContentType,
-                	                 		FileEncoding = current3.ContentTransferEncoding,
-                	                 		FileData = Convert.FromBase64String(current3.ContentStream)
-                	                 	};
-                	this._attachments.Add(attachment);
-                }
-                else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
-                    this._attachments.Add(current3.ToAttachment());               // [27.07.2012]
+			    if (current3.ContentDisposition.ToLower().Contains("attachment"))
+			    {
+			        var attachment = new Attachment
+			                             {
+			                                 FileName = current3.ContentFilename,
+			                                 FileType = current3.ContentType,
+			                                 FileEncoding = current3.ContentTransferEncoding,
+			                                 FileData = Convert.FromBase64String(current3.ContentStream)
+			                             };
+			        Attachments.Add(attachment);
+			    }
+			    else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
+			        Attachments.Add(current3.ToAttachment());               // [27.07.2012]
 			}
-			return true;
+            return true;
 		}
 
-		private bool GetFlags()
+		private void GetFlags()
 		{
 			bool flag;
 			var arrayList = new ArrayList();
-			string command = "FETCH " + this._msgUID + " (FLAGS)\r\n";
+			string command = "FETCH " + MessageUid + " (FLAGS)\r\n";
 			try
 			{
-				flag = this._client.SendAndReceive(command, ref arrayList);
+				flag = Client.SendAndReceive(command, ref arrayList);
 			}
 			catch
 			{
 				flag = false;
 			}
-			if (flag)
-			{
-				string text = arrayList[0].ToString();
-				this._flags.Clear();
-				if (text.Contains("\\Answered"))
-				{
-					this._flags.Add("\\Answered");
-				}
-				if (text.Contains("\\Seen"))
-				{
-					this._flags.Add("\\Seen");
-				}
-				if (text.Contains("\\Recent"))
-				{
-					this._flags.Add("\\Recent");
-				}
-				if (text.Contains("\\Draft"))
-				{
-					this._flags.Add("\\Draft");
-				}
-				if (text.Contains("\\Deleted"))
-				{
-					this._flags.Add("\\Deleted");
-				}
-			}
-			return flag;
+		    if (!flag) return;
+		    string text = arrayList[0].ToString();
+		    Flags.Clear();
+		    if (text.Contains("\\Answered"))
+		    {
+		        Flags.Add("\\Answered");
+		    }
+		    if (text.Contains("\\Seen"))
+		    {
+		        Flags.Add("\\Seen");
+		    }
+		    if (text.Contains("\\Recent"))
+		    {
+		        Flags.Add("\\Recent");
+		    }
+		    if (text.Contains("\\Draft"))
+		    {
+		        Flags.Add("\\Draft");
+		    }
+		    if (text.Contains("\\Deleted"))
+		    {
+		        Flags.Add("\\Deleted");
+		    }
 		}
 
         public string GetDecodedBody(out bool isHtml)
@@ -493,21 +220,21 @@ namespace ImapX
             var contentType = "";
             var encoding = Encoding.Default;
 
-            if (this._htmlBody != null && !string.IsNullOrWhiteSpace(this._htmlBody.ContentStream))
+            if (HtmlBody != null && !string.IsNullOrWhiteSpace(HtmlBody.ContentStream))
             {
-                body = this._htmlBody.ContentStream;
-                encoding = ParseHelper.ParseContentType(this._htmlBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(this._htmlBody.ContentTransferEncoding) ? _contentTransferEncoding : this._htmlBody.ContentTransferEncoding;
+                body = HtmlBody.ContentStream;
+                encoding = ParseHelper.ParseContentType(HtmlBody.ContentType, out contentType);
+                transferEncoding = string.IsNullOrWhiteSpace(HtmlBody.ContentTransferEncoding) ? ContentTransferEncoding : HtmlBody.ContentTransferEncoding;
             }
-            else if (this._textBody != null && !string.IsNullOrWhiteSpace(this._textBody.ContentStream) && !(this._textBody.ContentDisposition != null && this._textBody.ContentDisposition.ToLower().Contains("attachment")))
+            else if (TextBody != null && !string.IsNullOrWhiteSpace(TextBody.ContentStream) && !(TextBody.ContentDisposition != null && TextBody.ContentDisposition.ToLower().Contains("attachment")))
             {
-                body = this._textBody.ContentStream;
-                encoding = ParseHelper.ParseContentType(this._textBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(this._textBody.ContentTransferEncoding) ? _contentTransferEncoding : this._textBody.ContentTransferEncoding;
+                body = TextBody.ContentStream;
+                encoding = ParseHelper.ParseContentType(TextBody.ContentType, out contentType);
+                transferEncoding = string.IsNullOrWhiteSpace(TextBody.ContentTransferEncoding) ? ContentTransferEncoding : TextBody.ContentTransferEncoding;
             }
-            else if (_bodyParts.Count > 0)
+            else if (BodyParts.Count > 0)
             {
-                var part =_bodyParts.FirstOrDefault(_ => !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment")));
+                var part =BodyParts.FirstOrDefault(_ => !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment")));
                 if (part == null)
                 {
                     isHtml = false;
@@ -515,7 +242,7 @@ namespace ImapX
                 }
                 body = part.ContentStream;
                 encoding = ParseHelper.ParseContentType(part.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(part.ContentTransferEncoding) ? _contentTransferEncoding : part.ContentTransferEncoding;
+                transferEncoding = string.IsNullOrWhiteSpace(part.ContentTransferEncoding) ? ContentTransferEncoding : part.ContentTransferEncoding;
             }
 
             if (encoding == null)
@@ -572,169 +299,167 @@ namespace ImapX
 			string command = string.Concat(new object[]
 			{
 				"FETCH ", 
-				this._msgUID, 
+				MessageUid, 
 				" ", 
 				path, 
 				"\r\n"
 			});
 
-			this._client.SendAndReceive(command, ref arrayList);
+			Client.SendAndReceive(command, ref arrayList);
             try
             {
-                this._emailParser = new EmailParser.EmailParser(arrayList.ToArray(typeof(string)) as string[]);
+                _emailParser = new EmailParser.EmailParser(arrayList.ToArray(typeof(string)) as string[]);
             }
-            catch (Exception)
+            catch
             { }
 
-			this._emailParser.InitializeIndexes();
-			this._emailParser.ParseHeaders();
+			_emailParser.InitializeIndexes();
+			_emailParser.ParseHeaders();
 
 
 
-			foreach (KeyValuePair<string, string> current in this._emailParser._headersCollection)
+			foreach (KeyValuePair<string, string> current in _emailParser._headersCollection)
 			{
                 var key = current.Key.ToLower().Trim();
 
                 switch (key)
                 { 
                     case MessageProperty.TO:
-                        this._to = ParseHelper.AddressCollection(current.Value);
+                        To = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.FROM:
-                        this._from = ParseHelper.AddressCollection(current.Value);
+                        From = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.DATE:
-                        DateTime.TryParse(current.Value.Trim(), out this._date);
+                        DateTime.TryParse(current.Value.Trim(), out _date);
                         break;
                     case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                        this._contentTransferEncoding = current.Value;
+                        ContentTransferEncoding = current.Value;
                         break;
                     case MessageProperty.CONTENT_TYPE:
-                        this._contentType = current.Value;
+                        ContentType = current.Value;
                         break;
                     case MessageProperty.MESSAGE_ID:
-                        this._messageId = current.Value;
+                        MessageId = current.Value;
                         break;
                     case MessageProperty.MIME_VERSION:
-                        this._mimeVersion = current.Value;
+                        MimeVersion = current.Value;
                         break;
                     case MessageProperty.ORGANIZATION:
-                        this._organization = current.Value;
+                        Organization = current.Value;
                         break;
                     case MessageProperty.PRIORITY:
-                        this._priority = current.Value;
+                        Priority = current.Value;
                         break;
                     case MessageProperty.RECEIVED:
-                        this._received = current.Value;
+                        Received = current.Value;
                         break;
                     case MessageProperty.REFERENCES:
-                        this._references = current.Value;
+                        References = current.Value;
                         break;
                     case MessageProperty.REPLY_TO:
-                        this._replyTo = current.Value;
+                        ReplyTo = current.Value;
                         break;
                     case MessageProperty.X_MAILER:
-                        this._xMailer = current.Value;
+                        XMailer = current.Value;
                         break;
                     case MessageProperty.CC:
-                        this._cc = current.Value;
+                        Cc = current.Value;
                         break;
                     case MessageProperty.BCC:
-                        this._bcc = current.Value;
+                        Bcc = current.Value;
                         break;
                     case MessageProperty.SUBJECT:
-                        this._subject = ParseHelper.DecodeSubject(current.Value); 
+                        _subject = ParseHelper.DecodeSubject(current.Value); 
                         break;
                     
                 }
 
 			}
-			this._headers = this._emailParser._headersCollection;
-			if (processBody)
-			{
-				this._emailParser.ParseBody();
-				foreach (BodyPart current2 in this._emailParser._parts)
-				{
-					var messageContent = new MessageContent();
-					foreach (KeyValuePair<string, string> current3 in current2.Headers)
-					{
-						if (current3.Key.ToLower().Equals("content-type"))
-						{
-							messageContent.ContentType = current3.Value;
-						}
-						else
-						{
-							if (current3.Key.ToLower().Equals("content-disposition"))
-							{
-								messageContent.ContentDisposition = current3.Value;
-								if (current3.Value.ToLower().Contains("filename="))
-								{
-									string contentFilename = current3.Value.Split(new[]
-									{
-										"filename="
-									}, StringSplitOptions.None)[1].Trim(new[]
-									{
-										'"'
-									});
-									messageContent.ContentFilename = contentFilename;
-									continue;
-								}
-							}
-							if (current3.Key.ToLower().Equals("content-description"))
-							{
-								messageContent.ContentDescription = current3.Value;
-							}
-							else
-							{
-								if (current3.Key.ToLower().Equals("content-transfer-encoding"))
-								{
-									messageContent.ContentTransferEncoding = current3.Value;
-								}
-							}
-						}
-					}
-					if (current2.Boundary == null)
-					{
-						messageContent.ContentType = this._contentType;
-					}
-					messageContent.ContentStream = this._emailParser.GetPart(current2);
-					messageContent.PartHeaders = current2.Headers;
-					messageContent.BoundaryName = current2.Boundary;
-					this._bodyParts.Add(messageContent);
-				}
-			}
+			Headers = _emailParser._headersCollection;
+            if (!processBody) return;
+            _emailParser.ParseBody();
+            foreach (BodyPart current2 in _emailParser._parts)
+            {
+                var messageContent = new MessageContent();
+                foreach (KeyValuePair<string, string> current3 in current2.Headers)
+                {
+                    if (current3.Key.ToLower().Equals("content-type"))
+                    {
+                        messageContent.ContentType = current3.Value;
+                    }
+                    else
+                    {
+                        if (current3.Key.ToLower().Equals("content-disposition"))
+                        {
+                            messageContent.ContentDisposition = current3.Value;
+                            if (current3.Value.ToLower().Contains("filename="))
+                            {
+                                string contentFilename = current3.Value.Split(new[]
+                                                                                  {
+                                                                                      "filename="
+                                                                                  }, StringSplitOptions.None)[1].Trim(new[]
+                                                                                                                          {
+                                                                                                                              '"'
+                                                                                                                          });
+                                messageContent.ContentFilename = contentFilename;
+                                continue;
+                            }
+                        }
+                        if (current3.Key.ToLower().Equals("content-description"))
+                        {
+                            messageContent.ContentDescription = current3.Value;
+                        }
+                        else
+                        {
+                            if (current3.Key.ToLower().Equals(MessageProperty.CONTENT_TRANSFER_ENCODING))
+                            {
+                                messageContent.ContentTransferEncoding = current3.Value;
+                            }
+                        }
+                    }
+                }
+                if (current2.Boundary == null)
+                {
+                    messageContent.ContentType = ContentType;
+                }
+                messageContent.ContentStream = _emailParser.GetPart(current2);
+                messageContent.PartHeaders = current2.Headers;
+                messageContent.BoundaryName = current2.Boundary;
+                BodyParts.Add(messageContent);
+            }
 		}
 
 		private StringBuilder GetEml()
 		{
 			var stringBuilder = new StringBuilder();
-			if (this._emailParser != null && this._emailParser._emailItems != null && this._emailParser._emailItems.Length > 0)
+			if (_emailParser != null && _emailParser._emailItems != null && _emailParser._emailItems.Length > 0)
 			{
-				for (int i = 1; i <= this._emailParser._emailItems.Length - 2; i++)
+				for (int i = 1; i <= _emailParser._emailItems.Length - 2; i++)
 				{
-					if (i == this._emailParser._emailItems.Length - 2 && this._emailParser._emailItems[i].Length > 0)
+					if (i == _emailParser._emailItems.Length - 2 && _emailParser._emailItems[i].Length > 0)
 					{
-						stringBuilder.AppendFormat("{0}{1}", this._emailParser._emailItems[i].TrimEnd(new[]
+						stringBuilder.AppendFormat("{0}{1}", _emailParser._emailItems[i].TrimEnd(new[]
 						{
 							')'
 						}), "\r\n");
 					}
 					else
 					{
-						stringBuilder.AppendFormat("{0}{1}", this._emailParser._emailItems[i], "\r\n");
+						stringBuilder.AppendFormat("{0}{1}", _emailParser._emailItems[i], "\r\n");
 					}
 				}
 			}
 			else
 			{
-				stringBuilder.Append(this.MessageBuilder());
+				stringBuilder.Append(MessageBuilder());
 			}
 			return stringBuilder;
 		}
 
 		public string GetAsString()
 		{
-			return this.GetEml().ToString();
+			return GetEml().ToString();
 		}
 
 		public void SaveAsEmlToFile(string path, string filename)
@@ -747,7 +472,7 @@ namespace ImapX
 			{
 				filename = Guid.NewGuid().ToString();
 			}
-			StringBuilder eml = this.GetEml();
+			StringBuilder eml = GetEml();
 			using (var fileStream = new FileStream(path + filename + ".eml", FileMode.Create, FileAccess.Write))
 			{
 				using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.ASCII))
@@ -762,62 +487,62 @@ namespace ImapX
 			var stringBuilder = new StringBuilder();
 			DateTime now = DateTime.Now;
 			stringBuilder.AppendFormat("Date: {0}{1}", now.ToString("dd-MM-yyyy hh:mm:ss", CultureInfo.CreateSpecificCulture("en-US")), "\r\n");
-			if (this._from.Count > 0)
+			if (From.Count > 0)
 			{
 				stringBuilder.Append("From: ");
-				foreach (MailAddress current in this._from)
+				foreach (MailAddress current in From)
 				{
 					stringBuilder.AppendFormat("{0}, ", current);
 				}
 				stringBuilder.Remove(stringBuilder.Length - 2, 2);
 				stringBuilder.Append("\r\n");
 			}
-			if (this._to.Count > 0)
+			if (To.Count > 0)
 			{
 				stringBuilder.Append("To: ");
-				foreach (MailAddress current2 in this._to)
+				foreach (MailAddress current2 in To)
 				{
 					stringBuilder.AppendFormat("{0}, ", current2);
 				}
 				stringBuilder.Remove(stringBuilder.Length - 2, 1);
 				stringBuilder.Append("\r\n");
 			}
-			if (!string.IsNullOrEmpty(this._subject))
+			if (!string.IsNullOrEmpty(_subject))
 			{
-				stringBuilder.AppendFormat("Subject: {0}{1}", this._subject, "\r\n");
+				stringBuilder.AppendFormat("Subject: {0}{1}", _subject, "\r\n");
 			}
-			if (string.IsNullOrEmpty(this._messageId))
+			if (string.IsNullOrEmpty(MessageId))
 			{
 				stringBuilder.AppendFormat("Message-Id: {0}@ImapX{1}", Guid.NewGuid(), "\r\n");
 			}
 			else
 			{
-				stringBuilder.AppendFormat("Message-Id: {0}{1}", this._messageId, "\r\n");
+				stringBuilder.AppendFormat("Message-Id: {0}{1}", MessageId, "\r\n");
 			}
-			if (!string.IsNullOrEmpty(this.XMailer))
+			if (!string.IsNullOrEmpty(XMailer))
 			{
-				stringBuilder.AppendFormat("X-Mailer: {0}{1}", this._xMailer, "\r\n");
+				stringBuilder.AppendFormat("X-Mailer: {0}{1}", XMailer, "\r\n");
 			}
-			if (!string.IsNullOrEmpty(this._contentTransferEncoding))
+			if (!string.IsNullOrEmpty(ContentTransferEncoding))
 			{
-				stringBuilder.AppendFormat("Content-Transfer-Encoding: {0}{1}", this.ContentTransferEncoding, "\r\n");
+				stringBuilder.AppendFormat("Content-Transfer-Encoding: {0}{1}", ContentTransferEncoding, "\r\n");
 			}
-			if (string.IsNullOrEmpty(this.MimeVersion))
+			if (string.IsNullOrEmpty(MimeVersion))
 			{
 				stringBuilder.AppendFormat("MIME-Version: 1.0{0}", "\r\n");
 			}
 			else
 			{
-				stringBuilder.AppendFormat("MIME-Version: {0}{1}", this._mimeVersion, "\r\n");
+				stringBuilder.AppendFormat("MIME-Version: {0}{1}", MimeVersion, "\r\n");
 			}
-			if (this._textBody == null && this._attachments.Count <= 0)
+			if (TextBody == null && Attachments.Count <= 0)
 			{
 				stringBuilder.AppendFormat("Content-Type: text/html; charset=utf-8{0}", "\r\n");
 				stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
 				stringBuilder.Append("\r\n");
-				if (this._htmlBody != null && this._htmlBody.TextData != null)
+				if (HtmlBody != null && HtmlBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(this._htmlBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
@@ -832,9 +557,9 @@ namespace ImapX
 				stringBuilder.AppendFormat("Content-Type: text/plain; charset=utf-8{0}", "\r\n");
 				stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
 				stringBuilder.Append("\r\n");
-				if (this._textBody != null && this._textBody.TextData != null)
+				if (TextBody != null && TextBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(this._textBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(TextBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
@@ -844,15 +569,15 @@ namespace ImapX
 				stringBuilder.AppendFormat("Content-Type: text/html; charset=utf-8{0}", "\r\n");
 				stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
 				stringBuilder.Append("\r\n");
-				if (this._htmlBody != null && this._htmlBody.TextData != null)
+				if (HtmlBody != null && HtmlBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(this._htmlBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
 					stringBuilder.AppendFormat(Environment.NewLine, new object[0]);
 				}
-				foreach (Attachment current3 in this._attachments)
+				foreach (Attachment current3 in Attachments)
 				{
 					stringBuilder.AppendFormat("--part000{0}", Environment.NewLine);
 					stringBuilder.AppendFormat("Content-Type: {0}; name=\"{1}\"{2}", current3.FileType, current3.FileName.Substring(current3.FileName.IndexOf('/')).Trim(new[]
