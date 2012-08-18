@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Security.Authentication;
+
 namespace ImapX
 {
     public class Imap : ImapBase
@@ -18,27 +20,29 @@ namespace ImapX
         {
         }
 
-        public Imap(string host, int port, bool useSsl)
+        public Imap(string host, int port, bool useSsl, SslProtocols sslProtocols = SslProtocols.Default)
         {
-            _imapHost = host;
-            _imapPort = port;
-            _useSSL = useSsl;
+            ImapHost = host;
+            ImapPort = port;
+            UseSSL = useSsl;
+            SSLProtocols = sslProtocols;
             _folders = new FolderCollection();
         }
 
-        public Imap(string host, int port, bool useSsl, string userLogin, string userPassword)
+        public Imap(string host, int port, bool useSsl, string userLogin, string userPassword, SslProtocols sslProtocols = SslProtocols.Default)
         {
-            _imapHost = host;
-            _imapPort = port;
-            _useSSL = useSsl;
+            ImapHost = host;
+            ImapPort = port;
+            UseSSL = useSsl;
             _userLogin = userLogin;
             _userPassword = userPassword;
+            SSLProtocols = sslProtocols;
             _folders = new FolderCollection();
         }
 
         public bool SelectFolder(string folderName)
         {
-            if (_imap == null || !_imap._isConnected)
+            if (_imap == null || !_imap.IsConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -52,13 +56,13 @@ namespace ImapX
             {
                 return false;
             }
-            _selectedFolder = folderName;
+            SelectedFolder = folderName;
             return true;
         }
 
         public MessageCollection SearchMessage(string path)
         {
-            if (_imap == null || !_imap._isConnected)
+            if (_imap == null || !_imap.IsConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -94,7 +98,7 @@ namespace ImapX
 
         public FolderCollection GetFolders(string parent)
         {
-            if (_imap == null || !_imap._isConnected)
+            if (_imap == null || !_imap.IsConnected)
             {
                 throw new ImapException("Not Connect");
             }
@@ -174,7 +178,7 @@ namespace ImapX
 
         public bool CreateFolder(string name)
         {
-            if (_imap == null || !_imap._isConnected)
+            if (_imap == null || !_imap.IsConnected)
             {
                 throw new ImapException("Not Connect");
             }

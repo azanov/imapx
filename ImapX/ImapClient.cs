@@ -1,4 +1,5 @@
-﻿namespace ImapX
+﻿using System.Security.Authentication;
+namespace ImapX
 {
     public class ImapClient
     {
@@ -9,7 +10,7 @@
         {
             get
             {
-                return this._client._selectedFolder;
+                return this._client.SelectedFolder;
             }
         }
 
@@ -17,7 +18,7 @@
         {
             get
             {
-                return this._client._isConnected;
+                return this._client.IsConnected;
             }
         }
 
@@ -37,7 +38,7 @@
         {
             get
             {
-                return this._client._isLogged;
+                return this._client.IsLogged;
             }
         }
 
@@ -60,9 +61,9 @@
             return folders;
         }
 
-        public ImapClient(string host, int port, bool useSsl)
+        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default)
         {
-            this._client = new Imap(host, port, useSsl);
+            this._client = new Imap(host, port, useSsl, sslProtocols);
         }
 
         public bool Connection()
@@ -96,7 +97,7 @@
             {
                 foreach (Message current in messageCollection)
                 {
-                    current._client = this._client;
+                    current.Client = this._client;
                 }
             }
             return messageCollection;

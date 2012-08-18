@@ -6,31 +6,11 @@ namespace ImapX
 {
     public class MessageContent
     {
-        private string _contentStream;
-
-    	public string BoundaryName { get; set; }
+        public string BoundaryName { get; set; }
 
     	public Dictionary<string, string> PartHeaders { get; set; }
 
-    	public string ContentStream
-        {
-            get
-            {
-                return this._contentStream;
-            }
-            set
-            {
-                this._contentStream = value;
-            }
-        }
-
-        public string DecodedContentStream
-        {
-            get
-            {
-                return this._contentStream;
-            }
-        }
+        public string ContentStream { get; set; }
 
     	public string ContentDescription { get; set; }
 
@@ -56,7 +36,7 @@ namespace ImapX
 
     	public MessageContent()
         {
-            this._contentStream = string.Empty;
+            ContentStream = string.Empty;
         }
 
         /// <summary>
@@ -95,14 +75,14 @@ namespace ImapX
 
                 switch (field)
                 {
-                    case "content-type":
+                    case MessageProperty.CONTENT_TYPE:
                         attachment.FileType = value.ToLower();
                         break;
                     case "name":
                     case "filename":
                         attachment.FileName = value.Trim('"').Trim('\'');
                         break;
-                    case "content-transfer-encoding":
+                    case MessageProperty.CONTENT_TRANSFER_ENCODING:
                         attachment.FileEncoding = value.ToLower();
                         break;
                 }
