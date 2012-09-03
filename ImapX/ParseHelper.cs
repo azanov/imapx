@@ -8,21 +8,21 @@ namespace ImapX
 {
     internal static class ParseHelper
     {
-        internal static string DecodeSubject(string subject)
+        public static string DecodeName(string text)
         {
-            if (string.IsNullOrWhiteSpace(subject))
+            if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
             try
             {
                 var regex = new Regex(@"=\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=");
                 var decodedString = string.Empty;
-                while (subject.Length > 0)
+                while (text.Length > 0)
                 {
-                    var match = regex.Match(subject);
+                    var match = regex.Match(text);
                     if (match.Success)
                     {
                         // If the match isn't at the start of the string, copy the initial few chars to the output
-                        decodedString += subject.Substring(0, match.Index);
+                        decodedString += text.Substring(0, match.Index);
                         var charset = match.Groups["charset"].Value;
                         var encoding = match.Groups["encoding"].Value.ToUpper();
                         var value = match.Groups["value"].Value;
@@ -38,16 +38,16 @@ namespace ImapX
                         {
                             // Encoded value not known, return original string
                             // (Match should not be successful in this case, so this code may never get hit)
-                            decodedString += subject;
+                            decodedString += text;
                             break;
                         }
                         // Trim off up to and including the match, then we'll loop and try matching again.
-                        subject = subject.Substring(match.Index + match.Length);
+                        text = text.Substring(match.Index + match.Length);
                     }
                     else
                     {
                         // No match, not encoded, return original string
-                        decodedString += subject;
+                        decodedString += text;
                         break;
                     }
                 }
@@ -55,7 +55,7 @@ namespace ImapX
             }
             catch
             {
-                return subject;
+                return text;
             }
         }
 
@@ -105,6 +105,21 @@ namespace ImapX
                 }
             }
             value = encoding.GetString(data, 0, n);
+            return value;
+        }
+
+        internal static string ExtractFileType(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+            var rex = new Regex(@"(.*\/.*)");
+            var tmp = value.Split(';');
+            foreach (var s in tmp)
+            {
+                var m = rex.Match(s.Trim());
+                if (m.Success)
+                    return m.Value;
+            }
             return value;
         }
 

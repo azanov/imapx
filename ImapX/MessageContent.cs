@@ -49,7 +49,7 @@ namespace ImapX
         /// </remarks>
         internal Attachment ToAttachment()
         {
-            var rex = new Regex(@"(.*)[:|=][\s]?(.*)[;]?");
+            var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
             var tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             var attachment = new Attachment();
 
@@ -71,16 +71,16 @@ namespace ImapX
                 }
 
                 var field = match.Groups[1].Value.ToLower().Trim();
-                var value = match.Groups[2].Value.Trim().TrimEnd(';');
+                var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
 
                 switch (field)
                 {
                     case MessageProperty.CONTENT_TYPE:
-                        attachment.FileType = value.ToLower();
+                        attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
                         break;
                     case "name":
                     case "filename":
-                        attachment.FileName = value.Trim('"').Trim('\'');
+                        attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
                         break;
                     case MessageProperty.CONTENT_TRANSFER_ENCODING:
                         attachment.FileEncoding = value.ToLower();
