@@ -156,14 +156,13 @@ namespace ImapX
 			}
 			foreach (MessageContent current3 in BodyParts)
 			{
-			    if (current3.ContentDisposition == null)
-                    continue;
-			    if (current3.ContentDisposition.ToLower().Contains("attachment"))
+			    
+			    if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
 			    {
 			        var attachment = new Attachment
 			                             {
-			                                 FileName = current3.ContentFilename,
-			                                 FileType = current3.ContentType,
+			                                 FileName = ParseHelper.DecodeName(current3.ContentFilename),
+                                             FileType = ParseHelper.ExtractFileType(current3.ContentType),
 			                                 FileEncoding = current3.ContentTransferEncoding,
 			                                 FileData = Convert.FromBase64String(current3.ContentStream)
 			                             };
@@ -370,7 +369,7 @@ namespace ImapX
                         Bcc = current.Value;
                         break;
                     case MessageProperty.SUBJECT:
-                        _subject = ParseHelper.DecodeSubject(current.Value); 
+                        _subject = ParseHelper.DecodeName(current.Value); 
                         break;
                     
                 }
