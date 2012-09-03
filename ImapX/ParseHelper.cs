@@ -253,7 +253,7 @@ namespace ImapX
             {
                 display = line.Substring(0, num - 1).Trim();
             }
-            return new MailAddress(display, addr);
+            return new MailAddress(DecodeName(display), addr);
         }
 
         public static List<MailAddress> AddressCollection(string value)

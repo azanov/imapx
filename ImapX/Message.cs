@@ -363,10 +363,10 @@ namespace ImapX
                         XMailer = current.Value;
                         break;
                     case MessageProperty.CC:
-                        Cc = current.Value;
+                        Cc = ParseHelper.DecodeName(current.Value);
                         break;
                     case MessageProperty.BCC:
-                        Bcc = current.Value;
+                        Bcc = ParseHelper.DecodeName(current.Value);
                         break;
                     case MessageProperty.SUBJECT:
                         _subject = ParseHelper.DecodeName(current.Value); 
