@@ -167,6 +167,7 @@ namespace ImapX
             try
             {
                 ImapServer = new TcpClient(sHost, nPort);
+               
                 ImapStream = ImapServer.GetStream();
                 ImapStreamReader = new StreamReader(ImapServer.GetStream());
                 if (useSSL)
