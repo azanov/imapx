@@ -58,34 +58,45 @@ namespace ImapX
             for (var i = 0; i < tmp.Length; i++)
             {
 
-                if (tmp[i].StartsWith("---"))
+                if (tmp[i].StartsWith("--"))
                     continue;
 
-                var line = tmp[i].Trim('\t');
-                var match = rex.Match(line);
+                var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
 
-                if (!match.Success)
+                var parts = line.Contains(';') ? line.Split(';') : new[] {line};
+
+                foreach (var part in parts)
                 {
-                    bodyPart = string.Join("\r\n", tmp.Skip(i));
-                    break;
-                }
+                    var match = rex.Match(part);
 
-                var field = match.Groups[1].Value.ToLower().Trim();
-                var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                    if (!match.Success && parts.Length == 1)
+                    {
+                        bodyPart = string.Join("\r\n", tmp.Skip(i));
+                        break;
+                    }
+                    if(!match.Success)
+                        continue;
+                    
 
-                switch (field)
-                {
-                    case MessageProperty.CONTENT_TYPE:
-                        attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
-                        break;
-                    case "name":
-                    case "filename":
-                        attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
-                        break;
-                    case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                        attachment.FileEncoding = value.ToLower();
-                        break;
+                    var field = match.Groups[1].Value.ToLower().Trim();
+                    var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+
+                    switch (field)
+                    {
+                        case MessageProperty.CONTENT_TYPE:
+                            attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
+                            break;
+                        case "name":
+                        case "filename":
+                            attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
+                            break;
+                        case MessageProperty.CONTENT_TRANSFER_ENCODING:
+                            attachment.FileEncoding = value.ToLower();
+                            break;
+                    }
                 }
+                
+                
 
             }
 
