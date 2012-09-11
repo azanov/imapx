@@ -55,7 +55,7 @@ namespace ImapX
 
             var bodyPart = string.Empty;
 
-            for (var i = 0; i < tmp.Length; i++)
+            for (var i = 0; i < tmp.Length && string.IsNullOrWhiteSpace(bodyPart); i++)
             {
 
                 if (tmp[i].StartsWith("--"))
@@ -63,20 +63,18 @@ namespace ImapX
 
                 var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
 
-                var parts = line.Contains(';') ? line.Split(';') : new[] {line};
+                var parts = line.Contains(';') ? line.Split(';') : new[] { line };
 
-                foreach (var part in parts)
+                foreach (var match in parts.Select(part => rex.Match(part)))
                 {
-                    var match = rex.Match(part);
-
                     if (!match.Success && parts.Length == 1)
                     {
                         bodyPart = string.Join("\r\n", tmp.Skip(i));
                         break;
                     }
-                    if(!match.Success)
+                    if (!match.Success)
                         continue;
-                    
+
 
                     var field = match.Groups[1].Value.ToLower().Trim();
                     var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
@@ -95,8 +93,8 @@ namespace ImapX
                             break;
                     }
                 }
-                
-                
+
+
 
             }
 

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ImapX
 {
-    internal static class ParseHelper
+    public static class ParseHelper
     {
         public static string DecodeName(string text)
         {
@@ -59,7 +59,7 @@ namespace ImapX
             }
         }
 
-        internal static string DecodeBase64(string value, Encoding encoding)
+        public static string DecodeBase64(string value, Encoding encoding)
         {
             if (encoding == null)
                 encoding = Encoding.Default;
@@ -69,7 +69,7 @@ namespace ImapX
             return encoding.GetString(bytes);
         }
 
-        internal static string DecodeQuotedPrintable(string value, Encoding encoding)
+        public static string DecodeQuotedPrintable(string value, Encoding encoding)
         {
             if (encoding == null)
                 encoding = Encoding.Default;
@@ -108,7 +108,7 @@ namespace ImapX
             return value;
         }
 
-        internal static string ExtractFileType(string value)
+        public static string ExtractFileType(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
@@ -123,7 +123,7 @@ namespace ImapX
             return value;
         }
 
-        internal static Encoding ParseContentType(string value, out string contentType)
+        public static Encoding ParseContentType(string value, out string contentType)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
