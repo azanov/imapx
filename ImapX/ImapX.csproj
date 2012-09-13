@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="InlineAttachment.cs" />
     <Compile Include="EmailParser\BodyPart.cs" />
     <Compile Include="EmailParser\EmailParser.cs" />
     <Compile Include="EmailParser\ParseError.cs" />

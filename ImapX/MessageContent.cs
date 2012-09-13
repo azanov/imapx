@@ -107,5 +107,28 @@ namespace ImapX
 
             return attachment;
         }
+
+        internal InlineAttachment ToInlineAttachment()
+        {
+            var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
+            var inlineAttachment = new InlineAttachment();
+
+            inlineAttachment.FileEncoding = ContentTransferEncoding;
+
+            inlineAttachment.FileType = ParseHelper.ExtractFileType(ContentType);
+
+            inlineAttachment.FileName =
+                PartHeaders.FirstOrDefault(_ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id").Value.Replace("<", "").Replace(">", "");
+            
+            switch (ContentTransferEncoding)
+            {
+                case "base64":
+                    inlineAttachment.FileData = Convert.FromBase64String(ContentStream);
+                    
+                    break;
+            }
+
+            return inlineAttachment;
+        }
     }
 }
