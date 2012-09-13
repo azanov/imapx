@@ -22,6 +22,7 @@ namespace ImapX
 	    public List<string> Flags { get; private set; }
 
 	    public List<Attachment> Attachments { get; set; }
+        public List<InlineAttachment> InlineAttachments { get; set; }
 
 	    public MessageContent TextBody { get; set; }
 
@@ -88,6 +89,7 @@ namespace ImapX
 			Headers = new Dictionary<string, string>();
 			Flags = new List<string>();
 			Attachments = new List<Attachment>();
+            InlineAttachments = new List<InlineAttachment>();
 			BodyParts = new List<MessageContent>();
 			To = new List<MailAddress>();
 			From = new List<MailAddress>();
@@ -156,20 +158,24 @@ namespace ImapX
 			}
 			foreach (MessageContent current3 in BodyParts)
 			{
-			    
-			    if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
-			    {
-			        var attachment = new Attachment
-			                             {
-			                                 FileName = ParseHelper.DecodeName(current3.ContentFilename),
+
+                if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
+                {
+                    var attachment = new Attachment
+                                         {
+                                             FileName = ParseHelper.DecodeName(current3.ContentFilename),
                                              FileType = ParseHelper.ExtractFileType(current3.ContentType),
-			                                 FileEncoding = current3.ContentTransferEncoding,
-			                                 FileData = Convert.FromBase64String(current3.ContentStream)
-			                             };
-			        Attachments.Add(attachment);
-			    }
-			    else if (current3.ContentStream.ToLower().Contains("attachment")) // [27.07.2012]
-			        Attachments.Add(current3.ToAttachment());               // [27.07.2012]
+                                             FileEncoding = current3.ContentTransferEncoding,
+                                             FileData = Convert.FromBase64String(current3.ContentStream)
+                                         };
+                    Attachments.Add(attachment);
+                }
+                else if (current3.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n=attachment") || current3.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n:attachment")) // [27.07.2012]
+                    Attachments.Add(current3.ToAttachment());               // [27.07.2012]
+                else if(current3.PartHeaders.Any(_ => _.Key.ToLower().Contains("attachment")))
+                {
+                    InlineAttachments.Add(current3.ToInlineAttachment());               
+                }
 			}
             return true;
 		}
@@ -330,7 +336,7 @@ namespace ImapX
                         From = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.DATE:
-                        DateTime.TryParse(current.Value.Trim(), out _date);
+                        DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()), out _date);
                         break;
                     case MessageProperty.CONTENT_TRANSFER_ENCODING:
                         ContentTransferEncoding = current.Value;
@@ -357,7 +363,7 @@ namespace ImapX
                         References = current.Value;
                         break;
                     case MessageProperty.REPLY_TO:
-                        ReplyTo = current.Value;
+                        ReplyTo = ParseHelper.DecodeName(current.Value);
                         break;
                     case MessageProperty.X_MAILER:
                         XMailer = current.Value;
