@@ -14,7 +14,7 @@ namespace ImapX.Sample
     public partial class FrmMain : Form
     {
         private IEnumerable<Message> _messages;
-        private string _result;
+        private Exception _result;
 
         public FrmMain()
         {
@@ -46,7 +46,7 @@ namespace ImapX.Sample
             }
             catch (Exception ex)
             {
-                _result = ex.ToString();
+                _result = ex;
             }
         }
 
@@ -83,8 +83,10 @@ namespace ImapX.Sample
                 }
                 else
                 {
-                    MessageBox.Show(_result, "Error", MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
+                    //MessageBox.Show(_result.ToString(), "Error", MessageBoxButtons.OK,
+                    //                MessageBoxIcon.Error);
+                    using (var frm = new FrmError(_result))
+                        frm.ShowDialog();
                 }
                 pgbFetchMails.Visible = false;
                 lstFolders.Enabled = lstMails.Enabled = true;
