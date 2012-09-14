@@ -21,9 +21,22 @@ namespace ImapX.Sample
             Application.SetCompatibleTextRenderingDefault(false);
 
             Directory.CreateDirectory(Path.Combine(Application.StartupPath, "tmp"));
-            
-            Application.Run(new FrmMain());
 
+            try
+            {
+
+                Application.Run(new FrmMain());
+
+            }
+            catch(Exception ex)
+            {
+                
+                using(var frm = new FrmError(ex))
+                {
+                    frm.ShowDialog();
+                }
+
+            }
             Directory.Delete(Path.Combine(Application.StartupPath, "tmp"), true);
 
         }

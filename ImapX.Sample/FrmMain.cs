@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Windows.Forms;
 using ImapX.Sample.Native;
 
@@ -18,6 +19,7 @@ namespace ImapX.Sample
         public FrmMain()
         {
             InitializeComponent();
+            throw new Exception("wefwefwef");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
