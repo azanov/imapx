@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 namespace ImapX
 {
@@ -49,63 +50,80 @@ namespace ImapX
         /// </remarks>
         internal Attachment ToAttachment()
         {
+            
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
             var tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             var attachment = new Attachment();
-
             var bodyPart = string.Empty;
 
-            for (var i = 0; i < tmp.Length && string.IsNullOrWhiteSpace(bodyPart); i++)
+            try
             {
+               
 
-                if (tmp[i].StartsWith("--"))
-                    continue;
+               
 
-                var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
-
-                var parts = line.Contains(';') ? line.Split(';') : new[] { line };
-
-                foreach (var match in parts.Select(part => rex.Match(part)))
+                for (var i = 0; i < tmp.Length && string.IsNullOrWhiteSpace(bodyPart); i++)
                 {
-                    if (!match.Success && parts.Length == 1)
-                    {
-                        bodyPart = string.Join("\r\n", tmp.Skip(i));
-                        break;
-                    }
-                    if (!match.Success)
+
+                    if (tmp[i].StartsWith("--"))
                         continue;
 
+                    var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
 
-                    var field = match.Groups[1].Value.ToLower().Trim();
-                    var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                    var parts = line.Contains(';') ? line.Split(';') : new[] {line};
 
-                    switch (field)
+                    foreach (var match in parts.Select(part => rex.Match(part)))
                     {
-                        case MessageProperty.CONTENT_TYPE:
-                            attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
+                        if (!match.Success && parts.Length == 1)
+                        {
+                            bodyPart = string.Join("\r\n", tmp.Skip(i));
                             break;
-                        case "name":
-                        case "filename":
-                            attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
-                            break;
-                        case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                            attachment.FileEncoding = value.ToLower();
-                            break;
+                        }
+                        if (!match.Success)
+                            continue;
+
+
+                        var field = match.Groups[1].Value.ToLower().Trim();
+                        var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+
+                        switch (field)
+                        {
+                            case MessageProperty.CONTENT_TYPE:
+                                attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
+                                break;
+                            case "name":
+                            case "filename":
+                                attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
+                                break;
+                            case MessageProperty.CONTENT_TRANSFER_ENCODING:
+                                attachment.FileEncoding = value.ToLower();
+                                break;
+                        }
                     }
+
+
+
                 }
 
-
-
+                switch (attachment.FileEncoding)
+                {
+                    case "base64":
+                        attachment.FileData = Convert.FromBase64String(bodyPart);
+                        break;
+                }
+               
+                return attachment;
             }
-
-            switch (attachment.FileEncoding)
+            catch(FormatException ex)
             {
-                case "base64":
-                    attachment.FileData = Convert.FromBase64String(bodyPart);
-                    break;
+                var str = new StringBuilder();
+                str.Append("Error parsing attachment");
+                str.Append(Environment.NewLine);
+                str.AppendFormat("Attachment filename: \"{0}\"", attachment.FileName);
+                str.Append(Environment.NewLine);
+                str.AppendFormat("Part body: \"{0}\"", bodyPart);
+                throw new Exception(str.ToString(), ex);
             }
-
-            return attachment;
         }
 
         internal InlineAttachment ToInlineAttachment()

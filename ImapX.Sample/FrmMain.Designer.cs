@@ -40,6 +40,8 @@
             this.lsvAttachments = new System.Windows.Forms.ListView();
             this.istAttachments = new System.Windows.Forms.ImageList(this.components);
             this.pnlInfo = new System.Windows.Forms.Panel();
+            this.lblTo = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.lblTime = new System.Windows.Forms.Label();
             this.lblFrom = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -51,8 +53,6 @@
             this.mnuAttachment = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.lblTo = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -80,7 +80,7 @@
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 0);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(222, 657);
+            this.pnlLeft.Size = new System.Drawing.Size(222, 557);
             this.pnlLeft.TabIndex = 1;
             // 
             // lstFolders
@@ -100,7 +100,7 @@
             this.pgbFetchMails.Dock = System.Windows.Forms.DockStyle.Top;
             this.pgbFetchMails.Location = new System.Drawing.Point(12, 12);
             this.pgbFetchMails.Name = "pgbFetchMails";
-            this.pgbFetchMails.Size = new System.Drawing.Size(267, 28);
+            this.pgbFetchMails.Size = new System.Drawing.Size(229, 28);
             this.pgbFetchMails.Step = 1;
             this.pgbFetchMails.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
             this.pgbFetchMails.TabIndex = 1;
@@ -125,8 +125,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.pnlAttachments);
             this.splitContainer1.Panel2.Controls.Add(this.pnlInfo);
             this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(5);
-            this.splitContainer1.Size = new System.Drawing.Size(875, 657);
-            this.splitContainer1.SplitterDistance = 291;
+            this.splitContainer1.Size = new System.Drawing.Size(762, 557);
+            this.splitContainer1.SplitterDistance = 253;
             this.splitContainer1.TabIndex = 2;
             // 
             // lstMails
@@ -139,7 +139,7 @@
             this.lstMails.Location = new System.Drawing.Point(12, 12);
             this.lstMails.Margin = new System.Windows.Forms.Padding(10);
             this.lstMails.Name = "lstMails";
-            this.lstMails.Size = new System.Drawing.Size(267, 633);
+            this.lstMails.Size = new System.Drawing.Size(229, 533);
             this.lstMails.TabIndex = 0;
             this.lstMails.SelectedIndexChanged += new System.EventHandler(this.lsvMails_SelectedIndexChanged);
             // 
@@ -149,7 +149,7 @@
             this.wbrMain.Location = new System.Drawing.Point(5, 105);
             this.wbrMain.MinimumSize = new System.Drawing.Size(20, 20);
             this.wbrMain.Name = "wbrMain";
-            this.wbrMain.Size = new System.Drawing.Size(570, 463);
+            this.wbrMain.Size = new System.Drawing.Size(495, 363);
             this.wbrMain.TabIndex = 2;
             this.wbrMain.Visible = false;
             // 
@@ -158,10 +158,10 @@
             this.pnlAttachments.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(199)))), ((int)(((byte)(83)))));
             this.pnlAttachments.Controls.Add(this.lsvAttachments);
             this.pnlAttachments.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlAttachments.Location = new System.Drawing.Point(5, 568);
+            this.pnlAttachments.Location = new System.Drawing.Point(5, 468);
             this.pnlAttachments.Name = "pnlAttachments";
             this.pnlAttachments.Padding = new System.Windows.Forms.Padding(12);
-            this.pnlAttachments.Size = new System.Drawing.Size(570, 84);
+            this.pnlAttachments.Size = new System.Drawing.Size(495, 84);
             this.pnlAttachments.TabIndex = 3;
             this.pnlAttachments.Visible = false;
             // 
@@ -174,7 +174,7 @@
             this.lsvAttachments.Location = new System.Drawing.Point(12, 12);
             this.lsvAttachments.MultiSelect = false;
             this.lsvAttachments.Name = "lsvAttachments";
-            this.lsvAttachments.Size = new System.Drawing.Size(546, 60);
+            this.lsvAttachments.Size = new System.Drawing.Size(471, 60);
             this.lsvAttachments.SmallImageList = this.istAttachments;
             this.lsvAttachments.TabIndex = 0;
             this.tltMain.SetToolTip(this.lsvAttachments, "Double-click on attachment to open it, right-click to save");
@@ -201,9 +201,27 @@
             this.pnlInfo.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlInfo.Location = new System.Drawing.Point(5, 5);
             this.pnlInfo.Name = "pnlInfo";
-            this.pnlInfo.Size = new System.Drawing.Size(570, 100);
+            this.pnlInfo.Size = new System.Drawing.Size(495, 100);
             this.pnlInfo.TabIndex = 1;
             this.pnlInfo.Visible = false;
+            // 
+            // lblTo
+            // 
+            this.lblTo.AutoSize = true;
+            this.lblTo.Location = new System.Drawing.Point(61, 52);
+            this.lblTo.Name = "lblTo";
+            this.lblTo.Size = new System.Drawing.Size(27, 16);
+            this.lblTo.TabIndex = 6;
+            this.lblTo.Text = "[to]";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(13, 52);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(28, 16);
+            this.label4.TabIndex = 5;
+            this.label4.Text = "To:";
             // 
             // lblTime
             // 
@@ -281,30 +299,12 @@
             this.saveAsToolStripMenuItem.Text = "Save as...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
-            // lblTo
-            // 
-            this.lblTo.AutoSize = true;
-            this.lblTo.Location = new System.Drawing.Point(61, 52);
-            this.lblTo.Name = "lblTo";
-            this.lblTo.Size = new System.Drawing.Size(27, 16);
-            this.lblTo.TabIndex = 6;
-            this.lblTo.Text = "[to]";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(13, 52);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(28, 16);
-            this.label4.TabIndex = 5;
-            this.label4.Text = "To:";
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1097, 657);
+            this.ClientSize = new System.Drawing.Size(984, 557);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.pnlLeft);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));

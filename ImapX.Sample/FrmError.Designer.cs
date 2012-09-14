@@ -62,6 +62,7 @@
             this.txtStacktrace.Location = new System.Drawing.Point(12, 87);
             this.txtStacktrace.Multiline = true;
             this.txtStacktrace.Name = "txtStacktrace";
+            this.txtStacktrace.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtStacktrace.Size = new System.Drawing.Size(653, 376);
             this.txtStacktrace.TabIndex = 8;
             // 
@@ -85,7 +86,7 @@
             this.Controls.Add(this.lblMessage);
             this.Controls.Add(this.label3);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FrmError";
             this.Padding = new System.Windows.Forms.Padding(12);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
