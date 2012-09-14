@@ -19,7 +19,6 @@ namespace ImapX.Sample
         public FrmMain()
         {
             InitializeComponent();
-            throw new Exception("wefwefwef");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
