@@ -108,7 +108,7 @@ namespace ImapX
                 switch (attachment.FileEncoding)
                 {
                     case "base64":
-                        attachment.FileData = Convert.FromBase64String(bodyPart);
+                        attachment.FileData = Base64.FromBase64(bodyPart);
                         break;
                 }
                
@@ -141,7 +141,7 @@ namespace ImapX
             switch (ContentTransferEncoding)
             {
                 case "base64":
-                    inlineAttachment.FileData = Convert.FromBase64String(ContentStream);
+                    inlineAttachment.FileData = Base64.FromBase64(ContentStream);
                     
                     break;
             }

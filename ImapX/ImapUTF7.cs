@@ -22,7 +22,7 @@ namespace ImapX
 
             foreach (var match in toEncode)
             {
-                var b64 = "&" + Convert.ToBase64String(encoding.GetBytes(match.Value)).TrimEnd('=').Replace("/", ",") +
+                var b64 = "&" + Base64.ToBase64(encoding.GetBytes(match.Value)).TrimEnd('=').Replace("/", ",") +
                              "-";
                 value = value.Replace(match.Value, b64);
             }
@@ -42,7 +42,7 @@ namespace ImapX
             {
                 string v = m.Value.TrimStart('&').TrimEnd('-').Replace(",", "/");
                 v += v.Length%4 == 2 ? "==" : (v.Length%4 == 3 ? "=" : "");
-                result = result.Replace(m.Value, encoding.GetString(Convert.FromBase64String(v)).Replace("\0", ""));
+                result = result.Replace(m.Value, encoding.GetString(Base64.FromBase64(v)).Replace("\0", ""));
             }
 
             return result;

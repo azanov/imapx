@@ -46,7 +46,7 @@ namespace ImapX
                 array = new byte[(int) ((object) ((IntPtr) fileStream.Length))];
                 fileStream.Read(array, 0, (int) fileStream.Length);
             }
-            return Convert.ToBase64String(array);
+            return Base64.ToBase64(array);
         }
     }
 }
