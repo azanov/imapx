@@ -163,7 +163,7 @@ namespace ImapX
                 {
                     var attachment = new Attachment
                                          {
-                                             FileName = ParseHelper.DecodeName(current3.ContentFilename),
+                                             FileName = ParseHelper.DecodeName(string.IsNullOrWhiteSpace(current3.ContentFilename) ? ParseHelper.ExtractFileName(current3.ContentType) : current3.ContentFilename),
                                              FileType = ParseHelper.ExtractFileType(current3.ContentType),
                                              FileEncoding = current3.ContentTransferEncoding,
                                              FileData = Convert.FromBase64String(current3.ContentStream)

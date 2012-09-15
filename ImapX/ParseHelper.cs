@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -277,6 +278,33 @@ namespace ImapX
             	}
             }
             return list;
+        }
+
+        internal static string ExtractFileName(string p)
+        {
+            if (string.IsNullOrWhiteSpace(p)) return string.Empty;
+
+            var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
+            foreach (var match in p.Split(';').Select(part => rex.Match(part)))
+            {
+                
+                if (!match.Success)
+                    continue;
+
+
+                var field = match.Groups[1].Value.ToLower().Trim();
+                var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+
+                switch (field)
+                {
+                    
+                    case "name":
+                    case "filename":
+                        return DecodeName(value.Trim('"').Trim('\''));
+                        
+                }
+            }
+            return string.Empty;
         }
     }
 }

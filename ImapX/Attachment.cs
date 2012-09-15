@@ -6,13 +6,18 @@ namespace ImapX
     public class Attachment
     {
         private byte[] _fileData;
+        private string _fileName;
 
         public int FileSize
         {
             get { return _fileData == null ? 0 : _fileData.Length; }
         }
 
-        public string FileName { get; set; }
+        public string FileName
+        {
+            get { return _fileName; }
+            set { _fileName =string.IsNullOrWhiteSpace(value) ? "Unnamed" : value; }
+        }
 
         public string FileEncoding { get; set; }
 
