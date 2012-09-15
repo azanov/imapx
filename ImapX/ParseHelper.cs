@@ -66,7 +66,7 @@ namespace ImapX
                 encoding = Encoding.Default;
             if (string.IsNullOrWhiteSpace(value))
                 return "";
-            var bytes = Convert.FromBase64String(value);
+            var bytes = Base64.FromBase64(value);
             return encoding.GetString(bytes);
         }
 

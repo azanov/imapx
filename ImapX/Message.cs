@@ -166,7 +166,7 @@ namespace ImapX
                                              FileName = ParseHelper.DecodeName(string.IsNullOrWhiteSpace(current3.ContentFilename) ? ParseHelper.ExtractFileName(current3.ContentType) : current3.ContentFilename),
                                              FileType = ParseHelper.ExtractFileType(current3.ContentType),
                                              FileEncoding = current3.ContentTransferEncoding,
-                                             FileData = Convert.FromBase64String(current3.ContentStream)
+                                             FileData = Base64.FromBase64(current3.ContentStream)
                                          };
                     Attachments.Add(attachment);
                 }
@@ -547,7 +547,7 @@ namespace ImapX
 				stringBuilder.Append("\r\n");
 				if (HtmlBody != null && HtmlBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
@@ -564,7 +564,7 @@ namespace ImapX
 				stringBuilder.Append("\r\n");
 				if (TextBody != null && TextBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(TextBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(TextBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
@@ -576,7 +576,7 @@ namespace ImapX
 				stringBuilder.Append("\r\n");
 				if (HtmlBody != null && HtmlBody.TextData != null)
 				{
-					stringBuilder.AppendFormat("{0}{1}", Convert.ToBase64String(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
+					stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(HtmlBody.TextData)), Environment.NewLine);
 				}
 				else
 				{
