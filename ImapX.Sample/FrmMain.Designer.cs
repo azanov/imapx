@@ -31,13 +31,20 @@
             this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
-            this.lstFolders = new System.Windows.Forms.ListBox();
+            this.trwFolders = new System.Windows.Forms.TreeView();
             this.pgbFetchMails = new System.Windows.Forms.ProgressBar();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.lstMails = new System.Windows.Forms.ListBox();
+            this.lblSelectFolder = new System.Windows.Forms.Label();
+            this.lsvMails = new System.Windows.Forms.ListView();
+            this.mnuMessages = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.moveToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.pnlAttachments = new System.Windows.Forms.Panel();
             this.lsvAttachments = new System.Windows.Forms.ListView();
+            this.mnuAttachment = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.istAttachments = new System.Windows.Forms.ImageList(this.components);
             this.pnlInfo = new System.Windows.Forms.Panel();
             this.lblTo = new System.Windows.Forms.Label();
@@ -47,20 +54,17 @@
             this.label3 = new System.Windows.Forms.Label();
             this.lblSubject = new System.Windows.Forms.Label();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.bgwMain = new System.ComponentModel.BackgroundWorker();
             this.sfdMain = new System.Windows.Forms.SaveFileDialog();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
-            this.mnuAttachment = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.mnuMessages.SuspendLayout();
             this.pnlAttachments.SuspendLayout();
-            this.pnlInfo.SuspendLayout();
             this.mnuAttachment.SuspendLayout();
+            this.pnlInfo.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -75,7 +79,7 @@
             // 
             // pnlLeft
             // 
-            this.pnlLeft.Controls.Add(this.lstFolders);
+            this.pnlLeft.Controls.Add(this.trwFolders);
             this.pnlLeft.Controls.Add(this.label1);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 0);
@@ -83,17 +87,17 @@
             this.pnlLeft.Size = new System.Drawing.Size(222, 557);
             this.pnlLeft.TabIndex = 1;
             // 
-            // lstFolders
+            // trwFolders
             // 
-            this.lstFolders.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.lstFolders.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lstFolders.FormattingEnabled = true;
-            this.lstFolders.ItemHeight = 16;
-            this.lstFolders.Location = new System.Drawing.Point(18, 48);
-            this.lstFolders.Name = "lstFolders";
-            this.lstFolders.Size = new System.Drawing.Size(188, 592);
-            this.lstFolders.TabIndex = 1;
-            this.lstFolders.SelectedIndexChanged += new System.EventHandler(this.lstFolders_SelectedIndexChanged);
+            this.trwFolders.BackColor = System.Drawing.Color.White;
+            this.trwFolders.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.trwFolders.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.trwFolders.HideSelection = false;
+            this.trwFolders.Location = new System.Drawing.Point(11, 48);
+            this.trwFolders.Name = "trwFolders";
+            this.trwFolders.Size = new System.Drawing.Size(188, 492);
+            this.trwFolders.TabIndex = 2;
+            this.trwFolders.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.trwFolders_AfterSelect);
             // 
             // pgbFetchMails
             // 
@@ -104,6 +108,7 @@
             this.pgbFetchMails.Step = 1;
             this.pgbFetchMails.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
             this.pgbFetchMails.TabIndex = 1;
+            this.pgbFetchMails.Visible = false;
             // 
             // splitContainer1
             // 
@@ -114,8 +119,9 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.splitContainer1.Panel1.Controls.Add(this.lblSelectFolder);
             this.splitContainer1.Panel1.Controls.Add(this.pgbFetchMails);
-            this.splitContainer1.Panel1.Controls.Add(this.lstMails);
+            this.splitContainer1.Panel1.Controls.Add(this.lsvMails);
             this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(12);
             // 
             // splitContainer1.Panel2
@@ -129,19 +135,57 @@
             this.splitContainer1.SplitterDistance = 253;
             this.splitContainer1.TabIndex = 2;
             // 
-            // lstMails
+            // lblSelectFolder
             // 
-            this.lstMails.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
-            this.lstMails.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.lstMails.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lstMails.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lstMails.ItemHeight = 18;
-            this.lstMails.Location = new System.Drawing.Point(12, 12);
-            this.lstMails.Margin = new System.Windows.Forms.Padding(10);
-            this.lstMails.Name = "lstMails";
-            this.lstMails.Size = new System.Drawing.Size(229, 533);
-            this.lstMails.TabIndex = 0;
-            this.lstMails.SelectedIndexChanged += new System.EventHandler(this.lsvMails_SelectedIndexChanged);
+            this.lblSelectFolder.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblSelectFolder.Location = new System.Drawing.Point(12, 40);
+            this.lblSelectFolder.Name = "lblSelectFolder";
+            this.lblSelectFolder.Size = new System.Drawing.Size(229, 16);
+            this.lblSelectFolder.TabIndex = 2;
+            this.lblSelectFolder.Text = "Please select a folder";
+            this.lblSelectFolder.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // lsvMails
+            // 
+            this.lsvMails.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.lsvMails.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lsvMails.ContextMenuStrip = this.mnuMessages;
+            this.lsvMails.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lsvMails.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lsvMails.FullRowSelect = true;
+            this.lsvMails.GridLines = true;
+            this.lsvMails.Location = new System.Drawing.Point(12, 12);
+            this.lsvMails.Margin = new System.Windows.Forms.Padding(10);
+            this.lsvMails.Name = "lsvMails";
+            this.lsvMails.Size = new System.Drawing.Size(229, 533);
+            this.lsvMails.TabIndex = 0;
+            this.lsvMails.UseCompatibleStateImageBehavior = false;
+            this.lsvMails.View = System.Windows.Forms.View.List;
+            this.lsvMails.SelectedIndexChanged += new System.EventHandler(this.lsvMails_SelectedIndexChanged);
+            // 
+            // mnuMessages
+            // 
+            this.mnuMessages.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.moveToFolderToolStripMenuItem,
+            this.deleteToolStripMenuItem});
+            this.mnuMessages.Name = "mnuMessages";
+            this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
+            this.mnuMessages.Size = new System.Drawing.Size(162, 48);
+            this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
+            // 
+            // moveToFolderToolStripMenuItem
+            // 
+            this.moveToFolderToolStripMenuItem.Name = "moveToFolderToolStripMenuItem";
+            this.moveToFolderToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.moveToFolderToolStripMenuItem.Text = "Move to folder...";
+            this.moveToFolderToolStripMenuItem.Click += new System.EventHandler(this.moveToFolderToolStripMenuItem_Click);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // wbrMain
             // 
@@ -169,6 +213,7 @@
             // 
             this.lsvAttachments.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(199)))), ((int)(((byte)(83)))));
             this.lsvAttachments.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lsvAttachments.ContextMenuStrip = this.mnuAttachment;
             this.lsvAttachments.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lsvAttachments.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lsvAttachments.Location = new System.Drawing.Point(12, 12);
@@ -180,8 +225,31 @@
             this.tltMain.SetToolTip(this.lsvAttachments, "Double-click on attachment to open it, right-click to save");
             this.lsvAttachments.UseCompatibleStateImageBehavior = false;
             this.lsvAttachments.View = System.Windows.Forms.View.SmallIcon;
-            this.lsvAttachments.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lsvAttachments_MouseClick);
             this.lsvAttachments.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lsvAttachments_MouseDoubleClick);
+            // 
+            // mnuAttachment
+            // 
+            this.mnuAttachment.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openToolStripMenuItem,
+            this.saveAsToolStripMenuItem});
+            this.mnuAttachment.Name = "mnuAttachment";
+            this.mnuAttachment.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
+            this.mnuAttachment.Size = new System.Drawing.Size(122, 48);
+            this.mnuAttachment.Opening += new System.ComponentModel.CancelEventHandler(this.mnuAttachment_Opening);
+            // 
+            // openToolStripMenuItem
+            // 
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // saveAsToolStripMenuItem
+            // 
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.saveAsToolStripMenuItem.Text = "Save as...";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // istAttachments
             // 
@@ -265,39 +333,10 @@
             this.columnHeader1.Text = "Messages";
             this.columnHeader1.Width = 257;
             // 
-            // bgwMain
-            // 
-            this.bgwMain.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwMain_DoWork);
-            this.bgwMain.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwMain_RunWorkerCompleted);
-            // 
             // sfdMain
             // 
             this.sfdMain.ShowHelp = true;
             this.sfdMain.Title = "Save attachment";
-            // 
-            // mnuAttachment
-            // 
-            this.mnuAttachment.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem,
-            this.saveAsToolStripMenuItem});
-            this.mnuAttachment.Name = "mnuAttachment";
-            this.mnuAttachment.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuAttachment.ShowImageMargin = false;
-            this.mnuAttachment.Size = new System.Drawing.Size(128, 70);
-            // 
-            // openToolStripMenuItem
-            // 
-            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-            this.openToolStripMenuItem.Text = "Open";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
-            // 
-            // saveAsToolStripMenuItem
-            // 
-            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-            this.saveAsToolStripMenuItem.Text = "Save as...";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -318,10 +357,11 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.mnuMessages.ResumeLayout(false);
             this.pnlAttachments.ResumeLayout(false);
+            this.mnuAttachment.ResumeLayout(false);
             this.pnlInfo.ResumeLayout(false);
             this.pnlInfo.PerformLayout();
-            this.mnuAttachment.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -330,9 +370,8 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel pnlLeft;
-        private System.Windows.Forms.ListBox lstFolders;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.ListBox lstMails;
+        private System.Windows.Forms.ListView lsvMails;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.WebBrowser wbrMain;
         private System.Windows.Forms.Panel pnlInfo;
@@ -342,7 +381,6 @@
         private System.Windows.Forms.Label lblSubject;
         private System.Windows.Forms.ListView lsvAttachments;
         private System.Windows.Forms.ProgressBar pgbFetchMails;
-        private System.ComponentModel.BackgroundWorker bgwMain;
         private System.Windows.Forms.Panel pnlAttachments;
         private System.Windows.Forms.SaveFileDialog sfdMain;
         private System.Windows.Forms.ToolTip tltMain;
@@ -352,6 +390,11 @@
         private System.Windows.Forms.ImageList istAttachments;
         private System.Windows.Forms.Label lblTo;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TreeView trwFolders;
+        private System.Windows.Forms.Label lblSelectFolder;
+        private System.Windows.Forms.ContextMenuStrip mnuMessages;
+        private System.Windows.Forms.ToolStripMenuItem moveToFolderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
     }
 }
 
