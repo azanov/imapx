@@ -107,12 +107,13 @@ namespace ImapX.EmailParser
             {
                 if (flag)
                 {
-                    stringBuilder.Append(this._emailItems[current]);
+                    stringBuilder.Append(this._emailItems[current >= _emailItems.Length ? _emailItems.Length - 1 : current]);
+                    
                     flag = false;
                 }
                 else
                 {
-                    stringBuilder.Append("\r\n" + this._emailItems[current]);
+                    stringBuilder.Append("\r\n" + this._emailItems[current >= _emailItems.Length ? _emailItems.Length - 1 : current]);
                 }
             }
             if (p.Boundary == null && stringBuilder.Length > 0 && stringBuilder[stringBuilder.Length - 1].Equals(')'))
