@@ -56,6 +56,7 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.sfdMain = new System.Windows.Forms.SaveFileDialog();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
+            this.clmMessages = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -149,19 +150,25 @@
             // 
             this.lsvMails.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.lsvMails.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lsvMails.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.clmMessages});
             this.lsvMails.ContextMenuStrip = this.mnuMessages;
             this.lsvMails.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lsvMails.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lsvMails.FullRowSelect = true;
             this.lsvMails.GridLines = true;
+            this.lsvMails.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             this.lsvMails.Location = new System.Drawing.Point(12, 12);
             this.lsvMails.Margin = new System.Windows.Forms.Padding(10);
             this.lsvMails.Name = "lsvMails";
             this.lsvMails.Size = new System.Drawing.Size(229, 533);
             this.lsvMails.TabIndex = 0;
             this.lsvMails.UseCompatibleStateImageBehavior = false;
-            this.lsvMails.View = System.Windows.Forms.View.List;
+            this.lsvMails.View = System.Windows.Forms.View.Details;
+            this.lsvMails.VirtualMode = true;
+            this.lsvMails.RetrieveVirtualItem += new System.Windows.Forms.RetrieveVirtualItemEventHandler(this.lsvMails_RetrieveVirtualItem);
             this.lsvMails.SelectedIndexChanged += new System.EventHandler(this.lsvMails_SelectedIndexChanged);
+            this.lsvMails.SizeChanged += new System.EventHandler(this.FrmMainOrLsvMails_SizeChanged);
             // 
             // mnuMessages
             // 
@@ -338,6 +345,10 @@
             this.sfdMain.ShowHelp = true;
             this.sfdMain.Title = "Save attachment";
             // 
+            // clmMessages
+            // 
+            this.clmMessages.Text = "Messages";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -351,6 +362,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ImapX 2 Test Application";
             this.Load += new System.EventHandler(this.FrmMain_Load);
+            this.SizeChanged += new System.EventHandler(this.FrmMainOrLsvMails_SizeChanged);
             this.pnlLeft.ResumeLayout(false);
             this.pnlLeft.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -395,6 +407,7 @@
         private System.Windows.Forms.ContextMenuStrip mnuMessages;
         private System.Windows.Forms.ToolStripMenuItem moveToFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader clmMessages;
     }
 }
 

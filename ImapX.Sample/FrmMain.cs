@@ -41,8 +41,8 @@ namespace ImapX.Sample
 
         private void lsvMails_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lsvMails.SelectedItems.Count == 0) return;
-            _selectedMessage = _messages[lsvMails.SelectedItems[0].Index];
+            if (lsvMails.SelectedIndices.Count == 0) return;
+            _selectedMessage = _messages[lsvMails.SelectedIndices[0]];
 
             lblSubject.Text = string.IsNullOrWhiteSpace(_selectedMessage.Subject)
                                   ? "No subject"
@@ -119,7 +119,7 @@ namespace ImapX.Sample
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (lsvAttachments.SelectedItems.Count == 0) return;
-            Message msg = _messages[lsvMails.SelectedItems[0].Index];
+            Message msg = _messages[lsvMails.SelectedIndices[0]];
             Attachment attachment =
                 msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
@@ -129,7 +129,7 @@ namespace ImapX.Sample
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (lsvAttachments.SelectedItems.Count == 0) return;
-            Message msg = _messages[lsvMails.SelectedItems[0].Index];
+            Message msg = _messages[lsvMails.SelectedIndices[0]];
             Attachment attachment =
                 msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
@@ -143,7 +143,7 @@ namespace ImapX.Sample
 
         private void mnuMessages_Opening(object sender, CancelEventArgs e)
         {
-            e.Cancel = lsvMails.SelectedItems.Count == 0;
+            e.Cancel = lsvMails.SelectedIndices.Count == 0;
         }
 
         private void mnuAttachment_Opening(object sender, CancelEventArgs e)
@@ -160,7 +160,8 @@ namespace ImapX.Sample
             lblSelectFolder.Visible = false;
 
             trwFolders.Enabled = lsvMails.Enabled = false;
-            lsvMails.Items.Clear();
+            lsvMails.VirtualListSize = 0;
+            
             pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
             pgbFetchMails.Visible = true;
 
@@ -188,12 +189,8 @@ namespace ImapX.Sample
         {
             if (e.Result)
             {
-                lsvMails.Items.AddRange(
-                    _messages.Select(
-                        _ =>
-                        new ListViewItem(string.IsNullOrWhiteSpace(_.Subject)
-                                             ? "[No subject]"
-                                             : _.Subject.Replace("\n", "").Replace("\t", ""))).ToArray());
+                lsvMails.VirtualListSize = _messages.Count;
+                AutoResizeMessageListViewColumn();
             }
             else
             {
@@ -241,8 +238,8 @@ namespace ImapX.Sample
         {
             if (e.Result)
             {
-                _messages.RemoveAt(lsvMails.SelectedItems[0].Index);
-                lsvMails.Items.RemoveAt(lsvMails.SelectedItems[0].Index);
+                _messages.RemoveAt(lsvMails.SelectedIndices[0]);
+                lsvMails.VirtualListSize--; lsvMails.Invalidate();
             }
             else if (e.Exception != null)
             {
@@ -296,8 +293,8 @@ namespace ImapX.Sample
         {
             if (e.Result)
             {
-                _messages.RemoveAt(lsvMails.SelectedItems[0].Index);
-                lsvMails.Items.RemoveAt(lsvMails.SelectedItems[0].Index);
+                _messages.RemoveAt(lsvMails.SelectedIndices[0]);
+                lsvMails.VirtualListSize--; lsvMails.Invalidate();
             }
             else if (e.Exception != null)
             {
@@ -340,5 +337,27 @@ namespace ImapX.Sample
         }
 
         #endregion
+
+        private void lsvMails_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+        {
+            if(e.ItemIndex>=_messages.Count) return;
+            var msg = _messages[e.ItemIndex];            
+            e.Item = new ListViewItem(string.IsNullOrWhiteSpace(msg.Subject)
+                                          ? "[No subject]"
+                                          : msg.Subject.Replace("\n", "").Replace("\t", ""));
+        }
+
+        private void FrmMainOrLsvMails_SizeChanged(object sender, EventArgs e)
+        {
+            AutoResizeMessageListViewColumn();
+        }
+
+        private void AutoResizeMessageListViewColumn()
+        {
+            var scrollBars = NativeMethods.GetVisibleScrollbars(lsvMails);
+            clmMessages.Width = scrollBars.HasFlag(ScrollBars.Vertical)
+                                    ? lsvMails.Width - SystemInformation.VerticalScrollBarWidth
+                                    : lsvMails.Width;
+        }
     }
 }

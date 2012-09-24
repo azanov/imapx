@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Authentication;
 using System.Text;
 using System.Windows.Forms;
 
@@ -18,15 +19,18 @@ namespace ImapX.Sample
         private string _pass;
         private bool _useSSL;
         private string _result;
+        private readonly SslProtocols[] _sslProtocols = { SslProtocols.None, SslProtocols.Default, SslProtocols.Tls  };
+        private SslProtocols _selectedProtocol = SslProtocols.None;
 
         public FrmConnect()
         {
             InitializeComponent();
+            cmbEncryption.SelectedIndex = 1;
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtLogin.Text) || string.IsNullOrWhiteSpace(txtPort.Text) || string.IsNullOrWhiteSpace(txtServer.Text) || !int.TryParse(txtPort.Text, out _port))
+            if (string.IsNullOrWhiteSpace(txtLogin.Text) || string.IsNullOrWhiteSpace(txtPass.Text) || string.IsNullOrWhiteSpace(txtPort.Text) || string.IsNullOrWhiteSpace(txtServer.Text) || !int.TryParse(txtPort.Text, out _port))
                 MessageBox.Show("Please check the values you entered", "Error", MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
             else
@@ -34,7 +38,8 @@ namespace ImapX.Sample
                 _host = txtServer.Text.Trim();
                 _login = txtLogin.Text;
                 _pass = txtPass.Text;
-                _useSSL = chkUseSSL.Checked;
+                _useSSL = cmbEncryption.SelectedIndex != 0;
+                _selectedProtocol = _sslProtocols[cmbEncryption.SelectedIndex];
                 btnConnect.Enabled = false;
                 bgwMain.RunWorkerAsync();
             }
@@ -66,7 +71,7 @@ namespace ImapX.Sample
             try
             {
                 e.Result = false;
-                Program.ImapClient = new ImapClient(_host, _port, _useSSL);
+                Program.ImapClient = new ImapClient(_host, _port, _useSSL, _selectedProtocol);
                 if (Program.ImapClient.Connection())
                 {
 

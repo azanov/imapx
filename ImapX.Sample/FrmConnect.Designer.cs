@@ -32,7 +32,6 @@
             this.txtServer = new System.Windows.Forms.TextBox();
             this.txtPort = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.chkUseSSL = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.txtLogin = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -40,6 +39,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
             this.bgwMain = new System.ComponentModel.BackgroundWorker();
+            this.cmbEncryption = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // label1
@@ -63,7 +63,7 @@
             // 
             this.txtPort.Location = new System.Drawing.Point(68, 73);
             this.txtPort.Name = "txtPort";
-            this.txtPort.Size = new System.Drawing.Size(166, 21);
+            this.txtPort.Size = new System.Drawing.Size(128, 21);
             this.txtPort.TabIndex = 3;
             this.txtPort.Text = "993";
             // 
@@ -75,18 +75,6 @@
             this.label2.Size = new System.Drawing.Size(35, 16);
             this.label2.TabIndex = 2;
             this.label2.Text = "Port:";
-            // 
-            // chkUseSSL
-            // 
-            this.chkUseSSL.AutoSize = true;
-            this.chkUseSSL.Checked = true;
-            this.chkUseSSL.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkUseSSL.Location = new System.Drawing.Point(240, 74);
-            this.chkUseSSL.Name = "chkUseSSL";
-            this.chkUseSSL.Size = new System.Drawing.Size(80, 20);
-            this.chkUseSSL.TabIndex = 4;
-            this.chkUseSSL.Text = "Use SSL";
-            this.chkUseSSL.UseVisualStyleBackColor = true;
             // 
             // label3
             // 
@@ -118,6 +106,7 @@
             // 
             this.txtPass.Location = new System.Drawing.Point(68, 127);
             this.txtPass.Name = "txtPass";
+            this.txtPass.PasswordChar = '●';
             this.txtPass.Size = new System.Drawing.Size(252, 21);
             this.txtPass.TabIndex = 9;
             // 
@@ -145,6 +134,20 @@
             this.bgwMain.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwMain_DoWork);
             this.bgwMain.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwMain_RunWorkerCompleted);
             // 
+            // cmbEncryption
+            // 
+            this.cmbEncryption.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbEncryption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbEncryption.FormattingEnabled = true;
+            this.cmbEncryption.Items.AddRange(new object[] {
+            "No encryption",
+            "SSL",
+            "TLS"});
+            this.cmbEncryption.Location = new System.Drawing.Point(199, 73);
+            this.cmbEncryption.Name = "cmbEncryption";
+            this.cmbEncryption.Size = new System.Drawing.Size(121, 21);
+            this.cmbEncryption.TabIndex = 11;
+            // 
             // FrmConnect
             // 
             this.AcceptButton = this.btnConnect;
@@ -152,13 +155,13 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(336, 202);
+            this.Controls.Add(this.cmbEncryption);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.txtPass);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtLogin);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.chkUseSSL);
             this.Controls.Add(this.txtPort);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtServer);
@@ -180,7 +183,6 @@
         private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.TextBox txtPort;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.CheckBox chkUseSSL;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtLogin;
         private System.Windows.Forms.Label label4;
@@ -188,5 +190,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button btnConnect;
         private System.ComponentModel.BackgroundWorker bgwMain;
+        private System.Windows.Forms.ComboBox cmbEncryption;
     }
 }
