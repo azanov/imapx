@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 namespace ImapX
 {
+    [Serializable]
     public class MessageContent
     {
         public string BoundaryName { get; set; }
@@ -109,6 +110,12 @@ namespace ImapX
                 {
                     case "base64":
                         attachment.FileData = Base64.FromBase64(bodyPart);
+                        break;
+                    case "7bit":
+                        attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
+                        break;
+                    default:
+                        attachment.FileData = new byte[0];
                         break;
                 }
                

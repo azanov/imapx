@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ImapX
 {
+    [Serializable]
     public class FolderCollection : List<Folder>
     {
         public Folder this[string name]

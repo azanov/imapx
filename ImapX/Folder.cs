@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Linq;
 
 namespace ImapX
 {
+    [Serializable]
     public class Folder
     {
         public Imap Client;
