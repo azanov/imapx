@@ -36,6 +36,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.lblSelectFolder = new System.Windows.Forms.Label();
             this.lsvMails = new System.Windows.Forms.ListView();
+            this.clmMessages = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.mnuMessages = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.moveToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,7 +57,7 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.sfdMain = new System.Windows.Forms.SaveFileDialog();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
-            this.clmMessages = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.exportForReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -158,6 +159,7 @@
             this.lsvMails.FullRowSelect = true;
             this.lsvMails.GridLines = true;
             this.lsvMails.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
+            this.lsvMails.HideSelection = false;
             this.lsvMails.Location = new System.Drawing.Point(12, 12);
             this.lsvMails.Margin = new System.Windows.Forms.Padding(10);
             this.lsvMails.Name = "lsvMails";
@@ -170,14 +172,19 @@
             this.lsvMails.SelectedIndexChanged += new System.EventHandler(this.lsvMails_SelectedIndexChanged);
             this.lsvMails.SizeChanged += new System.EventHandler(this.FrmMainOrLsvMails_SizeChanged);
             // 
+            // clmMessages
+            // 
+            this.clmMessages.Text = "Messages";
+            // 
             // mnuMessages
             // 
             this.mnuMessages.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.moveToFolderToolStripMenuItem,
-            this.deleteToolStripMenuItem});
+            this.deleteToolStripMenuItem,
+            this.exportForReportToolStripMenuItem});
             this.mnuMessages.Name = "mnuMessages";
             this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuMessages.Size = new System.Drawing.Size(162, 48);
+            this.mnuMessages.Size = new System.Drawing.Size(170, 92);
             this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
             // 
             // moveToFolderToolStripMenuItem
@@ -345,9 +352,12 @@
             this.sfdMain.ShowHelp = true;
             this.sfdMain.Title = "Save attachment";
             // 
-            // clmMessages
+            // exportForReportToolStripMenuItem
             // 
-            this.clmMessages.Text = "Messages";
+            this.exportForReportToolStripMenuItem.Name = "exportForReportToolStripMenuItem";
+            this.exportForReportToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.exportForReportToolStripMenuItem.Text = "Export for report...";
+            this.exportForReportToolStripMenuItem.Click += new System.EventHandler(this.exportForReportToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -408,6 +418,7 @@
         private System.Windows.Forms.ToolStripMenuItem moveToFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader clmMessages;
+        private System.Windows.Forms.ToolStripMenuItem exportForReportToolStripMenuItem;
     }
 }
 

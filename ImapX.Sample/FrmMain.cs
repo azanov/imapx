@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using ImapX.Sample.Native;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ImapX.Sample
 {
@@ -121,7 +122,7 @@ namespace ImapX.Sample
             if (lsvAttachments.SelectedItems.Count == 0) return;
             Message msg = _messages[lsvMails.SelectedIndices[0]];
             Attachment attachment =
-                msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).Skip(
+                msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).OrderBy(_ => _.FileName).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
             Process.Start(Path.Combine(Application.StartupPath, "tmp", msg.MessageId.MD5(), attachment.FileName));
         }
@@ -164,7 +165,7 @@ namespace ImapX.Sample
             
             pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
             pgbFetchMails.Visible = true;
-
+            _selectedMessage = null;
             _selectedFolder = trwFolders.SelectedNode.Tag as Folder;
 
             (new Thread(GetMails)).Start();
@@ -332,7 +333,13 @@ namespace ImapX.Sample
             {
                 string key = file.Split('.').Last();
                 if (!istAttachments.Images.ContainsKey(key))
-                    istAttachments.Images.Add(file.Split('.').Last(), NativeMethods.GetSystemIcon(file));
+                    try
+                    {
+                        istAttachments.Images.Add(file.Split('.').Last(), NativeMethods.GetSystemIcon(file));
+                    }
+                    catch {
+                        
+                    }
             }
         }
 
@@ -359,5 +366,23 @@ namespace ImapX.Sample
                                     ? lsvMails.Width - SystemInformation.VerticalScrollBarWidth
                                     : lsvMails.Width;
         }
+
+        private void exportForReportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            if (_selectedMessage == null) return;
+
+            sfdMain.FileName = "message.report";
+
+            if (sfdMain.ShowDialog() != DialogResult.OK) return;
+
+            _selectedMessage.ExportForReport(sfdMain.FileName);
+
+            var test = Message.FromReport(sfdMain.FileName);
+            test.ToString();
+
+        }
+
+ 
     }
 }

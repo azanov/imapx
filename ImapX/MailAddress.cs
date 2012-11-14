@@ -1,5 +1,7 @@
-﻿namespace ImapX
+﻿using System;
+namespace ImapX
 {
+    [Serializable]
     public class MailAddress
     {
     	public string DisplayName { get; set; }
