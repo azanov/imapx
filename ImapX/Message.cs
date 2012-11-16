@@ -631,7 +631,7 @@ namespace ImapX
             info.AddValue("Parts", this.BodyParts);
         }
 
-        public void ExportForReport(string fileName)
+        public void ExportForReportstring(string fileName)
         {
             using (Stream stream = File.Open(fileName, FileMode.Create))
             {
