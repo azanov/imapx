@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ImapX
 {
@@ -84,7 +85,8 @@ namespace ImapX
         public static byte[] FromBase64(string s)
         {
             byte[] bytes;
-            s = s.Replace(Environment.NewLine, "");
+
+            s = Regex.Replace(Regex.Replace(s, @"\r\n?|\n", string.Empty), @"--.*", string.Empty);
             using (var writer = new MemoryStream())
             {
                 var inputBytes = Encoding.UTF8.GetBytes(s);
