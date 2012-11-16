@@ -25,9 +25,9 @@ namespace ImapX
             set { _fileData = value; }
         }
 
-        public void SaveFile(string downloadLocation)
+        public void SaveFile(string folderPath)
         {
-            using (var fileStream = new FileStream(downloadLocation + FileName, FileMode.Create, FileAccess.Write))
+            using (var fileStream = new FileStream(Path.Combine(folderPath, FileName), FileMode.Create, FileAccess.Write))
             {
                 fileStream.Write(_fileData, 0, _fileData.Length);
                 fileStream.Close();

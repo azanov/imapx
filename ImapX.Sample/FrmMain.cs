@@ -73,7 +73,7 @@ namespace ImapX.Sample
                     string path = Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5(),
                                                attachment.FileName);
                     files.Add(path);
-                    File.WriteAllBytes(path, attachment.FileData);
+                    attachment.SaveFile(Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5()));
                 }
                 catch (Exception)
                 {
