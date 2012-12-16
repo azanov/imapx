@@ -166,7 +166,7 @@ namespace ImapX
                 {
                     var attachment = new Attachment
                                          {
-                                             FileName = ParseHelper.DecodeName(string.IsNullOrWhiteSpace(current3.ContentFilename) ? ParseHelper.ExtractFileName(current3.ContentType) : current3.ContentFilename),
+                                             FileName = ParseHelper.DecodeName(string.IsNullOrEmpty(current3.ContentFilename) ? ParseHelper.ExtractFileName(current3.ContentType) : current3.ContentFilename),
                                              FileType = ParseHelper.ExtractFileType(current3.ContentType),
                                              FileEncoding = current3.ContentTransferEncoding,
                                              FileData = Base64.FromBase64(current3.ContentStream)
@@ -228,17 +228,17 @@ namespace ImapX
             var contentType = "";
             var encoding = Encoding.Default;
 
-            if (HtmlBody != null && !string.IsNullOrWhiteSpace(HtmlBody.ContentStream))
+            if (HtmlBody != null && !string.IsNullOrEmpty(HtmlBody.ContentStream))
             {
                 body = HtmlBody.ContentStream;
                 encoding = ParseHelper.ParseContentType(HtmlBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(HtmlBody.ContentTransferEncoding) ? ContentTransferEncoding : HtmlBody.ContentTransferEncoding;
+                transferEncoding = string.IsNullOrEmpty(HtmlBody.ContentTransferEncoding) ? ContentTransferEncoding : HtmlBody.ContentTransferEncoding;
             }
-            else if (TextBody != null && !string.IsNullOrWhiteSpace(TextBody.ContentStream) && !(TextBody.ContentDisposition != null && TextBody.ContentDisposition.ToLower().Contains("attachment")))
+            else if (TextBody != null && !string.IsNullOrEmpty(TextBody.ContentStream) && !(TextBody.ContentDisposition != null && TextBody.ContentDisposition.ToLower().Contains("attachment")))
             {
                 body = TextBody.ContentStream;
                 encoding = ParseHelper.ParseContentType(TextBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(TextBody.ContentTransferEncoding) ? ContentTransferEncoding : TextBody.ContentTransferEncoding;
+                transferEncoding = string.IsNullOrEmpty(TextBody.ContentTransferEncoding) ? ContentTransferEncoding : TextBody.ContentTransferEncoding;
             }
             else if (BodyParts.Count > 0)
             {
@@ -250,7 +250,7 @@ namespace ImapX
                 }
                 body = part.ContentStream;
                 encoding = ParseHelper.ParseContentType(part.ContentType, out contentType);
-                transferEncoding = string.IsNullOrWhiteSpace(part.ContentTransferEncoding) ? ContentTransferEncoding : part.ContentTransferEncoding;
+                transferEncoding = string.IsNullOrEmpty(part.ContentTransferEncoding) ? ContentTransferEncoding : part.ContentTransferEncoding;
             }
 
             if (encoding == null)
@@ -260,12 +260,12 @@ namespace ImapX
 
                 for (var i = 0; i < tmp.Length; i++)
                 {
-                    if (string.IsNullOrWhiteSpace(tmp[i])) continue;
+                    if (string.IsNullOrEmpty(tmp[i])) continue;
                     var m = rex.Match(tmp[i]);
                     if (!m.Success)
                     {
                         //all headers passed
-                        body = string.Join("\r\n", tmp.Skip(i));
+                        body = string.Join("\r\n", tmp.Skip(i).ToArray());
                         break;
                     }
                     if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
@@ -403,13 +403,15 @@ namespace ImapX
                             messageContent.ContentDisposition = current3.Value;
                             if (current3.Value.ToLower().Contains("filename="))
                             {
+                                // Fix provided by Henkes
+                                // For reference see http://imapx.codeplex.com/workitem/1423
                                 string contentFilename = current3.Value.Split(new[]
                                                                                   {
                                                                                       "filename="
-                                                                                  }, StringSplitOptions.None)[1].Trim(new[]
+                                                                                  }, StringSplitOptions.None)[1].Split(';')[0].Trim(new[]
                                                                                                                           {
                                                                                                                               '"'
-                                                                                                                          });
+                                                                                                                          }).Replace("\n","");
                                 messageContent.ContentFilename = contentFilename;
                                 continue;
                             }

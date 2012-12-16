@@ -17,7 +17,7 @@ namespace ImapX
         public string FileName
         {
             get { return _fileName; }
-            set { _fileName =string.IsNullOrWhiteSpace(value) ? "Unnamed" : value; }
+            set { _fileName =string.IsNullOrEmpty(value) ? "Unnamed" : value; }
         }
 
         public string FileEncoding { get; set; }

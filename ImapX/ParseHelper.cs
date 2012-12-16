@@ -11,7 +11,7 @@ namespace ImapX
     {
         public static string DecodeName(string text)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrEmpty(text))
                 return string.Empty;
             try
             {
@@ -64,7 +64,7 @@ namespace ImapX
         {
             if (encoding == null)
                 encoding = Encoding.Default;
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrEmpty(value))
                 return "";
             var bytes = Base64.FromBase64(value);
             return encoding.GetString(bytes);
@@ -111,7 +111,7 @@ namespace ImapX
 
         public static string ExtractFileType(string value)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrEmpty(value))
                 return string.Empty;
             var rex = new Regex(@"(.*\/.*)");
             var tmp = value.Split(';');
@@ -126,7 +126,7 @@ namespace ImapX
 
         public static Encoding ParseContentType(string value, out string contentType)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrEmpty(value))
             {
                 contentType = null; return null;
             }
@@ -282,7 +282,7 @@ namespace ImapX
 
         internal static string ExtractFileName(string p)
         {
-            if (string.IsNullOrWhiteSpace(p)) return string.Empty;
+            if (string.IsNullOrEmpty(p)) return string.Empty;
 
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
             foreach (var match in p.Split(';').Select(part => rex.Match(part)))

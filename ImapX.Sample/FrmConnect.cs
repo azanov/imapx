@@ -30,7 +30,7 @@ namespace ImapX.Sample
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtLogin.Text) || string.IsNullOrWhiteSpace(txtPass.Text) || string.IsNullOrWhiteSpace(txtPort.Text) || string.IsNullOrWhiteSpace(txtServer.Text) || !int.TryParse(txtPort.Text, out _port))
+            if (string.IsNullOrEmpty(txtLogin.Text) || string.IsNullOrEmpty(txtPass.Text) || string.IsNullOrEmpty(txtPort.Text) || string.IsNullOrEmpty(txtServer.Text) || !int.TryParse(txtPort.Text, out _port))
                 MessageBox.Show("Please check the values you entered", "Error", MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
             else
