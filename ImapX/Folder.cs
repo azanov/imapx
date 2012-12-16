@@ -80,7 +80,7 @@ namespace ImapX
         {
             get
             {
-                return string.IsNullOrWhiteSpace(_friendlyFolderName)
+                return string.IsNullOrEmpty(_friendlyFolderName)
                            ? (_friendlyFolderName = ImapUTF7.Decode(ImapUtf7FolderName))
                            : _friendlyFolderName;
             }

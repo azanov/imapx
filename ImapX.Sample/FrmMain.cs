@@ -45,13 +45,13 @@ namespace ImapX.Sample
             if (lsvMails.SelectedIndices.Count == 0) return;
             _selectedMessage = _messages[lsvMails.SelectedIndices[0]];
 
-            lblSubject.Text = string.IsNullOrWhiteSpace(_selectedMessage.Subject)
+            lblSubject.Text = string.IsNullOrEmpty(_selectedMessage.Subject)
                                   ? "No subject"
                                   : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
 
             lblTime.Text = _selectedMessage.Date.ToString();
-            lblFrom.Text = string.Join("; ", _selectedMessage.From.Select(_ => _.ToString()));
-            lblTo.Text = string.Join("; ", _selectedMessage.To.Select(_ => _.ToString()));
+            lblFrom.Text = string.Join("; ", _selectedMessage.From.Select(_ => _.ToString()).ToArray());
+            lblTo.Text = string.Join("; ", _selectedMessage.To.Select(_ => _.ToString()).ToArray());
 
             bool isHtml;
             string body = _selectedMessage.GetDecodedBody(out isHtml);
@@ -60,9 +60,11 @@ namespace ImapX.Sample
 
             lsvAttachments.Items.Clear();
 
+            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            var msgTmpDir = Path.Combine(tmpDir, _selectedMessage.MessageId.MD5());
 
-            Directory.CreateDirectory(Path.Combine(Application.StartupPath, "tmp"));
-            Directory.CreateDirectory(Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5()));
+            Directory.CreateDirectory(tmpDir);
+            Directory.CreateDirectory(msgTmpDir);
 
             var files = new List<string>();
 
@@ -70,10 +72,10 @@ namespace ImapX.Sample
             {
                 try
                 {
-                    string path = Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5(),
+                    string path = Path.Combine(msgTmpDir,
                                                attachment.FileName);
                     files.Add(path);
-                    attachment.SaveFile(Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5()));
+                    attachment.SaveFile(msgTmpDir);
                 }
                 catch (Exception)
                 {
@@ -84,7 +86,7 @@ namespace ImapX.Sample
             {
                 try
                 {
-                    string path = Path.Combine(Application.StartupPath, "tmp", _selectedMessage.MessageId.MD5(),
+                    string path = Path.Combine(msgTmpDir,
                                                inlineAttachment.FileName);
                     File.WriteAllBytes(path, inlineAttachment.FileData);
                     body = body.Replace("cid:" + inlineAttachment.FileName, path);
@@ -99,7 +101,7 @@ namespace ImapX.Sample
             UpdateAttachmentIcons(files);
 
             lsvAttachments.Items.AddRange(
-                _selectedMessage.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).OrderBy(_ => _.FileName)
+                _selectedMessage.Attachments.Where(_ => !string.IsNullOrEmpty(_.FileName)).OrderBy(_ => _.FileName)
                     .Select(
                         _ => new ListViewItem(_.FileName)
                                  {
@@ -122,9 +124,13 @@ namespace ImapX.Sample
             if (lsvAttachments.SelectedItems.Count == 0) return;
             Message msg = _messages[lsvMails.SelectedIndices[0]];
             Attachment attachment =
-                msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).OrderBy(_ => _.FileName).Skip(
+                msg.Attachments.Where(_ => !string.IsNullOrEmpty(_.FileName)).OrderBy(_ => _.FileName).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
-            Process.Start(Path.Combine(Application.StartupPath, "tmp", msg.MessageId.MD5(), attachment.FileName));
+
+            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            var msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
+
+            Process.Start(Path.Combine(msgTmpDir, attachment.FileName));
         }
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -132,13 +138,16 @@ namespace ImapX.Sample
             if (lsvAttachments.SelectedItems.Count == 0) return;
             Message msg = _messages[lsvMails.SelectedIndices[0]];
             Attachment attachment =
-                msg.Attachments.Where(_ => !string.IsNullOrWhiteSpace(_.FileName)).Skip(
+                msg.Attachments.Where(_ => !string.IsNullOrEmpty(_.FileName)).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
             sfdMain.FileName = attachment.FileName;
 
             if (sfdMain.ShowDialog() != DialogResult.OK) return;
 
-            File.Copy(Path.Combine(Application.StartupPath, "tmp", msg.MessageId.MD5(), attachment.FileName),
+            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            var msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
+
+            File.Copy(Path.Combine(msgTmpDir, attachment.FileName),
                       sfdMain.FileName);
         }
 
@@ -349,7 +358,7 @@ namespace ImapX.Sample
         {
             if(e.ItemIndex>=_messages.Count) return;
             var msg = _messages[e.ItemIndex];            
-            e.Item = new ListViewItem(string.IsNullOrWhiteSpace(msg.Subject)
+            e.Item = new ListViewItem(string.IsNullOrEmpty(msg.Subject)
                                           ? "[No subject]"
                                           : msg.Subject.Replace("\n", "").Replace("\t", ""));
         }
@@ -362,7 +371,7 @@ namespace ImapX.Sample
         private void AutoResizeMessageListViewColumn()
         {
             var scrollBars = NativeMethods.GetVisibleScrollbars(lsvMails);
-            clmMessages.Width = scrollBars.HasFlag(ScrollBars.Vertical)
+            clmMessages.Width = (scrollBars & ScrollBars.Vertical) == ScrollBars.Vertical
                                     ? lsvMails.Width - SystemInformation.VerticalScrollBarWidth
                                     : lsvMails.Width;
         }

@@ -63,7 +63,7 @@ namespace ImapX
 
                
 
-                for (var i = 0; i < tmp.Length && string.IsNullOrWhiteSpace(bodyPart); i++)
+                for (var i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
                 {
 
                     if (tmp[i].StartsWith("--"))
@@ -77,7 +77,7 @@ namespace ImapX
                     {
                         if (!match.Success && parts.Length == 1)
                         {
-                            bodyPart = string.Join("\r\n", tmp.Skip(i));
+                            bodyPart = string.Join("\r\n", tmp.Skip(i).ToArray());
                             break;
                         }
                         if (!match.Success)

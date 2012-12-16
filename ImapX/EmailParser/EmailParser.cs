@@ -71,31 +71,36 @@ namespace ImapX.EmailParser
                     }
                 }
                 int num = this._emailItems[i].IndexOf(':');
-                try
-                {
-                    if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
-                    {
-                        string text2 = this._emailItems[i].Substring(0, num);
-                        string text3 = this._emailItems[i].Substring(num + 2);
-                        this._headerLastKey = text2;
-                        this._headersCollection.Add(text2.Trim(new[]
-						{
-							' '
-						}), text3.Trim(new[]
-						{
-							' '
-						}));
-                    }
+
+                // Fix provided by iamwill 12/12/12
+                // For reference see http://imapx.codeplex.com/workitem/1424
+                try 
+                { 
+                    if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].StartsWith(' '.ToString(CultureInfo.InvariantCulture))) 
+                    { 
+                        string text2 = this._emailItems[i].Substring(0, num); 
+                        string text3 = this._emailItems[i].Substring(num + 2); 
+                        this._headerLastKey = text2; 
+                        var trimmedText2 = text2.Trim(new[] { ' ' }); 
+                        var trimmedText3 = text3.Trim(new[] { ' ' }); 
+                        
+                        if (!this._headersCollection.ContainsKey(trimmedText2)) 
+                        { 
+                            this._headersCollection.Add(trimmedText2, trimmedText3); 
+                        } 
+                    } 
                     else
-                    {
-                        Dictionary<string, string> headersCollection;
-                        string headerLastKey;
-                        (headersCollection = this._headersCollection)[headerLastKey = this._headerLastKey] = headersCollection[headerLastKey] + "\n" + this._emailItems[i];
-                    }
+                    { 
+                        Dictionary<string, string> headersCollection; string headerLastKey; 
+                        if (this._headerLastKey != null && this._headersCollection.ContainsKey(this._headerLastKey))
+                        {
+                            (headersCollection = this._headersCollection)[headerLastKey = this._headerLastKey] = headersCollection[headerLastKey] + "\n" + this._emailItems[i];
+                        } 
+                    } 
                 }
-                catch (Exception e2)
-                {
-                    this._badParseItems.Add(new ParseError(this._emailItems[i], e2));
+                catch (Exception e2) 
+                { 
+                    this._badParseItems.Add(new ParseError(this._emailItems[i], e2)); 
                 }
             }
         }

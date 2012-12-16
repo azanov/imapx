@@ -9,7 +9,7 @@ namespace ImapX
     {
         public static string Encode(string value)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrEmpty(value))
                 return string.Empty;
 
             value = value.Replace("&", "&-");
@@ -18,7 +18,7 @@ namespace ImapX
             var encoding = new UnicodeEncoding(true, false);
 
             var toEncode =
-                rex.Matches(value).Cast<Match>().Where(_ => !string.IsNullOrWhiteSpace(_.Value));
+                rex.Matches(value).Cast<Match>().Where(_ => !string.IsNullOrEmpty(_.Value));
 
             foreach (var match in toEncode)
             {
