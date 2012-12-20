@@ -163,14 +163,30 @@ namespace ImapX
             {
 
                 if (current3.ContentDisposition != null && current3.ContentDisposition.ToLower().Contains("attachment"))
+                
                 {
+                   
                     var attachment = new Attachment
                                          {
                                              FileName = ParseHelper.DecodeName(string.IsNullOrEmpty(current3.ContentFilename) ? ParseHelper.ExtractFileName(current3.ContentType) : current3.ContentFilename),
                                              FileType = ParseHelper.ExtractFileType(current3.ContentType),
-                                             FileEncoding = current3.ContentTransferEncoding,
-                                             FileData = Base64.FromBase64(current3.ContentStream)
+                                             FileEncoding = current3.ContentTransferEncoding
                                          };
+                    switch (attachment.FileEncoding)
+                    { 
+                        case "base64":
+                            attachment.FileData = Base64.FromBase64(current3.ContentStream);
+                            break;
+                        case "7bit":
+                            attachment.FileData = Encoding.ASCII.GetBytes(current3.ContentStream);
+                            break;
+                        case "quoted-printable":
+                            attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(current3.ContentStream, Encoding.UTF8));
+                            break;
+                        default:
+                            attachment.FileData = Encoding.UTF8.GetBytes(current3.ContentStream);
+                            break;
+                    }
                     Attachments.Add(attachment);
                 }
                 else if (current3.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n=attachment") || current3.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n:attachment")) // [27.07.2012]
