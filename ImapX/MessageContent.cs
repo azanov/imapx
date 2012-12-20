@@ -114,8 +114,11 @@ namespace ImapX
                     case "7bit":
                         attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
                         break;
+                    case "quoted-printable":
+                        attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
+                        break;
                     default:
-                        attachment.FileData = new byte[0];
+                        attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
                         break;
                 }
                
