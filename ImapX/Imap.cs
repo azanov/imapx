@@ -71,7 +71,7 @@ namespace ImapX
                 throw new ImapException("Not Set Search Path");
             }
             var arrayList = new ArrayList();
-            string command = "SEARCH " + path + "\r\n";
+            string command = "UID SEARCH " + path + "\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             if (!SendAndReceive(command, ref arrayList))
             {
                 throw new ImapException("Bad or not correct search query");
