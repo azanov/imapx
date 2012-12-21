@@ -207,7 +207,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            string text = "STORE {0}:{1} +FLAGS (\\Deleted)\r\n";
+            string text = "UID STORE {0}:{1} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             var arrayList = new ArrayList();
             if (Messages.Count == 0)
             {
@@ -277,7 +277,7 @@ namespace ImapX
             }
             string selectedFolder = Client.SelectedFolder;
             Select();
-            string text = "COPY {0} \"{1}\"\r\n";
+            string text = "UID COPY {0} \"{1}\"\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
             var arrayList = new ArrayList();
             if (!Client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
@@ -305,7 +305,7 @@ namespace ImapX
             }
             string selectedFolder = Client.SelectedFolder;
             Client.SelectFolder(FolderPath);
-            string text = "STORE {0} +FLAGS (\\Deleted)\r\n";
+            string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
             var arrayList = new ArrayList();
             Select();
             if (Client._imap.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))

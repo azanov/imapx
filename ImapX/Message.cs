@@ -106,7 +106,7 @@ namespace ImapX
             var arrayList = new ArrayList();
             string command = string.Concat(new object[]
 			{
-				"STORE ", 
+				"UID STORE ", // [21.12.12] Fix by Yaroslav T, added UID command
 				MessageUid, 
 				" +FLAGS (", 
 				status, 
@@ -203,7 +203,7 @@ namespace ImapX
         {
             bool flag;
             var arrayList = new ArrayList();
-            string command = "FETCH " + MessageUid + " (FLAGS)\r\n";
+            string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             try
             {
                 flag = Client.SendAndReceive(command, ref arrayList);
@@ -322,7 +322,7 @@ namespace ImapX
             var arrayList = new ArrayList();
             string command = string.Concat(new object[]
 			{
-				"FETCH ", 
+				"UID FETCH ", // [21.12.12] Fix by Yaroslav T, added UID command
 				MessageUid, 
 				" ", 
 				path, 
