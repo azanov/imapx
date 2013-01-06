@@ -405,10 +405,10 @@ namespace ImapX
                 				}
                 				else
                 				{
-                					if (text2.StartsWith("+ "))
-                					{
-                						flag = false;
-                					}
+                                    //if (text2.StartsWith("+ "))
+                                    //{
+                						//flag = false;
+                                    //}
                 				}
                 			}
                 		}
