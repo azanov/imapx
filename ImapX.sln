@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX", "ImapX\ImapX.csproj", "{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.Sample", "ImapX.Sample\ImapX.Sample.csproj", "{EEEE832C-B72C-430C-91CC-DFBF2859A22B}"
@@ -15,8 +15,8 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -26,6 +26,7 @@ Global
 		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}.Release|x86.ActiveCfg = Release|Any CPU
 		{EEEE832C-B72C-430C-91CC-DFBF2859A22B}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{EEEE832C-B72C-430C-91CC-DFBF2859A22B}.Debug|Any CPU.Build.0 = Debug|x86
 		{EEEE832C-B72C-430C-91CC-DFBF2859A22B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{EEEE832C-B72C-430C-91CC-DFBF2859A22B}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{EEEE832C-B72C-430C-91CC-DFBF2859A22B}.Debug|x86.ActiveCfg = Debug|x86
