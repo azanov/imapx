@@ -15,6 +15,7 @@ namespace ImapX
                 return string.Empty;
             try
             {
+                text = text.Replace("\t", "");
                 var regex = new Regex(@"[=]?\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=");
                 var decodedString = string.Empty;
                 while (text.Length > 0)
