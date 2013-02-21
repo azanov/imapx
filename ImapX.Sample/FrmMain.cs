@@ -17,6 +17,7 @@ namespace ImapX.Sample
         private List<Message> _messages;
         private Folder _selectedFolder;
         private Message _selectedMessage;
+        private TreeNode lastClickedNode;
 
         public FrmMain()
         {
@@ -232,6 +233,7 @@ namespace ImapX.Sample
         {
             try
             {
+
                 var args = new ServerCallCompletedEventArgs(_selectedFolder.DeleteMessage(_selectedMessage));
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(DeleteSelectedMessageCompleted),
                        Program.ImapClient, args);
@@ -390,6 +392,78 @@ namespace ImapX.Sample
             var test = Message.FromReport(sfdMain.FileName);
             test.ToString();
 
+        }
+
+        #region Empty folder
+
+        private void emptyFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (lastClickedNode == null) return;
+            if (
+                MessageBox.Show("Do you really want to empty this folder?", "Empty folder", MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+
+            trwFolders.Enabled = lsvMails.Enabled = false;
+
+            (new Thread(EmptyFolder)).Start(lastClickedNode.Tag);
+        }
+
+        private void EmptyFolder(object folder)
+        {
+            try
+            {
+
+                var args = new ServerCallCompletedEventArgs((folder as Folder).EmptyFolder(), null, folder);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
+                       Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex, folder);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
+                       Program.ImapClient, args);
+            }
+        }
+
+        private void EmptyFolderCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            if (e.Result)
+            {
+                if (_selectedFolder == e.Arg)
+                {
+                    _messages.Clear();
+                    lsvMails.VirtualListSize = 0;
+                    lsvMails.Invalidate();
+                }
+
+            }
+            else if (e.Exception != null)
+            {
+                using (var frm = new FrmError(e.Exception))
+                    frm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Failed to empty folder", "Error", MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+            }
+
+            trwFolders.Enabled = lsvMails.Enabled = true;
+        }
+
+        #endregion
+
+
+        private void trwFolders_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            lastClickedNode = e.Node;
+            if (e.Node.Tag is Folder && e.Button == MouseButtons.Right)
+            {
+                emptyFolderToolStripMenuItem.Text = string.Format("Empty \"{0}\" folder", e.Node.Text);
+                mnuFolders.Show(trwFolders, e.Location);
+            }
         }
 
  

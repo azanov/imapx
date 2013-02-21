@@ -40,6 +40,7 @@
             this.mnuMessages = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.moveToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportForReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.pnlAttachments = new System.Windows.Forms.Panel();
             this.lsvAttachments = new System.Windows.Forms.ListView();
@@ -57,7 +58,8 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.sfdMain = new System.Windows.Forms.SaveFileDialog();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
-            this.exportForReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.emptyFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -67,6 +69,7 @@
             this.pnlAttachments.SuspendLayout();
             this.mnuAttachment.SuspendLayout();
             this.pnlInfo.SuspendLayout();
+            this.mnuFolders.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -97,9 +100,10 @@
             this.trwFolders.HideSelection = false;
             this.trwFolders.Location = new System.Drawing.Point(11, 48);
             this.trwFolders.Name = "trwFolders";
-            this.trwFolders.Size = new System.Drawing.Size(188, 492);
+            this.trwFolders.Size = new System.Drawing.Size(200, 492);
             this.trwFolders.TabIndex = 2;
             this.trwFolders.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.trwFolders_AfterSelect);
+            this.trwFolders.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.trwFolders_NodeMouseClick);
             // 
             // pgbFetchMails
             // 
@@ -184,22 +188,29 @@
             this.exportForReportToolStripMenuItem});
             this.mnuMessages.Name = "mnuMessages";
             this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuMessages.Size = new System.Drawing.Size(170, 92);
+            this.mnuMessages.Size = new System.Drawing.Size(170, 70);
             this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
             // 
             // moveToFolderToolStripMenuItem
             // 
             this.moveToFolderToolStripMenuItem.Name = "moveToFolderToolStripMenuItem";
-            this.moveToFolderToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.moveToFolderToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.moveToFolderToolStripMenuItem.Text = "Move to folder...";
             this.moveToFolderToolStripMenuItem.Click += new System.EventHandler(this.moveToFolderToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            // 
+            // exportForReportToolStripMenuItem
+            // 
+            this.exportForReportToolStripMenuItem.Name = "exportForReportToolStripMenuItem";
+            this.exportForReportToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.exportForReportToolStripMenuItem.Text = "Export for report...";
+            this.exportForReportToolStripMenuItem.Click += new System.EventHandler(this.exportForReportToolStripMenuItem_Click);
             // 
             // wbrMain
             // 
@@ -352,12 +363,19 @@
             this.sfdMain.ShowHelp = true;
             this.sfdMain.Title = "Save attachment";
             // 
-            // exportForReportToolStripMenuItem
+            // mnuFolders
             // 
-            this.exportForReportToolStripMenuItem.Name = "exportForReportToolStripMenuItem";
-            this.exportForReportToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.exportForReportToolStripMenuItem.Text = "Export for report...";
-            this.exportForReportToolStripMenuItem.Click += new System.EventHandler(this.exportForReportToolStripMenuItem_Click);
+            this.mnuFolders.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.emptyFolderToolStripMenuItem});
+            this.mnuFolders.Name = "mnuFolders";
+            this.mnuFolders.Size = new System.Drawing.Size(189, 26);
+            // 
+            // emptyFolderToolStripMenuItem
+            // 
+            this.emptyFolderToolStripMenuItem.Name = "emptyFolderToolStripMenuItem";
+            this.emptyFolderToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.emptyFolderToolStripMenuItem.Text = "Empty selected folder";
+            this.emptyFolderToolStripMenuItem.Click += new System.EventHandler(this.emptyFolderToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -384,6 +402,7 @@
             this.mnuAttachment.ResumeLayout(false);
             this.pnlInfo.ResumeLayout(false);
             this.pnlInfo.PerformLayout();
+            this.mnuFolders.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -419,6 +438,8 @@
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader clmMessages;
         private System.Windows.Forms.ToolStripMenuItem exportForReportToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip mnuFolders;
+        private System.Windows.Forms.ToolStripMenuItem emptyFolderToolStripMenuItem;
     }
 }
 
