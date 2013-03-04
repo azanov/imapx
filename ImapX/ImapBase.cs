@@ -21,12 +21,25 @@ namespace ImapX
         protected string ImapHost = "localhost";
         protected int ImapPort = 146;
         protected bool UseSSL;
+        protected bool _validateCertificate = true;
         protected SslProtocols SSLProtocols;
         internal bool IsConnected;
         internal bool IsLogged;
         protected string _userLogin;
         protected string _userPassword;
         internal string SelectedFolder;
+
+        public bool ValidateCertificate
+        {
+            get
+            {
+                return _validateCertificate;
+            }
+            set
+            {
+                _validateCertificate = value;
+            }
+        }
 
         public bool IsDebug
         {
@@ -159,9 +172,10 @@ namespace ImapX
             return Connect(ImapHost, ImapPort, UseSSL);
         }
 
-        public bool Connect(string sHost, int nPort, bool useSSL)
+        public bool Connect(string sHost, int nPort, bool useSSL, bool validateCertificate = true)
         {
             UseSSL = useSSL;
+            ValidateCertificate = validateCertificate;
             bool result = true;
             CommandCount = 0;
             try
@@ -424,7 +438,7 @@ namespace ImapX
 
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if (sslPolicyErrors == SslPolicyErrors.None)
+            if (sslPolicyErrors == SslPolicyErrors.None || !ValidateCertificate)
             {
                 return true;
             }
