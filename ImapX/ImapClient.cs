@@ -61,9 +61,9 @@ namespace ImapX
             return folders;
         }
 
-        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default)
+        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default, bool validateCertificate = true)
         {
-            this._client = new Imap(host, port, useSsl, sslProtocols);
+            this._client = new Imap(host, port, useSsl, sslProtocols, validateCertificate);
         }
 
         public bool Connection()

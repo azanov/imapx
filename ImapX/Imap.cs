@@ -20,16 +20,17 @@ namespace ImapX
         {
         }
 
-        public Imap(string host, int port, bool useSsl, SslProtocols sslProtocols = SslProtocols.Default)
+        public Imap(string host, int port, bool useSsl, SslProtocols sslProtocols = SslProtocols.Default, bool validateCertificate = true)
         {
             ImapHost = host;
             ImapPort = port;
             UseSSL = useSsl;
             SSLProtocols = sslProtocols;
+            ValidateCertificate = true;
             _folders = new FolderCollection();
         }
 
-        public Imap(string host, int port, bool useSsl, string userLogin, string userPassword, SslProtocols sslProtocols = SslProtocols.Default)
+        public Imap(string host, int port, bool useSsl, string userLogin, string userPassword, SslProtocols sslProtocols = SslProtocols.Default, bool validateCertificate = true)
         {
             ImapHost = host;
             ImapPort = port;
@@ -38,6 +39,7 @@ namespace ImapX
             _userPassword = userPassword;
             SSLProtocols = sslProtocols;
             _folders = new FolderCollection();
+            ValidateCertificate = validateCertificate;
         }
 
         public bool SelectFolder(string folderName)
