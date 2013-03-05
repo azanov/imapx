@@ -74,12 +74,19 @@ namespace ImapX.EmailParser
 
                 // Fix provided by iamwill 12/12/12
                 // For reference see http://imapx.codeplex.com/workitem/1424
+
+                // Fix provided by itreims  03/05/13
+                // For reference see http://imapx.codeplex.com/workitem/1523
                 try 
                 { 
                     if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].StartsWith(' '.ToString(CultureInfo.InvariantCulture))) 
                     { 
-                        string text2 = this._emailItems[i].Substring(0, num); 
-                        string text3 = this._emailItems[i].Substring(num + 2); 
+                        string text2 = this._emailItems[i].Substring(0, num);
+                        string text3 = String.Empty;
+                        if (this._emailItems[i].Length > num + 1)
+                        {
+                            text3 = this._emailItems[i].Substring(num + 2);
+                        }
                         this._headerLastKey = text2; 
                         var trimmedText2 = text2.Trim(new[] { ' ' }); 
                         var trimmedText3 = text3.Trim(new[] { ' ' }); 
