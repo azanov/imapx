@@ -117,6 +117,7 @@ namespace ImapX.EmailParser
             bool flag = true;
             foreach (int current in p.BodyIndexes)
             {
+                if (current < 0) continue;
                 if (flag)
                 {
                     stringBuilder.Append(this._emailItems[current >= _emailItems.Length ? _emailItems.Length - 1 : current]);
