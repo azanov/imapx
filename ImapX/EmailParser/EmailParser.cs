@@ -113,6 +113,10 @@ namespace ImapX.EmailParser
         }
         public string GetPart(BodyPart p)
         {
+
+            if (_emailItems == null || _emailItems.Length == 0)
+                return string.Empty;
+
             var stringBuilder = new StringBuilder();
             bool flag = true;
             foreach (int current in p.BodyIndexes)
