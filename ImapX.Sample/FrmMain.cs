@@ -466,6 +466,49 @@ namespace ImapX.Sample
             }
         }
 
+        private void markAsReadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            trwFolders.Enabled = lsvMails.Enabled = false;
+
+            (new Thread(MarkSelectedMessageAsRead)).Start();
+        }
+
+        private void MarkSelectedMessageAsRead()
+        {
+            try
+            {
+
+                var args = new ServerCallCompletedEventArgs(_selectedMessage.SetFlag(ImapFlags.SEEN));
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
+                       Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
+                       Program.ImapClient, args);
+            }
+        }
+
+        private void MarkSelectedMessageAsReadCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            if (e.Result)
+            {
+                
+            }
+            else if (e.Exception != null)
+            {
+                using (var frm = new FrmError(e.Exception))
+                    frm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Failed to mark the message as read", "Error", MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+            }
+            
+            trwFolders.Enabled = lsvMails.Enabled = true;
+        }
  
     }
 }

@@ -60,6 +60,7 @@
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
             this.mnuFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.emptyFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.markAsReadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -185,10 +186,11 @@
             this.mnuMessages.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.moveToFolderToolStripMenuItem,
             this.deleteToolStripMenuItem,
+            this.markAsReadToolStripMenuItem,
             this.exportForReportToolStripMenuItem});
             this.mnuMessages.Name = "mnuMessages";
             this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuMessages.Size = new System.Drawing.Size(170, 70);
+            this.mnuMessages.Size = new System.Drawing.Size(170, 114);
             this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
             // 
             // moveToFolderToolStripMenuItem
@@ -377,6 +379,13 @@
             this.emptyFolderToolStripMenuItem.Text = "Empty selected folder";
             this.emptyFolderToolStripMenuItem.Click += new System.EventHandler(this.emptyFolderToolStripMenuItem_Click);
             // 
+            // markAsReadToolStripMenuItem
+            // 
+            this.markAsReadToolStripMenuItem.Name = "markAsReadToolStripMenuItem";
+            this.markAsReadToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.markAsReadToolStripMenuItem.Text = "Mark as read";
+            this.markAsReadToolStripMenuItem.Click += new System.EventHandler(this.markAsReadToolStripMenuItem_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -440,6 +449,7 @@
         private System.Windows.Forms.ToolStripMenuItem exportForReportToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip mnuFolders;
         private System.Windows.Forms.ToolStripMenuItem emptyFolderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem markAsReadToolStripMenuItem;
     }
 }
 
