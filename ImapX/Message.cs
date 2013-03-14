@@ -354,7 +354,7 @@ namespace ImapX
                         From = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.DATE:
-                        DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()), out _date);
+                        DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()), CultureInfo.InvariantCulture, DateTimeStyles.None, out _date);
                         break;
                     case MessageProperty.CONTENT_TRANSFER_ENCODING:
                         ContentTransferEncoding = current.Value;
