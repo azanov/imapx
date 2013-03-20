@@ -100,7 +100,7 @@ namespace ImapX
             HtmlBody = new MessageContent();
         }
 
-        public bool SetFlag(string status)
+        public bool AddFlag(string flag)
         {
             bool result;
             var arrayList = new ArrayList();
@@ -109,7 +109,7 @@ namespace ImapX
 				"UID STORE ", // [21.12.12] Fix by Yaroslav T, added UID command
 				MessageUid, 
 				" +FLAGS (", 
-				status, 
+				flag, 
 				")\r\n"
 			});
             try
@@ -122,6 +122,36 @@ namespace ImapX
             }
             GetFlags();
             return result;
+        }
+
+        public bool RemoveFlag(string flag)
+        {
+            bool result;
+            var arrayList = new ArrayList();
+            string command = string.Concat(new object[]
+			{
+				"UID STORE ", 
+				MessageUid, 
+				" -FLAGS (", 
+				flag, 
+				")\r\n"
+			});
+            try
+            {
+                result = Client.SendAndReceive(command, ref arrayList);
+            }
+            catch
+            {
+                result = false;
+            }
+            GetFlags();
+            return result;
+        }
+
+        [Obsolete("Message.SetFlag will be removed in future releases, please use Message.AddFlag and Message.RemoveFlag instead.", true)]
+        public bool SetFlag(string flag)
+        {
+            return AddFlag(flag);
         }
 
         public void ProcessHeader()

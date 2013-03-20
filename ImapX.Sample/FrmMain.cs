@@ -478,7 +478,7 @@ namespace ImapX.Sample
             try
             {
 
-                var args = new ServerCallCompletedEventArgs(_selectedMessage.SetFlag(ImapFlags.SEEN));
+                var args = new ServerCallCompletedEventArgs(_selectedMessage.AddFlag(ImapFlags.SEEN));
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
                        Program.ImapClient, args);
             }
