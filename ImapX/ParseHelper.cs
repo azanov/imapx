@@ -9,6 +9,18 @@ namespace ImapX
 {
     public static class ParseHelper
     {
+
+        public static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
+        {
+            try
+            {
+                return Encoding.GetEncoding(name);
+            }
+            catch {
+                return defaultEncoding;
+            }
+        }
+
         public static string DecodeName(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -30,11 +42,11 @@ namespace ImapX
                         var value = match.Groups["value"].Value;
                         if (encoding.Equals("B"))
                         {
-                            decodedString += DecodeBase64(value, Encoding.GetEncoding(charset));
+                            decodedString += DecodeBase64(value, TryGetEncoding(charset, Encoding.UTF8));
                         }
                         else if (encoding.Equals("Q"))
                         {
-                            decodedString += DecodeQuotedPrintable(value, Encoding.GetEncoding(charset));
+                            decodedString += DecodeQuotedPrintable(value, TryGetEncoding(charset, Encoding.UTF8));
                         }
                         else
                         {
@@ -141,7 +153,7 @@ namespace ImapX
                 return Encoding.Default;
             }
             contentType = tmp.Groups[tmp.Groups.Count - 2].Value.Split(new[] { ';' })[0].Trim();
-            return Encoding.GetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] { ';' })[0].Trim());
+            return TryGetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] { ';' })[0].Trim(), Encoding.UTF8);
         }
 
         public static bool Exists(string line, ref int property)
