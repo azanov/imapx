@@ -57,9 +57,9 @@ namespace ImapX
 
         public List<MailAddress> From { get; set; }
 
-        public string Cc { get; set; }
+        public List<MailAddress> Cc { get; set; }
 
-        public string Bcc { get; set; }
+        public List<MailAddress> Bcc { get; set; }
 
         public DateTime Date
         {
@@ -417,10 +417,10 @@ namespace ImapX
                         XMailer = current.Value;
                         break;
                     case MessageProperty.CC:
-                        Cc = ParseHelper.DecodeName(current.Value);
+                        Cc = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.BCC:
-                        Bcc = ParseHelper.DecodeName(current.Value);
+                        Bcc = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.SUBJECT:
                         _subject = ParseHelper.DecodeName(current.Value);
