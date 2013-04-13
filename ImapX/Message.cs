@@ -55,7 +55,7 @@ namespace ImapX
 
         public List<MailAddress> To { get; set; }
 
-        public List<MailAddress> From { get; set; }
+        public MailAddress From { get; set; }
 
         public List<MailAddress> Cc { get; set; }
 
@@ -95,7 +95,6 @@ namespace ImapX
             InlineAttachments = new List<InlineAttachment>();
             BodyParts = new List<MessageContent>();
             To = new List<MailAddress>();
-            From = new List<MailAddress>();
             TextBody = new MessageContent();
             HtmlBody = new MessageContent();
         }
@@ -381,7 +380,7 @@ namespace ImapX
                         To = ParseHelper.AddressCollection(current.Value);
                         break;
                     case MessageProperty.FROM:
-                        From = ParseHelper.AddressCollection(current.Value);
+                        From = ParseHelper.Address(current.Value);
                         break;
                     case MessageProperty.DATE:
                         DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()), CultureInfo.InvariantCulture, DateTimeStyles.None, out _date);
@@ -542,13 +541,10 @@ namespace ImapX
             var stringBuilder = new StringBuilder();
             DateTime now = DateTime.Now;
             stringBuilder.AppendFormat("Date: {0}{1}", now.ToString("dd-MM-yyyy hh:mm:ss", CultureInfo.CreateSpecificCulture("en-US")), "\r\n");
-            if (From.Count > 0)
+            if (From != null)
             {
                 stringBuilder.Append("From: ");
-                foreach (MailAddress current in From)
-                {
-                    stringBuilder.AppendFormat("{0}, ", current);
-                }
+                stringBuilder.AppendFormat("{0}, ", From);
                 stringBuilder.Remove(stringBuilder.Length - 2, 2);
                 stringBuilder.Append("\r\n");
             }
