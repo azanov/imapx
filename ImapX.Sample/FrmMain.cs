@@ -51,7 +51,7 @@ namespace ImapX.Sample
                                   : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
 
             lblTime.Text = _selectedMessage.Date.ToString();
-            lblFrom.Text = string.Join("; ", _selectedMessage.From.Select(_ => _.ToString()).ToArray());
+            lblFrom.Text = _selectedMessage.From.ToString();
             lblTo.Text = string.Join("; ", _selectedMessage.To.Select(_ => _.ToString()).ToArray());
 
             bool isHtml;
