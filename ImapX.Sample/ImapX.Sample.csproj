@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -59,6 +60,12 @@
     <Compile Include="FrmError.Designer.cs">
       <DependentUpon>FrmError.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmGOAuth.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmGOAuth.Designer.cs">
+      <DependentUpon>FrmGOAuth.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -71,6 +78,11 @@
     <Compile Include="FrmMoveToFolder.Designer.cs">
       <DependentUpon>FrmMoveToFolder.cs</DependentUpon>
     </Compile>
+    <Compile Include="Google\GoogleAccessToken.cs" />
+    <Compile Include="Google\GoogleEmail.cs" />
+    <Compile Include="Google\GoogleOAuth2Provider.cs" />
+    <Compile Include="Google\GoogleProfile.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="Native\NativeMethods.cs" />
     <Compile Include="Native\SHFILEINFO.cs" />
     <Compile Include="Program.cs" />
@@ -82,6 +94,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmError.resx">
       <DependentUpon>FrmError.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmGOAuth.resx">
+      <DependentUpon>FrmGOAuth.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>

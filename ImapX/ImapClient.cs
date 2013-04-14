@@ -76,6 +76,11 @@ namespace ImapX
             return this._client.LogIn(login, password);
         }
 
+        public bool OAuth2LogIn(string login, string token)
+        {
+            return this._client.OAuth2LogIn(login, token);
+        }
+
         public bool Disconnect()
         {
             return this._client.Disconnect();

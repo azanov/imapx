@@ -40,6 +40,7 @@
             this.btnConnect = new System.Windows.Forms.Button();
             this.bgwMain = new System.ComponentModel.BackgroundWorker();
             this.cmbEncryption = new System.Windows.Forms.ComboBox();
+            this.lnkGOAuthSignIn = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // label1
@@ -148,6 +149,17 @@
             this.cmbEncryption.Size = new System.Drawing.Size(121, 21);
             this.cmbEncryption.TabIndex = 11;
             // 
+            // lnkGOAuthSignIn
+            // 
+            this.lnkGOAuthSignIn.AutoSize = true;
+            this.lnkGOAuthSignIn.Location = new System.Drawing.Point(225, 15);
+            this.lnkGOAuthSignIn.Name = "lnkGOAuthSignIn";
+            this.lnkGOAuthSignIn.Size = new System.Drawing.Size(99, 16);
+            this.lnkGOAuthSignIn.TabIndex = 12;
+            this.lnkGOAuthSignIn.TabStop = true;
+            this.lnkGOAuthSignIn.Text = "Google OAuth2";
+            this.lnkGOAuthSignIn.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkGOAuthSignIn_LinkClicked);
+            // 
             // FrmConnect
             // 
             this.AcceptButton = this.btnConnect;
@@ -155,6 +167,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(336, 202);
+            this.Controls.Add(this.lnkGOAuthSignIn);
             this.Controls.Add(this.cmbEncryption);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.txtPass);
@@ -191,5 +204,6 @@
         private System.Windows.Forms.Button btnConnect;
         private System.ComponentModel.BackgroundWorker bgwMain;
         private System.Windows.Forms.ComboBox cmbEncryption;
+        private System.Windows.Forms.LinkLabel lnkGOAuthSignIn;
     }
 }

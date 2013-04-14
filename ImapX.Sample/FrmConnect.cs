@@ -89,5 +89,17 @@ namespace ImapX.Sample
 
             }
         }
+
+        private void lnkGOAuthSignIn_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            using (var frm = new FrmGOAuth())
+            {
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+            }
+        }
     }
 }

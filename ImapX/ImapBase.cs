@@ -151,6 +151,58 @@ namespace ImapX
             return false;
         }
 
+        private string PrepareOAuthCredentials(string login, string token)
+        {
+
+            var userData = Encoding.UTF8.GetBytes("user=" + login);
+            var tokenLabelData = Encoding.UTF8.GetBytes("auth=Bearer ");
+            var tokenData = Encoding.UTF8.GetBytes(token + "\n");
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                stream.Write(userData, 0, userData.Length);
+                stream.WriteByte(1);
+                stream.Write(tokenLabelData, 0, tokenLabelData.Length);
+                stream.Write(tokenData, 0, tokenData.Length);
+                stream.WriteByte(1);
+                stream.WriteByte(1);
+                return Convert.ToBase64String(stream.ToArray());
+            }
+
+        }
+
+        public bool OAuth2LogIn(string login, string token)
+        {
+            if (!IsConnected)
+            {
+                throw new ImapException("Not Connection");
+            }
+            if (string.IsNullOrEmpty(login))
+            {
+                throw new ImapException("Login is null or empty");
+            }
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ImapException("Access token is null or empty");
+            }
+
+            var arrayList = new ArrayList();
+            string command = string.Concat(new[]
+            {
+                "AUTHENTICATE XOAUTH2 \"", 
+                PrepareOAuthCredentials(login, token), 
+                "\"\r\n"
+            });
+            if (SendAndReceive(command, ref arrayList))
+            {
+                IsLogged = true;
+                _userLogin = login;
+                _userPassword = token;
+                return true;
+            }
+            return false;
+        }
+
         public bool LogOut()
         {
             if (!IsLogged)
@@ -419,10 +471,10 @@ namespace ImapX
                 				}
                 				else
                 				{
-                                    if (text2.StartsWith("+ ") && !command.StartsWith("UID FETCH"))
-                                    {
-                                        flag = false;
-                                    }
+                                    //if (text2.StartsWith("+ ") && !command.StartsWith("UID FETCH"))
+                                    //{
+                                    //    flag = false;
+                                    //}
                 				}
                 			}
                 		}
