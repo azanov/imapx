@@ -319,5 +319,63 @@ namespace ImapX
             }
             return string.Empty;
         }
+
+        // [2013-04-24] naudelb(Len Naude) - Added
+        // Gets the file name from the attaches eml's subject line
+        public static string GetRFC822FileName(string textData)
+        {
+            if (string.IsNullOrEmpty(textData)) return string.Empty;
+
+            string s = string.Empty;
+
+            if (textData.IndexOf("Subject:") > 0)
+            {
+                s = textData.Substring(textData.IndexOf("Subject:"));
+                s = s.Substring(8, s.IndexOf(Environment.NewLine) - 8);
+
+                s = RemoveIllegalFileNameChars(s);
+
+                s = s.Trim();
+                s = s + ".eml";
+            }
+            else
+            {
+                s = "ATT.eml";
+                int i = 0;
+                while (System.IO.File.Exists(s))
+                {
+                    s = "ATT" + i.ToString() + ".eml";
+                    i++;
+                }
+            }
+
+            return s;
+        }
+        // [2013-04-24] naudelb(Len Naude) - Added
+        public static string RemoveIllegalFileNameChars(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+
+            char spc = Convert.ToChar(" ");
+            s = s.Replace('\b', spc);
+            s = s.Replace('\r', spc);
+            s = s.Replace("\r\n", " ");
+            s = s.Replace('\f', spc);
+            s = s.Replace('\n', spc);
+            s = s.Replace('\0', spc);
+            s = s.Replace('"', spc);
+            s = s.Replace('\t', spc);
+            s = s.Replace('\v', spc);
+            s = s.Replace("\\", " ");
+            s = s.Replace("/", " ");
+            s = s.Replace(":", " ");
+            s = s.Replace("*", " ");
+            s = s.Replace("?", " ");
+            s = s.Replace("\"", " ");
+            s = s.Replace("<", " ");
+            s = s.Replace(">", " ");
+            s = s.Replace("|", " ");
+            return s;
+        }
     }
 }
