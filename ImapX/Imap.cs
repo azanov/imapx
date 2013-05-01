@@ -106,7 +106,7 @@ namespace ImapX
             }
             var folderCollection = new FolderCollection();
             var arrayList = new ArrayList();
-            string command = "LIST \"" + parent + "\" *\r\n";
+            string command = "LIST \"" + parent + "\" %\r\n";
             if (!SendAndReceive(command, ref arrayList))
             {
                 throw new ImapException("Bad or not correct Path");
