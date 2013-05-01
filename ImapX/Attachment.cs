@@ -17,7 +17,7 @@ namespace ImapX
         public string FileName
         {
             get { return _fileName; }
-            set { _fileName =string.IsNullOrEmpty(value) ? "Unnamed" : value; }
+            set { _fileName = string.IsNullOrEmpty(value) ? "Unnamed" : value; }
         }
 
         public string FileEncoding { get; set; }
@@ -32,10 +32,16 @@ namespace ImapX
 
         public void SaveFile(string folderPath)
         {
-            using (var fileStream = new FileStream(Path.Combine(folderPath, FileName), FileMode.Create, FileAccess.Write))
+            // [2013-04-26] naudelb(Len Naude) - Will throw an exception if the file name is null
+            // This happens in the case of delivery failed notification i.e. "Mail delivery failed: returning message to sender"
+            // and the body of containt the word "attachment"
+            if (!string.IsNullOrEmpty(this.FileName))
             {
-                fileStream.Write(_fileData, 0, _fileData.Length);
-                fileStream.Close();
+                using (var fileStream = new FileStream(Path.Combine(folderPath, FileName), FileMode.Create, FileAccess.Write))
+                {
+                    fileStream.Write(_fileData, 0, _fileData.Length);
+                    fileStream.Close();
+                }
             }
         }
 

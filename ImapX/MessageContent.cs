@@ -51,7 +51,7 @@ namespace ImapX
         /// </remarks>
         internal Attachment ToAttachment()
         {
-            
+
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
             var tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             var attachment = new Attachment();
@@ -59,72 +59,95 @@ namespace ImapX
 
             try
             {
-               
 
-               
 
-                for (var i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
+                if (ContentType != null && ContentType.ToLower().Contains("message/rfc822")) // [2013-04-24] naudelb(Len Naude) - Added
+                {
+                    // This part is an email attachment in mime(text) format that will be atached as an "eml" file
+                    // The name of the file will be derived from the attachment's "Subject" line
+                    // Remove leading blank line
+                    ContentStream = ContentStream.TrimStart("\r\n".ToCharArray());
+                    attachment.FileName = ParseHelper.GetRFC822FileName(ContentStream);
+                    attachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                }
+                else if (ContentType != null && ContentType.ToLower().Contains("message/delivery-status")) // [2013-04-24] naudelb(Len Naude) - Added
+                {
+                    // Delivery failed notice atachment in mime(text) format
+                    // Name will be hardcoded as "details.txt" as this is what outlook does
+                    attachment.FileName = "details.txt";
+                    attachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                }
+                else
                 {
 
-                    if (tmp[i].StartsWith("--"))
-                        continue;
 
-                    var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
 
-                    var parts = line.Contains(';') ? line.Split(';') : new[] {line};
-
-                    foreach (var match in parts.Select(part => rex.Match(part)))
+                    for (var i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
                     {
-                        if (!match.Success && parts.Length == 1)
-                        {
-                            bodyPart = string.Join("\r\n", tmp.Skip(i).ToArray());
-                            break;
-                        }
-                        if (!match.Success)
+
+                        if (tmp[i].StartsWith("--"))
                             continue;
 
+                        var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
 
-                        var field = match.Groups[1].Value.ToLower().Trim();
-                        var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                        var parts = line.Contains(';') ? line.Split(';') : new[] { line };
 
-                        switch (field)
+                        foreach (var match in parts.Select(part => rex.Match(part)))
                         {
-                            case MessageProperty.CONTENT_TYPE:
-                                attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
+                            if (!match.Success && parts.Length == 1)
+                            {
+                                bodyPart = string.Join("\r\n", tmp.Skip(i).ToArray());
                                 break;
-                            case "name":
-                            case "filename":
-                                attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
-                                break;
-                            case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                                attachment.FileEncoding = value.ToLower();
-                                break;
+                            }
+                            if (!match.Success)
+                                continue;
+
+
+                            var field = match.Groups[1].Value.ToLower().Trim();
+                            var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+
+                            switch (field)
+                            {
+                                case MessageProperty.CONTENT_TYPE:
+                                    attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
+                                    break;
+                                case "name":
+                                case "filename":
+                                    attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
+                                    break;
+                                case MessageProperty.CONTENT_TRANSFER_ENCODING:
+                                    attachment.FileEncoding = value.ToLower();
+                                    break;
+                            }
                         }
                     }
 
 
+                    // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
+                    //switch (attachment.FileEncoding)
+                    switch (string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
+                    {
+                        case "base64":
+                            attachment.FileData = Base64.FromBase64(bodyPart);
+                            break;
+                        case "7bit":
+                            attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
+                            break;
+                        case "quoted-printable":
+                            attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
+                            break;
+                        default:
+                            attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
+                            break;
+                    }
+
 
                 }
 
-                switch (attachment.FileEncoding)
-                {
-                    case "base64":
-                        attachment.FileData = Base64.FromBase64(bodyPart);
-                        break;
-                    case "7bit":
-                        attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
-                        break;
-                    case "quoted-printable":
-                        attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
-                        break;
-                    default:
-                        attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
-                        break;
-                }
-               
+
                 return attachment;
             }
-            catch(FormatException ex)
+            catch (FormatException ex)
             {
                 var str = new StringBuilder();
                 str.Append("Error parsing attachment");
@@ -141,19 +164,46 @@ namespace ImapX
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
             var inlineAttachment = new InlineAttachment();
 
-            inlineAttachment.FileEncoding = ContentTransferEncoding;
-
-            inlineAttachment.FileType = ParseHelper.ExtractFileType(ContentType);
-
-            inlineAttachment.FileName =
-                PartHeaders.FirstOrDefault(_ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id").Value.Replace("<", "").Replace(">", "");
-            
-            switch (ContentTransferEncoding)
+            // [2013-04-24] naudelb(Len Naude) - Catch Exceptions
+            try
             {
-                case "base64":
-                    inlineAttachment.FileData = Base64.FromBase64(ContentStream);
-                    
-                    break;
+                inlineAttachment.FileEncoding = ContentTransferEncoding;
+                inlineAttachment.FileType = ParseHelper.ExtractFileType(ContentType);
+                inlineAttachment.FileName =
+                    PartHeaders.FirstOrDefault(_ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id").Value.Replace("<", "").Replace(">", "");
+
+                // [2013-04-24] naudelb(Len Naude) - Cater for mixed case and different encodings
+                //switch (ContentTransferEncoding)
+                //{
+                //    case "base64":
+                //        inlineAttachment.FileData = Base64.FromBase64(ContentStream);
+                //        break;
+                //}
+                switch (string.IsNullOrEmpty(inlineAttachment.FileEncoding) ? "7bit" : inlineAttachment.FileEncoding.ToLower())
+                {
+                    case "base64":
+                        inlineAttachment.FileData = Base64.FromBase64(ContentStream);
+                        break;
+                    case "7bit":
+                        inlineAttachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                        break;
+                    case "quoted-printable":
+                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
+                        break;
+                    default:
+                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                var str = new StringBuilder();
+                str.Append("Error parsing inlineAttachment");
+                str.Append(Environment.NewLine);
+                str.AppendFormat("inlineAttachment filename: \"{0}\"", inlineAttachment.FileName);
+                str.Append(Environment.NewLine);
+                str.AppendFormat("Part body: \"{0}\"", ContentStream);
+                throw new Exception(str.ToString(), ex);
             }
 
             return inlineAttachment;
