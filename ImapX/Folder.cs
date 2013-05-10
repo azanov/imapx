@@ -187,6 +187,7 @@ namespace ImapX
             foreach (var current in messageCollection)
             {
                 current.Client = Client;
+                current.Folder = this; // [5/10/13] Fix by axlns
                 if (makeProcess)
                 {
                     current.Process();

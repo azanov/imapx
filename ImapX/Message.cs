@@ -16,6 +16,7 @@ namespace ImapX
     public class Message : ISerializable
     {
         internal Imap Client;
+        internal Folder Folder;  // [5/10/13] Fix by axlns
         private string _subject;
         private DateTime _date;
         private EmailParser.EmailParser _emailParser;
@@ -167,92 +168,120 @@ namespace ImapX
         /// [27.07.2012] Fix by Pavel Azanov (coder13)
         ///              Some messages contain attachments that are not described in the ContentDisposition,
         ///              but in the ContentStream directly.
+        /// [5/10/13] Fix by axlns
         /// </remarks>
         public bool Process()
         {
-            GetFlags();
-            GetMessage("BODY.PEEK[]", true);
+            // [5/10/13] Fix by axlns
 
+            string returnToFolder = "";
 
-
-            foreach (MessageContent current in BodyParts)
+            if (Client.SelectedFolder != Folder.FolderPath)
             {
-                if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
-                {
-                    TextBody = current;
-                    TextBody.TextData = TextBody.ContentStream;
-                }
-                else if (current.ContentType != null && current.ContentType.ToLower().Contains("text/html"))
-                {
-                    HtmlBody = current;
-                    HtmlBody.TextData = HtmlBody.ContentStream;
-                }
-                else if (current.ContentType != null && current.ContentType.ToLower().Contains("message/rfc822")) // [2013-04-24] naudelb(Len Naude) - Added
-                {
-                    // This part is an email attachment in mime(text) format that will be atached as an "eml" file
-                    // The name of the file will be derived from the attachment's "Subject" line
-                    Attachments.Add(current.ToAttachment());
-                }
-                else if (current.ContentType != null && current.ContentType.ToLower().Contains("message/delivery-status")) // [2013-04-24] naudelb(Len Naude) - Added
-                {
-                    // Delivery failed notice atachment in mime(text) format
-                    // Name will be hardcoded as "details.txt" as this is what outlook does
-                    Attachments.Add(current.ToAttachment());
-                }
-                else if (current.ContentDisposition != null && current.ContentDisposition.ToLower().Contains("attachment") ||
-                         !string.IsNullOrEmpty(current.ContentType) && current.ContentType.Replace(" ", "").Contains("name=")) //Mails sent from powershell do not have attachments marked as attachments.. Recognize them by containing a filename in ContentType
-                {
+                returnToFolder = Client.SelectedFolder;
+                Client.SelectFolder(Folder.FolderPath);
+            }
 
-                    // [2013-04-24] naudelb(Len Naude) - Embedded Image/Inline Attachment if the Content-ID is present and not explicitly specified as attachment
-                    if (string.IsNullOrEmpty(current.ContentId) || (current.ContentDisposition != null && current.ContentDisposition.ToLower().Contains("attachment")))
+
+            try
+            {
+
+
+                GetFlags();
+                GetMessage("BODY.PEEK[]", true);
+
+
+
+                foreach (MessageContent current in BodyParts)
+                {
+                    if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
+                    {
+                        TextBody = current;
+                        TextBody.TextData = TextBody.ContentStream;
+                    }
+                    else if (current.ContentType != null && current.ContentType.ToLower().Contains("text/html"))
+                    {
+                        HtmlBody = current;
+                        HtmlBody.TextData = HtmlBody.ContentStream;
+                    }
+                    else if (current.ContentType != null && current.ContentType.ToLower().Contains("message/rfc822")) // [2013-04-24] naudelb(Len Naude) - Added
+                    {
+                        // This part is an email attachment in mime(text) format that will be atached as an "eml" file
+                        // The name of the file will be derived from the attachment's "Subject" line
+                        Attachments.Add(current.ToAttachment());
+                    }
+                    else if (current.ContentType != null && current.ContentType.ToLower().Contains("message/delivery-status")) // [2013-04-24] naudelb(Len Naude) - Added
+                    {
+                        // Delivery failed notice atachment in mime(text) format
+                        // Name will be hardcoded as "details.txt" as this is what outlook does
+                        Attachments.Add(current.ToAttachment());
+                    }
+                    else if (current.ContentDisposition != null && current.ContentDisposition.ToLower().Contains("attachment") ||
+                             !string.IsNullOrEmpty(current.ContentType) && current.ContentType.Replace(" ", "").Contains("name=")) //Mails sent from powershell do not have attachments marked as attachments.. Recognize them by containing a filename in ContentType
                     {
 
-                        var attachment = new Attachment
+                        // [2013-04-24] naudelb(Len Naude) - Embedded Image/Inline Attachment if the Content-ID is present and not explicitly specified as attachment
+                        if (string.IsNullOrEmpty(current.ContentId) || (current.ContentDisposition != null && current.ContentDisposition.ToLower().Contains("attachment")))
                         {
-                            FileName = ParseHelper.DecodeName(string.IsNullOrEmpty(current.ContentFilename) ? ParseHelper.ExtractFileName(current.ContentType) : current.ContentFilename),
-                            FileType = ParseHelper.ExtractFileType(current.ContentType),
-                            FileEncoding = current.ContentTransferEncoding
-                        };
 
-                        // [2013-04-24] naudelb(Len Naude) - Clean File Name 
-                        attachment.FileName = attachment.FileName.Replace(":", "_").Replace("\\", "_");
-                        current.ContentStream = current.ContentStream.TrimStart("\r\n".ToCharArray());
-                        // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
-                        //switch (attachment.FileEncoding)
-                        switch (string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
-                        {
-                            case "base64":
-                                attachment.FileData = Base64.FromBase64(current.ContentStream);
-                                break;
-                            case "7bit":
-                                attachment.FileData = Encoding.ASCII.GetBytes(current.ContentStream);
-                                break;
-                            case "quoted-printable":
-                                attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(current.ContentStream, Encoding.UTF8));
-                                break;
-                            default:
-                                attachment.FileData = Encoding.UTF8.GetBytes(current.ContentStream);
-                                break;
+                            var attachment = new Attachment
+                            {
+                                FileName = ParseHelper.DecodeName(string.IsNullOrEmpty(current.ContentFilename) ? ParseHelper.ExtractFileName(current.ContentType) : current.ContentFilename),
+                                FileType = ParseHelper.ExtractFileType(current.ContentType),
+                                FileEncoding = current.ContentTransferEncoding
+                            };
+
+                            // [2013-04-24] naudelb(Len Naude) - Clean File Name 
+                            attachment.FileName = attachment.FileName.Replace(":", "_").Replace("\\", "_");
+                            current.ContentStream = current.ContentStream.TrimStart("\r\n".ToCharArray());
+                            // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
+                            //switch (attachment.FileEncoding)
+                            switch (string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
+                            {
+                                case "base64":
+                                    attachment.FileData = Base64.FromBase64(current.ContentStream);
+                                    break;
+                                case "7bit":
+                                    attachment.FileData = Encoding.ASCII.GetBytes(current.ContentStream);
+                                    break;
+                                case "quoted-printable":
+                                    attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(current.ContentStream, Encoding.UTF8));
+                                    break;
+                                default:
+                                    attachment.FileData = Encoding.UTF8.GetBytes(current.ContentStream);
+                                    break;
+                            }
+                            Attachments.Add(attachment);
+
                         }
-                        Attachments.Add(attachment);
+                        else
+                        {
+                            InlineAttachments.Add(current.ToInlineAttachment());
+                        }
 
                     }
-                    else
+                    else if (current.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n=attachment") || current.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n:attachment")) // [27.07.2012]
+                        Attachments.Add(current.ToAttachment());               // [27.07.2012]
+                    else if (current.PartHeaders.Any(_ => _.Key.ToLower().Contains("attachment")))
                     {
                         InlineAttachments.Add(current.ToInlineAttachment());
                     }
 
-                }
-                else if (current.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n=attachment") || current.ContentStream.ToLower().Replace(" ", "").Replace("\"", "").Contains("n:attachment")) // [27.07.2012]
-                    Attachments.Add(current.ToAttachment());               // [27.07.2012]
-                else if (current.PartHeaders.Any(_ => _.Key.ToLower().Contains("attachment")))
-                {
-                    InlineAttachments.Add(current.ToInlineAttachment());
-                }
 
-
+                }
+                return true;
             }
-            return true;
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(returnToFolder))
+                {
+                    Client.SelectFolder(returnToFolder);
+                }
+            }
         }
 
         private void GetFlags()
