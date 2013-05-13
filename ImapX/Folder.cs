@@ -133,6 +133,7 @@ namespace ImapX
             foreach (var current in messageCollection)
             {
                 current.Client = Client;
+                current.Folder = this;
             }
             return messageCollection;
         }
