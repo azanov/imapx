@@ -315,6 +315,7 @@ namespace ImapX
                 text = "EXPUNGE\r\n";
                 if (Client.SendAndReceive(text, ref arrayList))
                 {
+                    Messages.Remove(msg);
                     Examine();
                 }
                 Client.SelectFolder(selectedFolder);
