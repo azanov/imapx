@@ -333,7 +333,7 @@ namespace ImapX
                 s = textData.Substring(textData.IndexOf("Subject:"));
                 s = s.Substring(8, s.IndexOf(Environment.NewLine) - 8);
 
-                s = RemoveIllegalFileNameChars(s);
+                s = DecodeName(s);
 
                 s = s.Trim();
                 s = s + ".eml";
