@@ -47,7 +47,7 @@ namespace ImapX.EmailParser
         {
             for (int i = this._headerStartIndex; i < this._headerEndIndex; i++)
             {
-                if (this._emailItems[i].Contains("boundary="))
+                if (this._emailItems[i].ToLower().Contains("boundary="))
                 {
                     try
                     {
@@ -79,7 +79,7 @@ namespace ImapX.EmailParser
                 // For reference see http://imapx.codeplex.com/workitem/1523
                 try 
                 { 
-                    if (num > 0 & !this._emailItems[i].StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].StartsWith(' '.ToString(CultureInfo.InvariantCulture))) 
+                    if (num > 0 & !this._emailItems[i].ToLower().StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].ToLower().StartsWith(' '.ToString(CultureInfo.InvariantCulture))) 
                     { 
                         string text2 = this._emailItems[i].Substring(0, num);
                         string text3 = String.Empty;
@@ -166,7 +166,7 @@ namespace ImapX.EmailParser
                         	num++;
                             while (this._bodyEndIndex >= num && this._emailItems[num] != string.Empty)
                             {
-                                if (this._emailItems[num].Contains("boundary="))
+                                if (this._emailItems[num].ToLower().Contains("boundary="))
                                 {
                                     try
                                     {
@@ -193,7 +193,7 @@ namespace ImapX.EmailParser
                                 try
                                 {
                                     if (num2 > 0 & !this._emailItems[num].StartsWith('\t'
-										.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[num].StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
+										.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[num].ToLower().StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
                                     {
                                         string text2 = this._emailItems[num].Substring(0, num2);
                                         string text3 = this._emailItems[num].Substring(num2 + 2);

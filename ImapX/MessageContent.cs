@@ -88,7 +88,7 @@ namespace ImapX
                         if (tmp[i].StartsWith("--"))
                             continue;
 
-                        var line = tmp[i].Trim('\t').Trim().TrimEnd(';');
+                        var line = tmp[i].Trim('\t').Trim('\"').Trim().TrimEnd(';'); // [05/28/13] Fix by Woozer 
 
                         var parts = line.Contains(';') ? line.Split(';') : new[] { line };
 
