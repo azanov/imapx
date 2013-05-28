@@ -217,7 +217,7 @@ namespace ImapX
                         Attachments.Add(current.ToAttachment());
                     }
                     else if (current.ContentDisposition != null && current.ContentDisposition.ToLower().Contains("attachment") ||
-                             !string.IsNullOrEmpty(current.ContentType) && current.ContentType.Replace(" ", "").Contains("name=")) //Mails sent from powershell do not have attachments marked as attachments.. Recognize them by containing a filename in ContentType
+                             !string.IsNullOrEmpty(current.ContentType) && current.ContentType.Replace(" ", "").ToLower().Contains("name=")) //Mails sent from powershell do not have attachments marked as attachments.. Recognize them by containing a filename in ContentType
                     {
 
                         // [2013-04-24] naudelb(Len Naude) - Embedded Image/Inline Attachment if the Content-ID is present and not explicitly specified as attachment
