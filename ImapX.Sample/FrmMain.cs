@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Globalization;
+using ImapX.Sample.Native;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,8 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using ImapX.Sample.Native;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ImapX.Sample
 {
@@ -17,7 +17,7 @@ namespace ImapX.Sample
         private List<Message> _messages;
         private Folder _selectedFolder;
         private Message _selectedMessage;
-        private TreeNode lastClickedNode;
+        private TreeNode _lastClickedNode;
 
         public FrmMain()
         {
@@ -50,7 +50,7 @@ namespace ImapX.Sample
                                   ? "No subject"
                                   : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
 
-            lblTime.Text = _selectedMessage.Date.ToString();
+            lblTime.Text = _selectedMessage.Date.ToString(CultureInfo.InvariantCulture);
             lblFrom.Text = _selectedMessage.From.ToString();
             lblTo.Text = string.Join("; ", _selectedMessage.To.Select(_ => _.ToString()).ToArray());
 
@@ -398,7 +398,7 @@ namespace ImapX.Sample
 
         private void emptyFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (lastClickedNode == null) return;
+            if (_lastClickedNode == null) return;
             if (
                 MessageBox.Show("Do you really want to empty this folder?", "Empty folder", MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question) != DialogResult.Yes)
@@ -407,7 +407,7 @@ namespace ImapX.Sample
 
             trwFolders.Enabled = lsvMails.Enabled = false;
 
-            (new Thread(EmptyFolder)).Start(lastClickedNode.Tag);
+            (new Thread(EmptyFolder)).Start(_lastClickedNode.Tag);
         }
 
         private void EmptyFolder(object folder)
@@ -458,7 +458,7 @@ namespace ImapX.Sample
 
         private void trwFolders_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            lastClickedNode = e.Node;
+            _lastClickedNode = e.Node;
             if (e.Node.Tag is Folder && e.Button == MouseButtons.Right)
             {
                 emptyFolderToolStripMenuItem.Text = string.Format("Empty \"{0}\" folder", e.Node.Text);
