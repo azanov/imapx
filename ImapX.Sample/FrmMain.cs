@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using ImapX.Sample.Native;
 using System;
 using System.Collections.Generic;
@@ -168,9 +169,11 @@ namespace ImapX.Sample
         {
             if (trwFolders.SelectedNode == null || trwFolders.SelectedNode == trwFolders.Nodes[0]) return;
 
+            lstCommonFolders.SelectedIndex = -1;
+
             lblSelectFolder.Visible = false;
 
-            trwFolders.Enabled = lsvMails.Enabled = false;
+            trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = false;
             lsvMails.VirtualListSize = 0;
             
             pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
@@ -185,7 +188,8 @@ namespace ImapX.Sample
         {
             try
             {
-                _messages = _selectedFolder.Search("ALL", true).OrderByDescending(_ => _.Date).ToList();
+                
+                _messages = _selectedFolder.Search("All", true).OrderByDescending(_ => _.Date).ToList();
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(GetMailsCompleted), Program.ImapClient, args);
             }
@@ -209,7 +213,7 @@ namespace ImapX.Sample
                     frm.ShowDialog();
             }
             pgbFetchMails.Visible = false;
-            trwFolders.Enabled = lsvMails.Enabled = true;
+            trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = true;
         }
 
         #endregion
@@ -363,6 +367,9 @@ namespace ImapX.Sample
             e.Item = new ListViewItem(string.IsNullOrEmpty(msg.Subject)
                                           ? "[No subject]"
                                           : msg.Subject.Replace("\n", "").Replace("\t", ""));
+
+            e.Item.Font = new Font(e.Item.Font, msg.Flags.Contains(ImapFlags.SEEN) ? FontStyle.Regular : FontStyle.Bold);
+
         }
 
         private void FrmMainOrLsvMails_SizeChanged(object sender, EventArgs e)
@@ -508,6 +515,69 @@ namespace ImapX.Sample
             }
             
             trwFolders.Enabled = lsvMails.Enabled = true;
+        }
+
+        private void lstCommonFolders_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstCommonFolders.SelectedIndex == -1) return;
+            trwFolders.SelectedNode = null;
+
+            Folder folder = null;
+
+            switch (lstCommonFolders.SelectedItem as string)
+            {
+                case "All mails":
+                    folder = Program.ImapClient.Folders.All;
+                    break;
+                case "Archive":
+                    
+                    folder = Program.ImapClient.Folders.Archive;
+                    break;
+                case "Inbox":
+                    folder = Program.ImapClient.Folders.Inbox;
+                    break;
+                case "Drafts":
+                    folder = Program.ImapClient.Folders.Drafts;
+                    break;
+                case "Important":
+                    folder = Program.ImapClient.Folders.Important;
+                    break;
+                case "Flagged":
+                    folder = Program.ImapClient.Folders.Flagged;
+                    break;
+                case "Junk":
+                    folder = Program.ImapClient.Folders.Junk;
+                    break;
+                case "Sent":
+                    folder = Program.ImapClient.Folders.Sent;
+                    break;
+                case "Trash":
+                    folder = Program.ImapClient.Folders.Trash;
+                    break;
+
+            }
+
+            if (folder == null)
+            {
+                MessageBox.Show("This common folder is not available", "Folder unavailable", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+            else
+                _selectedFolder = folder;
+
+            lblSelectFolder.Visible = false;
+
+            trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = false;
+            lsvMails.VirtualListSize = 0;
+
+            pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
+            pgbFetchMails.Visible = true;
+            _selectedMessage = null;
+           
+
+            (new Thread(GetMails)).Start();
+
         }
  
     }

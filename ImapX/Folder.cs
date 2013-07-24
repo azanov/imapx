@@ -2,27 +2,55 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using ImapX.Collections;
+using ImapX.Exceptions;
+using ImapX.Flags;
 
 namespace ImapX
 {
     [Serializable]
     public class Folder
     {
-        public ImapClient Client;
+        private readonly ImapClient _client;
         private int _exists;
-        private string _friendlyFolderName;
+
+        private string _name;
+        private string _folderPath;
+
+        private readonly Folder _parent;
+        private FolderCollection _subFolders;
+        private FolderFlagCollection _flags;
         private MessageCollection _messages;
         private int _recents;
-        private FolderCollection _subFolders;
+        
         private int _uidNext;
         private string _uidValidity;
         private int _unseen;
 
-        public Folder(string folderName)
+        internal Folder(string path, IEnumerable<string> flags, ref Folder parent, ImapClient client)
         {
-            ImapUtf7FolderName = folderName;
-            _subFolders = new FolderCollection();
+            _folderPath = path;
+            _name = ImapUTF7.Decode(_folderPath.Split(client.Behavior.FolderDelimeter).Last());
+            UpdateFlags(flags);
+            _parent = parent;
+            _client = client;
+            
+
         }
+
+
+        public FolderFlagCollection Flags
+        {
+            get
+            {
+                return _flags;
+            }
+        }
+
+        public IEnumerable<string> AllowedPermanentFlags { get; set; }
+
+        public bool Selectable { get; private set; }
 
         public int LastUpdateMessagesCount { get; private set; }
 
@@ -65,34 +93,99 @@ namespace ImapX
             }
         }
 
-        public string FolderPath { get; set; }
+        internal string FolderPath
+        {
+            get { return _folderPath; }
+            set { _folderPath = value; }
+        }
 
+        [Obsolete("SubFolder is obsolete, please use SubFolders")]
         public FolderCollection SubFolder
+        {
+            get { return SubFolders;  }
+        }
+
+        public FolderCollection SubFolders
         {
             get
             {
-                SubfolderInit();
-                return _subFolders;
+                return _subFolders ?? (_subFolders = HasChildren ? _client.GetFolders(_folderPath + _client.Behavior.FolderDelimeter, _client.Folders, this) : new FolderCollection(_client, this));
             }
-            set { _subFolders = value; }
+            internal set
+            {
+                _subFolders = value;
+            }
         }
 
         public string Name
         {
             get
             {
-                return string.IsNullOrEmpty(_friendlyFolderName)
-                           ? (_friendlyFolderName = ImapUTF7.Decode(ImapUtf7FolderName))
-                           : _friendlyFolderName;
+                return _name;
+            }
+            set
+            {
+                if (!Rename(value))
+                    throw new OperationFailedException("Failed to rename folder");
             }
         }
 
-        internal string ImapUtf7FolderName { get; set; }
-
-        private void SubfolderInit()
+        /// <summary>
+        /// Ranames the folder
+        /// </summary>
+        /// <param name="name">the name to set</param>
+        /// <returns></returns>
+        internal bool Rename(string name)
         {
-            foreach (var current in _subFolders)
-                current.Client = Client;
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Folder name cannot be empty");
+
+            IList<string> data = new List<string>();
+
+            var encodedName = ImapUTF7.Encode(name);
+
+            var i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
+
+            string newPath = i < 1 ? encodedName : _folderPath.Substring(0, i + 1) + encodedName;
+
+            if (_client.SendAndReceive(string.Format(ImapCommands.RENAME, _folderPath, newPath), ref data))
+            {
+                _name = name;
+                _folderPath = newPath;
+
+                if (HasChildren && _subFolders != null)
+                {
+                    foreach (var folder in SubFolders)
+                        folder.UpdatePath(_folderPath);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void UpdatePath(string parentPath)
+        {
+            var i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
+            _folderPath = parentPath + _folderPath.Substring(i, _folderPath.Length - i);
+
+        }
+
+        internal void UpdateFlags(string flags)
+        {
+            UpdateFlags(flags.Split(' '));
+        }
+
+        /// <summary>
+        /// Updates the private list of flags, sets properties like HasChildren and Selectable
+        /// </summary>
+        /// <param name="flags"></param>
+        internal void UpdateFlags(IEnumerable<string> flags)
+        {
+            _flags = new FolderFlagCollection((flags ?? new string[0]).Where(_ => !string.IsNullOrEmpty(_)), _client, this);
+            Selectable = !flags.Contains(FolderFlags.NoSelect);
+            HasChildren = flags.Contains(FolderFlags.HasChildren);
         }
 
         public override string ToString()
@@ -103,7 +196,7 @@ namespace ImapX
         public MessageCollection CheckNewMessage(bool processMessages)
         {
             var messageCollection = new MessageCollection();
-            var messageCollection2 = Client.SearchMessage("all");
+            var messageCollection2 = _client.SearchMessage("all");
             var result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
             var list = messageCollection2.FindAll(m => m.MessageUid > result);
             if (list.Count > 0)
@@ -111,7 +204,7 @@ namespace ImapX
                 LastUpdateMessagesCount = list.Count;
                 foreach (var current2 in list)
                 {
-                    current2.Client = Client;
+                    current2.Client = _client;
                     if (processMessages)
                     {
                         current2.Process();
@@ -130,39 +223,45 @@ namespace ImapX
         private MessageCollection SetMessage()
         {
             Select();
-            var messageCollection = Client.SearchMessage("all");
+            var messageCollection = _client.SearchMessage("all");
             foreach (var current in messageCollection)
             {
-                current.Client = Client;
+                current.Client = _client;
                 current.Folder = this;
             }
             return messageCollection;
         }
 
-        public bool GetSubFolders()
+        internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
         {
-            bool result;
-            try
+            var rex = new Regex(@".*\((\\.*)+\)\s\""(.)\""\s\""(.*)\""");
+            var match = rex.Match(commandResult);
+
+            if (match.Success && match.Groups.Count == 4)
             {
-                _subFolders = Client.GetFolders(FolderPath + Client.FolderDelimeter);
-                result = true;
+                var flags = match.Groups[1].Value.Split(' ');
+
+                var path = match.Groups[3].Value;
+
+                if (client.Behavior.FolderDelimeter == '\0')
+                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value) ? '"' : match.Groups[2].Value.ToCharArray()[0];
+
+                return new Folder(path, flags, ref parent, client);
+
             }
-            catch
-            {
-                result = false;
-            }
-            return result;
+
+            return null;
         }
 
         public bool Examine()
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
             IList<string> arrayList = new List<string>();
             string command = "EXAMINE \"" + FolderPath + "\"\r\n";
-            if (!Client.SendAndReceive(command, ref arrayList))
+            if (!_client.SendAndReceive(command, ref arrayList))
             {
                 return false;
             }
@@ -179,34 +278,34 @@ namespace ImapX
 
         public MessageCollection Search(string path, bool makeProcess)
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
-            var selectedFolder = Client.SelectedFolder;
+            var selectedFolder = _client.SelectedFolder;
             Select();
-            var messageCollection = Client.SearchMessage(path);
+            var messageCollection = _client.SearchMessage(path);
             foreach (var current in messageCollection)
             {
-                current.Client = Client;
+                current.Client = _client;
                 current.Folder = this; // [5/10/13] Fix by axlns
                 if (makeProcess)
                 {
                     current.Process();
                 }
             }
-            Client.SelectFolder(selectedFolder);
+            _client.SelectFolder(selectedFolder);
             return messageCollection;
         }
 
         public void Select()
         {
-            Client.SelectFolder(FolderPath);
+            _client.SelectFolder(FolderPath);
         }
 
         public bool EmptyFolder()
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -219,10 +318,10 @@ namespace ImapX
             int messageUid = Messages[0].MessageUid;
             int messageUid2 = Messages[Messages.Count - 1].MessageUid;
             Select();
-            if (Client.SendAndReceive(string.Format(text, messageUid, messageUid2), ref arrayList))
+            if (_client.SendAndReceive(string.Format(text, messageUid, messageUid2), ref arrayList))
             {
                 text = "EXPUNGE\r\n";
-                if (Client.SendAndReceive(text, ref arrayList))
+                if (_client.SendAndReceive(text, ref arrayList))
                 {
                     _messages.Clear();
                     Examine();
@@ -234,39 +333,39 @@ namespace ImapX
 
         public bool CreateFolder(string name)
         {
-            if (Client == null || !Client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            const string format = "CREATE \"{0}\"\r\n";
-            IList<string> arrayList = new List<string>();
-            string text = string.Format("{0}{1}{2}", FolderPath, Client.FolderDelimeter, name);
-            if (Client.SendAndReceive(string.Format(format, text), ref arrayList))
-            {
-                var folder = new Folder(name) {FolderPath = text, Client = Client};
-                _subFolders.Add(folder);
-                _subFolders[name].Examine();
-                return true;
-            }
-            return false;
+            return SubFolders.Add(name);
         }
 
+        [Obsolete("DeleteFolder is obsolete, please use Remove instead")]
         public bool DeleteFolder()
         {
-            if (Client == null || !Client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            IList<string> arrayList = new List<string>();
-            string text = "CLOSE \"" + FolderPath + "\"\r\n";
-            Client.SendAndReceive(text, ref arrayList);
-            text = "DELETE \"{0}\"\r\n";
-            return Client.SendAndReceive(string.Format(text, FolderPath), ref arrayList);
+            return Remove();
+        }
+
+        /// <summary>
+        /// Removes the folder
+        /// </summary>
+        /// <returns><code>true</code> if the folder could be removed</returns>
+        public bool Remove()
+        {
+            if (!Selectable)
+                throw new InvalidOperationException("A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
+
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.DELETE, _folderPath), ref data))
+                return false;
+
+            if (_parent != null)
+                _parent._subFolders.RemoveInternal(this);
+            else
+                _client.Folders.RemoveInternal(this);
+
+            return true;
         }
 
         public bool CopyMessageToFolder(Message msg, Folder folder)
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -278,27 +377,27 @@ namespace ImapX
             {
                 throw new ImapException("Folder is null");
             }
-            string selectedFolder = Client.SelectedFolder;
+            string selectedFolder = _client.SelectedFolder;
             Select();
             string text = "UID COPY {0} \"{1}\"\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
             IList<string> arrayList = new List<string>();
-            if (!Client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
+            if (!_client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
-                Client.SelectFolder(selectedFolder);
+                _client.SelectFolder(selectedFolder);
                 return false;
             }
             text = "EXPUNGE\r\n";
-            if (!Client.SendAndReceive(text, ref arrayList))
+            if (!_client.SendAndReceive(text, ref arrayList))
             {
                 return false;
             }
-            Client.SelectFolder(selectedFolder);
+            _client.SelectFolder(selectedFolder);
             return true;
         }
 
         public bool DeleteMessage(Message msg)
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -306,29 +405,29 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = Client.SelectedFolder;
-            Client.SelectFolder(FolderPath);
+            string selectedFolder = _client.SelectedFolder;
+            _client.SelectFolder(FolderPath);
             string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
             IList<string> arrayList = new List<string>();
             Select();
-            if (Client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
+            if (_client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
             {
                 text = "EXPUNGE\r\n";
-                if (Client.SendAndReceive(text, ref arrayList))
+                if (_client.SendAndReceive(text, ref arrayList))
                 {
                     Messages.Remove(msg);
                     Examine();
                 }
-                Client.SelectFolder(selectedFolder);
+                _client.SelectFolder(selectedFolder);
                 return true;
             }
-            Client.SelectFolder(selectedFolder);
+            _client.SelectFolder(selectedFolder);
             return false;
         }
 
         public bool MoveMessageToFolder(Message msg, Folder folder)
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -337,7 +436,7 @@ namespace ImapX
 
         public bool AppendMessage(Message msg, string flag)
         {
-            if (Client == null || !Client.IsConnected)
+            if (_client == null || !_client.IsConnected)
             {
                 throw new ImapException("Dont Connect");
             }
@@ -345,7 +444,7 @@ namespace ImapX
             {
                 throw new ImapException("Message is null");
             }
-            string selectedFolder = Client.SelectedFolder;
+            string selectedFolder = _client.SelectedFolder;
             Select();
             IList<string> arrayList = new List<string>();
             string text = msg.MessageBuilder();
@@ -364,12 +463,12 @@ namespace ImapX
                                                    length - 2,
                                                    "}\r\n"
                                                });
-            if (Client.SendAndReceive(command, ref arrayList) && Client.SendData(text))
+            if (_client.SendAndReceive(command, ref arrayList) && _client.SendData(text))
             {
-                Client.SelectFolder(selectedFolder);
+                _client.SelectFolder(selectedFolder);
                 return true;
             }
-            Client.SelectFolder(selectedFolder);
+            _client.SelectFolder(selectedFolder);
             return false;
         }
     }

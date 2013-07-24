@@ -1,25 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Security.Authentication;
-using System.Text;
 using System.Windows.Forms;
 
 namespace ImapX.Sample
 {
     public partial class FrmConnect : Form
     {
-
+        private readonly SslProtocols[] _sslProtocols = {SslProtocols.None, SslProtocols.Default, SslProtocols.Tls};
         private string _host;
-        private int _port;
         private string _login;
         private string _pass;
-        private bool _useSSL;
+        private int _port;
         private string _result;
-        private readonly SslProtocols[] _sslProtocols = { SslProtocols.None, SslProtocols.Default, SslProtocols.Tls  };
         private SslProtocols _selectedProtocol = SslProtocols.None;
 
         public FrmConnect()
@@ -30,15 +23,16 @@ namespace ImapX.Sample
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtLogin.Text) || string.IsNullOrEmpty(txtPass.Text) || string.IsNullOrEmpty(txtPort.Text) || string.IsNullOrEmpty(txtServer.Text) || !int.TryParse(txtPort.Text, out _port))
+            if (string.IsNullOrEmpty(txtLogin.Text) || string.IsNullOrEmpty(txtPass.Text) ||
+                string.IsNullOrEmpty(txtPort.Text) || string.IsNullOrEmpty(txtServer.Text) ||
+                !int.TryParse(txtPort.Text, out _port))
                 MessageBox.Show("Please check the values you entered", "Error", MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                    MessageBoxIcon.Error);
             else
             {
                 _host = txtServer.Text.Trim();
                 _login = txtLogin.Text;
                 _pass = txtPass.Text;
-                _useSSL = cmbEncryption.SelectedIndex != 0;
                 _selectedProtocol = _sslProtocols[cmbEncryption.SelectedIndex];
                 btnConnect.Enabled = false;
                 bgwMain.RunWorkerAsync();
@@ -52,7 +46,7 @@ namespace ImapX.Sample
             else
             {
                 btnConnect.Enabled = true;
-                if((bool)e.Result)
+                if ((bool) e.Result)
                 {
                     DialogResult = DialogResult.OK;
                     Close();
@@ -60,9 +54,8 @@ namespace ImapX.Sample
                 else
                 {
                     MessageBox.Show(_result, "Error", MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
+                        MessageBoxIcon.Error);
                 }
-
             }
         }
 
@@ -74,8 +67,7 @@ namespace ImapX.Sample
                 Program.ImapClient = new ImapClient(_host, _port, _selectedProtocol);
                 if (Program.ImapClient.Connect())
                 {
-
-                    if(Program.ImapClient.Login(_login, _pass))
+                    if (Program.ImapClient.Login(_login, _pass))
                         e.Result = true;
                     else
                         _result = "Failed to login";
@@ -83,10 +75,9 @@ namespace ImapX.Sample
                 else
                     _result = "Failed to connect";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _result = ex.ToString();
-
             }
         }
 
