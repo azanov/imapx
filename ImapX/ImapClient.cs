@@ -4,18 +4,21 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Authentication;
 using ImapX.Authentication;
+using ImapX.Collections;
+using ImapX.Enums;
 
 namespace ImapX
 {
     public class ImapClient : ImapBase
     {
-        private FolderCollection _folders;
+        private CommonFolderCollection _folders;
 
         /// <summary>
         ///     Creates a new IMAP client
         /// </summary>
         public ImapClient()
         {
+            Behavior = new ClientBehavior();
         }
 
         /// <summary>
@@ -57,9 +60,9 @@ namespace ImapX
         }
 
         /// <summary>
-        ///     A char used as delimeter for folders
+        /// Basic client behavior settings like folder browse mode and message download mode
         /// </summary>
-        internal char FolderDelimeter { get; set; }
+        public ClientBehavior Behavior { get; private set; }
 
         /// <summary>
         ///     Get or set the credentials used to authenticate
@@ -89,102 +92,64 @@ namespace ImapX
             get { return IsAuthenticated; }
         }
 
-        public FolderCollection Folders
+        /// <summary>
+        /// The folder structure
+        /// </summary>
+        public CommonFolderCollection Folders
         {
-            get { return _folders ?? (_folders = GetFolders()); }
-            set { _folders = value; }
+            get
+            {
+                return _folders ?? (_folders = GetFolders());
+            }
         }
 
-        internal FolderCollection GetFolders()
+        /// <summary>
+        /// Requests the top-level folder structure
+        /// </summary>
+        /// <returns></returns>
+        internal CommonFolderCollection GetFolders()
         {
-            FolderCollection folders = GetFolders("");
-            foreach (Folder current in folders)
-            {
-                current.Client = this;
-            }
+            var folders = new CommonFolderCollection(this);
+            folders.AddRangeInternal(GetFolders("", folders, null, true));
             return folders;
         }
 
-        internal FolderCollection GetFolders(string parent)
+        /// <summary>
+        /// Request the folder structure for a specific path
+        /// </summary>
+        /// <param name="path">The path to search</param>
+        /// <param name="commonFolders">The list of common folders to update</param>
+        /// <param name="parent">The parent folder</param>
+        /// <param name="isFirstLevel">if <code>true</code>, will request the subfolders of all folders found. Thsi settign depends on the current FolderTreeBrowseMode</param>
+        /// <returns>A list of folders</returns>
+        internal FolderCollection GetFolders(string path, CommonFolderCollection commonFolders, Folder parent = null, bool isFirstLevel = false)
         {
-            if (!IsConnected)
-            {
-                throw new ImapException("Not Connect");
-            }
-            var folderCollection = new FolderCollection();
+            var result = new FolderCollection(this, parent);
+            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.X_LIST : ImapCommands.LIST, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
             IList<string> data = new List<string>();
-            string command = "LIST \"" + parent + "\" %\r\n";
-            if (!SendAndReceive(command, ref data))
+            if (SendAndReceive(cmd, ref data))
             {
-                throw new ImapException("Bad or not correct Path");
-            }
-            if (data[0].StartsWith("* "))
-            {
-                FolderDelimeter = data[0][data[0].IndexOf("\"", StringComparison.Ordinal) + 1];
-                if (data[0].Contains("NIL"))
+                for (var i = 0; i < data.Count - 1; i++)
                 {
-                    FolderDelimeter = '"';
+                    var folder = Folder.Parse(data[i], ref parent, this);
+                    commonFolders.TryBind(ref folder);
+
+                    if (Behavior.ExamineFolders)
+                        folder.Examine();
+
+                    if (folder.HasChildren && (isFirstLevel || Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full))
+                        folder.SubFolders = GetFolders(folder.FolderPath + Behavior.FolderDelimeter, commonFolders, folder);
+
+                    result.AddInternal(folder);
+
                 }
             }
-            foreach (string text in data)
-            {
-                if (text.StartsWith("* "))
-                {
-                    string[] array = text.Split(new[]
-                    {
-                        FolderDelimeter
-                    });
-                    if (FolderDelimeter == '"')
-                    {
-                        array = new[]
-                        {
-                            array[0],
-                            array[1]
-                        };
-                    }
-                    if (array.Length == 2)
-                    {
-                        var folder = new Folder(array[array.Length - 1].Replace("\"", "").Trim())
-                        {
-                            FolderPath = FolderDelimeter != '"'
-                                ? text.Substring(text.IndexOf("\"" + FolderDelimeter + "\"", StringComparison.Ordinal)).
-                                    Replace("\""
-                                            + FolderDelimeter + "\"", "").Replace("\"", "").Trim()
-                                : text.Substring(text.IndexOf(FolderDelimeter)).Replace("\"", "")
-                        };
-                        if (text.Contains("\\HasChildren"))
-                        {
-                            folder.HasChildren = true;
-                            folder.Client = this;
-                            folder.GetSubFolders();
-                        }
-                        folderCollection.Add(folder);
-                    }
-                    else
-                    {
-                        if (array.Length == 3 & !parent.Equals("\"\""))
-                        {
-                            string folderName = array[array.Length - 1].Replace("\"", "").Trim();
-                            var folder2 = new Folder(folderName)
-                            {
-                                FolderPath =
-                                    text.Substring(text.IndexOf("\"" + FolderDelimeter + "\"", StringComparison.Ordinal))
-                                        .Replace(
-                                            "\"" + FolderDelimeter + "\"", "").Replace("\"", "").Trim()
-                            };
-                            if (text.Contains("\\HasChildren"))
-                            {
-                                folder2.HasChildren = true;
-                                folder2.Client = this;
-                                folder2.GetSubFolders();
-                            }
-                            folderCollection.Add(folder2);
-                        }
-                    }
-                }
-            }
-            return folderCollection;
+
+            return result;
+
         }
+
+
 
         internal MessageCollection SearchMessage(string path)
         {
@@ -266,7 +231,7 @@ namespace ImapX
             if (SendAndReceive(ImapCommands.LOGOUT, ref data))
             {
                 IsAuthenticated = false;
-                FolderDelimeter = '\0';
+                Behavior.FolderDelimeter = '\0';
                 _folders = null;
             }
             return !IsAuthenticated;

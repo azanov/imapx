@@ -53,8 +53,17 @@
     <Compile Include="Authentication\PlainCredentials.cs" />
     <Compile Include="Base64.cs" />
     <Compile Include="Capability.cs" />
+    <Compile Include="ClientBehavior.cs" />
+    <Compile Include="Collections\CommonFolderCollection.cs" />
+    <Compile Include="Collections\FolderCollection.cs" />
+    <Compile Include="Collections\FolderFlagCollection.cs" />
+    <Compile Include="Collections\ImapObjectCollection.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="Enums\FolderTreeBrowseMode.cs" />
+    <Compile Include="Enums\MessageFetchMode.cs" />
     <Compile Include="Exceptions\InvalidStateException.cs" />
+    <Compile Include="Exceptions\OperationFailedException.cs" />
+    <Compile Include="Flags\FolderFlags.cs" />
     <Compile Include="ImapCommands.cs" />
     <Compile Include="InlineAttachment.cs" />
     <Compile Include="EmailParser\BodyPart.cs" />
@@ -62,8 +71,6 @@
     <Compile Include="EmailParser\ParseError.cs" />
     <Compile Include="Attachment.cs" />
     <Compile Include="Folder.cs" />
-    <Compile Include="FolderCollection.cs" />
-    <Compile Include="FolderFlags.cs" />
     <Compile Include="ImapBase.cs" />
     <Compile Include="ImapClient.cs" />
     <Compile Include="ImapException.cs" />
@@ -81,6 +88,7 @@
   <ItemGroup>
     <None Include="ImapX.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

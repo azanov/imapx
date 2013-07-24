@@ -303,6 +303,8 @@ namespace ImapX
             }
         }
 
+        // TODO: update capabilities after login
+
         public Capability(string commandResult)
         {
             commandResult = commandResult.Replace("* CAPABILITY IMAP4rev1 ", "");

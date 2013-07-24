@@ -40,6 +40,7 @@
             this.mnuMessages = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.moveToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.markAsReadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportForReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.pnlAttachments = new System.Windows.Forms.Panel();
@@ -60,7 +61,9 @@
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
             this.mnuFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.emptyFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.markAsReadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label2 = new System.Windows.Forms.Label();
+            this.lstCommonFolders = new System.Windows.Forms.ListBox();
+            this.istPlaceHolder = new System.Windows.Forms.ImageList(this.components);
             this.pnlLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -77,7 +80,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(14, 14);
+            this.label1.Location = new System.Drawing.Point(12, 200);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(62, 20);
             this.label1.TabIndex = 0;
@@ -85,6 +88,8 @@
             // 
             // pnlLeft
             // 
+            this.pnlLeft.Controls.Add(this.lstCommonFolders);
+            this.pnlLeft.Controls.Add(this.label2);
             this.pnlLeft.Controls.Add(this.trwFolders);
             this.pnlLeft.Controls.Add(this.label1);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
@@ -99,9 +104,9 @@
             this.trwFolders.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.trwFolders.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.trwFolders.HideSelection = false;
-            this.trwFolders.Location = new System.Drawing.Point(11, 48);
+            this.trwFolders.Location = new System.Drawing.Point(11, 236);
             this.trwFolders.Name = "trwFolders";
-            this.trwFolders.Size = new System.Drawing.Size(200, 492);
+            this.trwFolders.Size = new System.Drawing.Size(200, 304);
             this.trwFolders.TabIndex = 2;
             this.trwFolders.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.trwFolders_AfterSelect);
             this.trwFolders.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.trwFolders_NodeMouseClick);
@@ -169,6 +174,7 @@
             this.lsvMails.Margin = new System.Windows.Forms.Padding(10);
             this.lsvMails.Name = "lsvMails";
             this.lsvMails.Size = new System.Drawing.Size(229, 533);
+            this.lsvMails.SmallImageList = this.istPlaceHolder;
             this.lsvMails.TabIndex = 0;
             this.lsvMails.UseCompatibleStateImageBehavior = false;
             this.lsvMails.View = System.Windows.Forms.View.Details;
@@ -190,7 +196,7 @@
             this.exportForReportToolStripMenuItem});
             this.mnuMessages.Name = "mnuMessages";
             this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuMessages.Size = new System.Drawing.Size(170, 114);
+            this.mnuMessages.Size = new System.Drawing.Size(170, 92);
             this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
             // 
             // moveToFolderToolStripMenuItem
@@ -206,6 +212,13 @@
             this.deleteToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            // 
+            // markAsReadToolStripMenuItem
+            // 
+            this.markAsReadToolStripMenuItem.Name = "markAsReadToolStripMenuItem";
+            this.markAsReadToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.markAsReadToolStripMenuItem.Text = "Mark as read";
+            this.markAsReadToolStripMenuItem.Click += new System.EventHandler(this.markAsReadToolStripMenuItem_Click);
             // 
             // exportForReportToolStripMenuItem
             // 
@@ -379,12 +392,43 @@
             this.emptyFolderToolStripMenuItem.Text = "Empty selected folder";
             this.emptyFolderToolStripMenuItem.Click += new System.EventHandler(this.emptyFolderToolStripMenuItem_Click);
             // 
-            // markAsReadToolStripMenuItem
+            // label2
             // 
-            this.markAsReadToolStripMenuItem.Name = "markAsReadToolStripMenuItem";
-            this.markAsReadToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.markAsReadToolStripMenuItem.Text = "Mark as read";
-            this.markAsReadToolStripMenuItem.Click += new System.EventHandler(this.markAsReadToolStripMenuItem_Click);
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(12, 12);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(125, 20);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Common folders";
+            // 
+            // lstCommonFolders
+            // 
+            this.lstCommonFolders.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lstCommonFolders.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lstCommonFolders.FormattingEnabled = true;
+            this.lstCommonFolders.ItemHeight = 16;
+            this.lstCommonFolders.Items.AddRange(new object[] {
+            "Inbox",
+            "Sent",
+            "Drafts",
+            "Important",
+            "Flagged",
+            "Junk",
+            "Trash",
+            "All mails",
+            "Archive"});
+            this.lstCommonFolders.Location = new System.Drawing.Point(16, 40);
+            this.lstCommonFolders.Name = "lstCommonFolders";
+            this.lstCommonFolders.Size = new System.Drawing.Size(195, 144);
+            this.lstCommonFolders.TabIndex = 4;
+            this.lstCommonFolders.SelectedIndexChanged += new System.EventHandler(this.lstCommonFolders_SelectedIndexChanged);
+            // 
+            // istPlaceHolder
+            // 
+            this.istPlaceHolder.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.istPlaceHolder.ImageSize = new System.Drawing.Size(1, 32);
+            this.istPlaceHolder.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // FrmMain
             // 
@@ -450,6 +494,9 @@
         private System.Windows.Forms.ContextMenuStrip mnuFolders;
         private System.Windows.Forms.ToolStripMenuItem emptyFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem markAsReadToolStripMenuItem;
+        private System.Windows.Forms.ListBox lstCommonFolders;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ImageList istPlaceHolder;
     }
 }
 
