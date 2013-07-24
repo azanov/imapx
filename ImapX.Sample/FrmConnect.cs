@@ -71,11 +71,11 @@ namespace ImapX.Sample
             try
             {
                 e.Result = false;
-                Program.ImapClient = new ImapClient(_host, _port, _useSSL, _selectedProtocol);
-                if (Program.ImapClient.Connection())
+                Program.ImapClient = new ImapClient(_host, _port, _selectedProtocol);
+                if (Program.ImapClient.Connect())
                 {
 
-                    if(Program.ImapClient.LogIn(_login, _pass))
+                    if(Program.ImapClient.Login(_login, _pass))
                         e.Result = true;
                     else
                         _result = "Failed to login";

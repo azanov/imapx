@@ -46,8 +46,8 @@ namespace ImapX.Sample
             try
             {
                 e.Result = false;
-                Program.ImapClient = new ImapClient("imap.gmail.com", 993, true);
-                if (Program.ImapClient.Connection())
+                Program.ImapClient = new ImapClient("imap.gmail.com", true);
+                if (Program.ImapClient.Connect())
                 {
                     var token = GoogleOAuth2Provider.GetAccessToken(e.Argument as string);
                     var profile = GoogleOAuth2Provider.GetUserProfile(token);

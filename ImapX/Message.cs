@@ -15,7 +15,7 @@ namespace ImapX
     [Serializable]
     public class Message : ISerializable
     {
-        internal Imap Client;
+        internal ImapClient Client;
         internal Folder Folder;  // [5/10/13] Fix by axlns
         private string _subject;
         private DateTime _date;
@@ -103,7 +103,7 @@ namespace ImapX
         public bool AddFlag(string flag)
         {
             bool result;
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string command = string.Concat(new object[]
 			{
 				"UID STORE ", // [21.12.12] Fix by Yaroslav T, added UID command
@@ -127,7 +127,7 @@ namespace ImapX
         public bool RemoveFlag(string flag)
         {
             bool result;
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string command = string.Concat(new object[]
 			{
 				"UID STORE ", 
@@ -287,7 +287,7 @@ namespace ImapX
         private void GetFlags()
         {
             bool flag;
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             try
             {
@@ -404,7 +404,7 @@ namespace ImapX
         /// </remarks>
         private void GetMessage(string path, bool processBody)
         {
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string command = string.Concat(new object[]
 			{
 				"UID FETCH ", // [21.12.12] Fix by Yaroslav T, added UID command
@@ -417,7 +417,7 @@ namespace ImapX
             Client.SendAndReceive(command, ref arrayList);
             try
             {
-                _emailParser = new EmailParser.EmailParser(arrayList.ToArray(typeof(string)) as string[]);
+                _emailParser = new EmailParser.EmailParser(arrayList.ToArray());
             }
             catch
             { }
