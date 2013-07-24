@@ -14,7 +14,7 @@ namespace ImapX.Sample
         public FrmMoveToFolder()
         {
             InitializeComponent();
-            trwFolders.Nodes.Add(Program.ImapClient._client.Host);
+            trwFolders.Nodes.Add(Program.ImapClient.Host);
             trwFolders.Nodes[0].Nodes.AddRange(Program.ImapClient.Folders.Select(FolderToNode).ToArray());
             trwFolders.Nodes[0].Expand();
         }

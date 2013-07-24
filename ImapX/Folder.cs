@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ImapX
@@ -7,7 +8,7 @@ namespace ImapX
     [Serializable]
     public class Folder
     {
-        public Imap Client;
+        public ImapClient Client;
         private int _exists;
         private string _friendlyFolderName;
         private MessageCollection _messages;
@@ -143,7 +144,7 @@ namespace ImapX
             bool result;
             try
             {
-                _subFolders = Client.GetFolders(FolderPath + Client.Delimiter);
+                _subFolders = Client.GetFolders(FolderPath + Client.FolderDelimeter);
                 result = true;
             }
             catch
@@ -159,7 +160,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string command = "EXAMINE \"" + FolderPath + "\"\r\n";
             if (!Client.SendAndReceive(command, ref arrayList))
             {
@@ -210,7 +211,7 @@ namespace ImapX
                 throw new ImapException("Dont Connect");
             }
             string text = "UID STORE {0}:{1} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             if (Messages.Count == 0)
             {
                 return true;
@@ -238,8 +239,8 @@ namespace ImapX
                 throw new ImapException("Dont Connect");
             }
             const string format = "CREATE \"{0}\"\r\n";
-            var arrayList = new ArrayList();
-            string text = string.Format("{0}{1}{2}", FolderPath, Client.Delimiter, name);
+            IList<string> arrayList = new List<string>();
+            string text = string.Format("{0}{1}{2}", FolderPath, Client.FolderDelimeter, name);
             if (Client.SendAndReceive(string.Format(format, text), ref arrayList))
             {
                 var folder = new Folder(name) {FolderPath = text, Client = Client};
@@ -256,7 +257,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string text = "CLOSE \"" + FolderPath + "\"\r\n";
             Client.SendAndReceive(text, ref arrayList);
             text = "DELETE \"{0}\"\r\n";
@@ -280,7 +281,7 @@ namespace ImapX
             string selectedFolder = Client.SelectedFolder;
             Select();
             string text = "UID COPY {0} \"{1}\"\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             if (!Client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
                 Client.SelectFolder(selectedFolder);
@@ -308,9 +309,9 @@ namespace ImapX
             string selectedFolder = Client.SelectedFolder;
             Client.SelectFolder(FolderPath);
             string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             Select();
-            if (Client._imap.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
+            if (Client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
             {
                 text = "EXPUNGE\r\n";
                 if (Client.SendAndReceive(text, ref arrayList))
@@ -346,7 +347,7 @@ namespace ImapX
             }
             string selectedFolder = Client.SelectedFolder;
             Select();
-            var arrayList = new ArrayList();
+            IList<string> arrayList = new List<string>();
             string text = msg.MessageBuilder();
             int length = text.Length;
             if (string.IsNullOrEmpty(flag))

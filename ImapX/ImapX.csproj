@@ -48,8 +48,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Authentication\IImapCredentials.cs" />
+    <Compile Include="Authentication\OAuth2Credentials.cs" />
+    <Compile Include="Authentication\PlainCredentials.cs" />
     <Compile Include="Base64.cs" />
+    <Compile Include="Capability.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="Exceptions\InvalidStateException.cs" />
+    <Compile Include="ImapCommands.cs" />
     <Compile Include="InlineAttachment.cs" />
     <Compile Include="EmailParser\BodyPart.cs" />
     <Compile Include="EmailParser\EmailParser.cs" />
@@ -58,7 +64,6 @@
     <Compile Include="Folder.cs" />
     <Compile Include="FolderCollection.cs" />
     <Compile Include="FolderFlags.cs" />
-    <Compile Include="Imap.cs" />
     <Compile Include="ImapBase.cs" />
     <Compile Include="ImapClient.cs" />
     <Compile Include="ImapException.cs" />
