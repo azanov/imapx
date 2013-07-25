@@ -67,7 +67,7 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        ///     Removes a list of specified folder flags
+        ///     Removes a list of specified message flags
         /// </summary>
         /// <param name="index">The index of the first flag to be removed</param>
         /// <param name="count">The number of flags to be removed</param>
