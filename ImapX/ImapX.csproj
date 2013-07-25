@@ -57,6 +57,7 @@
     <Compile Include="Collections\CommonFolderCollection.cs" />
     <Compile Include="Collections\FolderCollection.cs" />
     <Compile Include="Collections\FolderFlagCollection.cs" />
+    <Compile Include="Collections\GMailMessageLabelCollection.cs" />
     <Compile Include="Collections\ImapObjectCollection.cs" />
     <Compile Include="Collections\MessageFlagCollection.cs" />
     <Compile Include="Command.cs" />

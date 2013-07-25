@@ -26,6 +26,8 @@ namespace ImapX
 
         public MessageFlagCollection Flags { get; private set; }
 
+        public GMailMessageLabelCollection Labels { get; private set; }
+
         public List<Attachment> Attachments { get; set; }
         public List<InlineAttachment> InlineAttachments { get; set; }
 
@@ -94,6 +96,7 @@ namespace ImapX
             Client = client;
             Headers = new Dictionary<string, string>();
             Flags = new MessageFlagCollection(Client, this);
+            Labels = new GMailMessageLabelCollection(Client, this);
             Attachments = new List<Attachment>();
             InlineAttachments = new List<InlineAttachment>();
             BodyParts = new List<MessageContent>();
@@ -246,40 +249,23 @@ namespace ImapX
 
         private void GetFlags()
         {
-            bool flag;
-            IList<string> arrayList = new List<string>();
+
+            var flagRex = new Regex(@"FLAGS \((.*?)\)");
+            var labelsRex = new Regex(@"X-GM-LABELS \((.*?)\)");
+
+            IList<string> data = new List<string>();
             string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            try
-            {
-                flag = Client.SendAndReceive(command, ref arrayList);
-            }
-            catch
-            {
-                flag = false;
-            }
-            if (!flag) return;
-            string text = arrayList[0].ToString();
-            Flags.ClearInternal();
-            if (text.Contains("\\Answered"))
-            {
-                Flags.AddInternal("\\Answered");
-            }
-            if (text.Contains("\\Seen"))
-            {
-                Flags.AddInternal("\\Seen");
-            }
-            if (text.Contains("\\Recent"))
-            {
-                Flags.AddInternal("\\Recent");
-            }
-            if (text.Contains("\\Draft"))
-            {
-                Flags.AddInternal("\\Draft");
-            }
-            if (text.Contains("\\Deleted"))
-            {
-                Flags.AddInternal("\\Deleted");
-            }
+
+            if(Client.SendAndReceive(command, ref data))
+                Flags.AddRangeInternal(flagRex.Match(data[0]).Groups[1].Value.Split(' ').Where(_=>!string.IsNullOrEmpty(_)));
+
+            if (!Client.Capabilities.XGMExt1) return;
+
+            command = "UID FETCH " + MessageUid + " (X-GM-LABELS)\r\n";
+            data.Clear();
+
+            if(Client.SendAndReceive(command, ref data))
+                Labels.AddRangeInternal(labelsRex.Match(data[0]).Groups[1].Value.Split(' ').Where(_ => !string.IsNullOrEmpty(_)));
         }
 
         public string GetDecodedBody(out bool isHtml)
