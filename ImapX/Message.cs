@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using ImapX.EmailParser;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using ImapX.Collections;
 
 namespace ImapX
 {
@@ -23,7 +24,7 @@ namespace ImapX
 
         public Dictionary<string, string> Headers { get; private set; }
 
-        public List<string> Flags { get; private set; }
+        public MessageFlagCollection Flags { get; private set; }
 
         public List<Attachment> Attachments { get; set; }
         public List<InlineAttachment> InlineAttachments { get; set; }
@@ -88,10 +89,11 @@ namespace ImapX
             }
         }
 
-        public Message()
+        public Message(ImapClient client)
         {
+            Client = client;
             Headers = new Dictionary<string, string>();
-            Flags = new List<string>();
+            Flags = new MessageFlagCollection(Client, this);
             Attachments = new List<Attachment>();
             InlineAttachments = new List<InlineAttachment>();
             BodyParts = new List<MessageContent>();
@@ -100,59 +102,17 @@ namespace ImapX
             HtmlBody = new MessageContent();
         }
 
+        [Obsolete("AddFlag is obsolete, please use Flags.Add instead")]
         public bool AddFlag(string flag)
         {
-            bool result;
-            IList<string> arrayList = new List<string>();
-            string command = string.Concat(new object[]
-			{
-				"UID STORE ", // [21.12.12] Fix by Yaroslav T, added UID command
-				MessageUid, 
-				" +FLAGS (", 
-				flag, 
-				")\r\n"
-			});
-            try
-            {
-                result = Client.SendAndReceive(command, ref arrayList);
-            }
-            catch
-            {
-                result = false;
-            }
-            GetFlags();
-            return result;
+            return Flags.Add(flag);
         }
 
+        [Obsolete("RemoveFlag is obsolete, please use Flags.Remove instead")]
         public bool RemoveFlag(string flag)
         {
-            bool result;
-            IList<string> arrayList = new List<string>();
-            string command = string.Concat(new object[]
-			{
-				"UID STORE ", 
-				MessageUid, 
-				" -FLAGS (", 
-				flag, 
-				")\r\n"
-			});
-            try
-            {
-                result = Client.SendAndReceive(command, ref arrayList);
-            }
-            catch
-            {
-                result = false;
-            }
-            GetFlags();
-            return result;
+            return Flags.Remove(flag);
         }
-
-        //[Obsolete("Message.SetFlag will be removed in future releases, please use Message.AddFlag and Message.RemoveFlag instead.", true)]
-        //public bool SetFlag(string flag)
-        //{
-        //    return AddFlag(flag);
-        //}
 
         public void ProcessHeader()
         {
@@ -299,26 +259,26 @@ namespace ImapX
             }
             if (!flag) return;
             string text = arrayList[0].ToString();
-            Flags.Clear();
+            Flags.ClearInternal();
             if (text.Contains("\\Answered"))
             {
-                Flags.Add("\\Answered");
+                Flags.AddInternal("\\Answered");
             }
             if (text.Contains("\\Seen"))
             {
-                Flags.Add("\\Seen");
+                Flags.AddInternal("\\Seen");
             }
             if (text.Contains("\\Recent"))
             {
-                Flags.Add("\\Recent");
+                Flags.AddInternal("\\Recent");
             }
             if (text.Contains("\\Draft"))
             {
-                Flags.Add("\\Draft");
+                Flags.AddInternal("\\Draft");
             }
             if (text.Contains("\\Deleted"))
             {
-                Flags.Add("\\Deleted");
+                Flags.AddInternal("\\Deleted");
             }
         }
 

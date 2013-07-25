@@ -58,6 +58,7 @@
     <Compile Include="Collections\FolderCollection.cs" />
     <Compile Include="Collections\FolderFlagCollection.cs" />
     <Compile Include="Collections\ImapObjectCollection.cs" />
+    <Compile Include="Collections\MessageFlagCollection.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="Enums\FolderTreeBrowseMode.cs" />
     <Compile Include="Enums\MessageFetchMode.cs" />

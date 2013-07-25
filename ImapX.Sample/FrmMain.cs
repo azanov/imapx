@@ -499,6 +499,7 @@ namespace ImapX.Sample
 
         private void MarkSelectedMessageAsReadCompleted(object sender, ServerCallCompletedEventArgs e)
         {
+
             if (e.Result)
             {
                 
