@@ -180,7 +180,7 @@ namespace ImapX
                 int messageUid;
                 if (int.TryParse(s, out messageUid))
                 {
-                    messageCollection.Add(new Message
+                    messageCollection.Add(new Message(this)
                     {
                         MessageUid = messageUid
                     });
@@ -235,23 +235,6 @@ namespace ImapX
                 _folders = null;
             }
             return !IsAuthenticated;
-        }
-
-        //public void AppendMessageForYahoo(string Folder, Message msg, string flags)
-        //{
-        //}
-
-        public MessageCollection EndUtf8Searsh(byte[] b)
-        {
-            MessageCollection messageCollection = SearchUtf8Data(b);
-            if (messageCollection != null)
-            {
-                foreach (Message current in messageCollection)
-                {
-                    current.Client = this;
-                }
-            }
-            return messageCollection;
         }
 
         public bool SelectFolder(string folderName)

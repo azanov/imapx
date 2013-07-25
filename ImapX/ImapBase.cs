@@ -309,52 +309,6 @@ namespace ImapX
             return true;
         }
 
-        public MessageCollection SearchUtf8Data(byte[] data)
-        {
-            MessageCollection result;
-            try
-            {
-                _ioStream.Write(data, 0, data.Length);
-
-                bool flag = true;
-                var messageCollection = new MessageCollection();
-                while (flag)
-                {
-                    string text = _streamReader.ReadLine();
-                    if (_isDebug)
-                    {
-                        Console.WriteLine(text);
-                    }
-                    if (text != null)
-                    {
-                        string[] array = text.Split(new[]
-                        {
-                            ' '
-                        });
-                        string[] array2 = array;
-                        foreach (string s in array2)
-                        {
-                            int messageUid;
-                            if (int.TryParse(s, out messageUid))
-                            {
-                                messageCollection.Add(new Message
-                                {
-                                    MessageUid = messageUid
-                                });
-                            }
-                        }
-                    }
-                    flag = false;
-                }
-                result = messageCollection;
-            }
-            catch (Exception)
-            {
-                result = null;
-            }
-            return result;
-        }
-
         public void SendCommand(string command)
         {
             _counter++;
