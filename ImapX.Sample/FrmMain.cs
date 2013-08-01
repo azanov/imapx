@@ -1,24 +1,23 @@
-﻿using System.Globalization;
-using System.Text;
-using ImapX.Sample.Native;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using ImapX.Sample.Native;
 
 namespace ImapX.Sample
 {
     public partial class FrmMain : Form
     {
+        private TreeNode _lastClickedNode;
         private List<Message> _messages;
         private Folder _selectedFolder;
         private Message _selectedMessage;
-        private TreeNode _lastClickedNode;
 
         public FrmMain()
         {
@@ -48,8 +47,8 @@ namespace ImapX.Sample
             _selectedMessage = _messages[lsvMails.SelectedIndices[0]];
 
             lblSubject.Text = string.IsNullOrEmpty(_selectedMessage.Subject)
-                                  ? "No subject"
-                                  : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
+                ? "No subject"
+                : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
 
             lblTime.Text = _selectedMessage.Date.ToString(CultureInfo.InvariantCulture);
             lblFrom.Text = _selectedMessage.From.ToString();
@@ -62,8 +61,8 @@ namespace ImapX.Sample
 
             lsvAttachments.Items.Clear();
 
-            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
-            var msgTmpDir = Path.Combine(tmpDir, _selectedMessage.MessageId.MD5());
+            string tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            string msgTmpDir = Path.Combine(tmpDir, _selectedMessage.MessageId.MD5());
 
             Directory.CreateDirectory(tmpDir);
             Directory.CreateDirectory(msgTmpDir);
@@ -75,7 +74,7 @@ namespace ImapX.Sample
                 try
                 {
                     string path = Path.Combine(msgTmpDir,
-                                               attachment.FileName);
+                        attachment.FileName);
                     files.Add(path);
                     attachment.SaveFile(msgTmpDir);
                 }
@@ -89,7 +88,7 @@ namespace ImapX.Sample
                 try
                 {
                     string path = Path.Combine(msgTmpDir,
-                                               inlineAttachment.FileName);
+                        inlineAttachment.FileName);
                     File.WriteAllBytes(path, inlineAttachment.FileData);
                     body = body.Replace("cid:" + inlineAttachment.FileName, path);
                 }
@@ -106,9 +105,9 @@ namespace ImapX.Sample
                 _selectedMessage.Attachments.Where(_ => !string.IsNullOrEmpty(_.FileName)).OrderBy(_ => _.FileName)
                     .Select(
                         _ => new ListViewItem(_.FileName)
-                                 {
-                                     ImageKey = _.FileName.Split('.').Last()
-                                 }).ToArray());
+                        {
+                            ImageKey = _.FileName.Split('.').Last()
+                        }).ToArray());
 
             pnlInfo.Visible = true;
             wbrMain.Visible = true;
@@ -129,8 +128,8 @@ namespace ImapX.Sample
                 msg.Attachments.Where(_ => !string.IsNullOrEmpty(_.FileName)).OrderBy(_ => _.FileName).Skip(
                     lsvAttachments.SelectedItems[0].Index).Take(1).FirstOrDefault();
 
-            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
-            var msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
+            string tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            string msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
 
             Process.Start(Path.Combine(msgTmpDir, attachment.FileName));
         }
@@ -146,22 +145,238 @@ namespace ImapX.Sample
 
             if (sfdMain.ShowDialog() != DialogResult.OK) return;
 
-            var tmpDir = Path.Combine(Application.StartupPath, "tmp");
-            var msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
+            string tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            string msgTmpDir = Path.Combine(tmpDir, msg.MessageId.MD5());
 
             File.Copy(Path.Combine(msgTmpDir, attachment.FileName),
-                      sfdMain.FileName);
+                sfdMain.FileName);
         }
 
         private void mnuMessages_Opening(object sender, CancelEventArgs e)
         {
             e.Cancel = lsvMails.SelectedIndices.Count == 0;
+
+            if (e.Cancel) return;
+
+            markAsReadToolStripMenuItem.Checked = _selectedMessage.Flags.Contains(ImapFlags.SEEN);
         }
 
         private void mnuAttachment_Opening(object sender, CancelEventArgs e)
         {
             e.Cancel = lsvAttachments.SelectedItems.Count == 0;
         }
+
+        private void lsvMails_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+        {
+            if (e.ItemIndex >= _messages.Count) return;
+            Message msg = _messages[e.ItemIndex];
+            e.Item = new ListViewItem(string.IsNullOrEmpty(msg.Subject)
+                ? "[No subject]"
+                : msg.Subject.Replace("\n", "").Replace("\t", ""));
+
+            e.Item.Font = new Font(e.Item.Font, msg.Flags.Contains(ImapFlags.SEEN) ? FontStyle.Regular : FontStyle.Bold);
+        }
+
+        private void FrmMainOrLsvMails_SizeChanged(object sender, EventArgs e)
+        {
+            AutoResizeMessageListViewColumn();
+        }
+
+        private void AutoResizeMessageListViewColumn()
+        {
+            ScrollBars scrollBars = NativeMethods.GetVisibleScrollbars(lsvMails);
+            clmMessages.Width = (scrollBars & ScrollBars.Vertical) == ScrollBars.Vertical
+                ? lsvMails.Width - SystemInformation.VerticalScrollBarWidth
+                : lsvMails.Width;
+        }
+
+        private void exportForReportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_selectedMessage == null) return;
+
+            sfdMain.FileName = "message.report";
+
+            if (sfdMain.ShowDialog() != DialogResult.OK) return;
+
+            _selectedMessage.ExportForReport(sfdMain.FileName);
+
+        }
+
+        private void trwFolders_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            _lastClickedNode = e.Node;
+            if (e.Node.Tag is Folder && e.Button == MouseButtons.Right)
+            {
+                emptyFolderToolStripMenuItem.Text = string.Format("Empty \"{0}\" folder", e.Node.Text);
+                mnuFolders.Show(trwFolders, e.Location);
+            }
+        }
+
+        private void markAsReadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            trwFolders.Enabled = lsvMails.Enabled = false;
+
+            (new Thread(MarkSelectedMessageAsRead)).Start(!markAsReadToolStripMenuItem.Checked);
+        }
+
+        private void MarkSelectedMessageAsRead(object isRead)
+        {
+            try
+            {
+                var args =
+                    new ServerCallCompletedEventArgs((bool) isRead
+                        ? _selectedMessage.Flags.Add(ImapFlags.SEEN)
+                        : _selectedMessage.Flags.Remove(ImapFlags.SEEN));
+
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
+                    Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
+                    Program.ImapClient, args);
+            }
+        }
+
+        private void MarkSelectedMessageAsReadCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            if (e.Result)
+            {
+                markAsReadToolStripMenuItem.Checked = _selectedMessage.Flags.Contains(ImapFlags.SEEN);
+            }
+            else if (e.Exception != null)
+            {
+                using (var frm = new FrmError(e.Exception))
+                    frm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Failed to set the message read state", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            trwFolders.Enabled = lsvMails.Enabled = true;
+        }
+
+        private void lstCommonFolders_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstCommonFolders.SelectedIndex == -1) return;
+            trwFolders.SelectedNode = null;
+
+            Folder folder = null;
+
+            switch (lstCommonFolders.SelectedItem as string)
+            {
+                case "All mails":
+                    folder = Program.ImapClient.Folders.All;
+                    break;
+                case "Archive":
+
+                    folder = Program.ImapClient.Folders.Archive;
+                    break;
+                case "Inbox":
+                    folder = Program.ImapClient.Folders.Inbox;
+                    break;
+                case "Drafts":
+                    folder = Program.ImapClient.Folders.Drafts;
+                    break;
+                case "Important":
+                    folder = Program.ImapClient.Folders.Important;
+                    break;
+                case "Flagged":
+                    folder = Program.ImapClient.Folders.Flagged;
+                    break;
+                case "Junk":
+                    folder = Program.ImapClient.Folders.Junk;
+                    break;
+                case "Sent":
+                    folder = Program.ImapClient.Folders.Sent;
+                    break;
+                case "Trash":
+                    folder = Program.ImapClient.Folders.Trash;
+                    break;
+            }
+
+            if (folder == null)
+            {
+                MessageBox.Show("This common folder is not available", "Folder unavailable", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+            _selectedFolder = folder;
+
+            lblSelectFolder.Visible = false;
+
+            trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = false;
+            lsvMails.VirtualListSize = 0;
+
+            pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
+            pgbFetchMails.Visible = true;
+            _selectedMessage = null;
+
+
+            (new Thread(GetMails)).Start();
+        }
+
+        #region Empty folder
+
+        private void emptyFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_lastClickedNode == null) return;
+            if (
+                MessageBox.Show("Do you really want to empty this folder?", "Empty folder", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+
+            trwFolders.Enabled = lsvMails.Enabled = false;
+
+            (new Thread(EmptyFolder)).Start(_lastClickedNode.Tag);
+        }
+
+        private void EmptyFolder(object folder)
+        {
+            try
+            {
+                var args = new ServerCallCompletedEventArgs((folder as Folder).EmptyFolder(), null, folder);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
+                    Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex, folder);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
+                    Program.ImapClient, args);
+            }
+        }
+
+        private void EmptyFolderCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            if (e.Result)
+            {
+                if (_selectedFolder == e.Arg)
+                {
+                    _messages.Clear();
+                    lsvMails.VirtualListSize = 0;
+                    lsvMails.Invalidate();
+                }
+            }
+            else if (e.Exception != null)
+            {
+                using (var frm = new FrmError(e.Exception))
+                    frm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Failed to empty folder", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            trwFolders.Enabled = lsvMails.Enabled = true;
+        }
+
+        #endregion
 
         #region Get mails from selected folder
 
@@ -175,7 +390,7 @@ namespace ImapX.Sample
 
             trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = false;
             lsvMails.VirtualListSize = 0;
-            
+
             pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
             pgbFetchMails.Visible = true;
             _selectedMessage = null;
@@ -188,7 +403,6 @@ namespace ImapX.Sample
         {
             try
             {
-                
                 _messages = _selectedFolder.Search("All", true).OrderByDescending(_ => _.Date).ToList();
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(GetMailsCompleted), Program.ImapClient, args);
@@ -224,7 +438,7 @@ namespace ImapX.Sample
         {
             if (
                 MessageBox.Show("Do you really want to delete this message?", "Delete message", MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question) != DialogResult.Yes)
+                    MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
 
@@ -237,16 +451,15 @@ namespace ImapX.Sample
         {
             try
             {
-
                 var args = new ServerCallCompletedEventArgs(_selectedFolder.DeleteMessage(_selectedMessage));
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(DeleteSelectedMessageCompleted),
-                       Program.ImapClient, args);
+                    Program.ImapClient, args);
             }
             catch (Exception ex)
             {
                 var args = new ServerCallCompletedEventArgs(false, ex);
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(DeleteSelectedMessageCompleted),
-                       Program.ImapClient, args);
+                    Program.ImapClient, args);
             }
         }
 
@@ -255,7 +468,8 @@ namespace ImapX.Sample
             if (e.Result)
             {
                 _messages.RemoveAt(lsvMails.SelectedIndices[0]);
-                lsvMails.VirtualListSize--; lsvMails.Invalidate();
+                lsvMails.VirtualListSize--;
+                lsvMails.Invalidate();
             }
             else if (e.Exception != null)
             {
@@ -265,7 +479,7 @@ namespace ImapX.Sample
             else
             {
                 MessageBox.Show("Failed to delete the message", "Error", MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                    MessageBoxIcon.Error);
             }
             pgbFetchMails.Visible = false;
             trwFolders.Enabled = lsvMails.Enabled = true;
@@ -293,15 +507,15 @@ namespace ImapX.Sample
             {
                 var args =
                     new ServerCallCompletedEventArgs(_selectedFolder.MoveMessageToFolder(_selectedMessage,
-                                                                                         targetFolder as Folder));
+                        targetFolder as Folder));
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(MoveSelectedMessageCompleted), Program.ImapClient,
-                       args);
+                    args);
             }
             catch (Exception ex)
             {
                 var args = new ServerCallCompletedEventArgs(false, ex);
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(MoveSelectedMessageCompleted), Program.ImapClient,
-                       args);
+                    args);
             }
         }
 
@@ -310,7 +524,8 @@ namespace ImapX.Sample
             if (e.Result)
             {
                 _messages.RemoveAt(lsvMails.SelectedIndices[0]);
-                lsvMails.VirtualListSize--; lsvMails.Invalidate();
+                lsvMails.VirtualListSize--;
+                lsvMails.Invalidate();
             }
             else if (e.Exception != null)
             {
@@ -320,7 +535,7 @@ namespace ImapX.Sample
             else
             {
                 MessageBox.Show("Failed to move the message", "Error", MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
+                    MessageBoxIcon.Error);
             }
             pgbFetchMails.Visible = false;
             trwFolders.Enabled = lsvMails.Enabled = true;
@@ -333,7 +548,7 @@ namespace ImapX.Sample
         private TreeNode FolderToNode(Folder folder)
         {
             var node = new TreeNode(folder.Name);
-            node.Nodes.AddRange(folder.SubFolder.Select(FolderToNode).ToArray());
+            node.Nodes.AddRange(folder.SubFolders.Select(FolderToNode).ToArray());
             node.Tag = folder;
             return node;
         }
@@ -352,234 +567,12 @@ namespace ImapX.Sample
                     {
                         istAttachments.Images.Add(file.Split('.').Last(), NativeMethods.GetSystemIcon(file));
                     }
-                    catch {
-                        
+                    catch
+                    {
                     }
             }
         }
 
         #endregion
-
-        private void lsvMails_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
-        {
-            if(e.ItemIndex>=_messages.Count) return;
-            var msg = _messages[e.ItemIndex];            
-            e.Item = new ListViewItem(string.IsNullOrEmpty(msg.Subject)
-                                          ? "[No subject]"
-                                          : msg.Subject.Replace("\n", "").Replace("\t", ""));
-
-            e.Item.Font = new Font(e.Item.Font, msg.Flags.Contains(ImapFlags.SEEN) ? FontStyle.Regular : FontStyle.Bold);
-
-        }
-
-        private void FrmMainOrLsvMails_SizeChanged(object sender, EventArgs e)
-        {
-            AutoResizeMessageListViewColumn();
-        }
-
-        private void AutoResizeMessageListViewColumn()
-        {
-            var scrollBars = NativeMethods.GetVisibleScrollbars(lsvMails);
-            clmMessages.Width = (scrollBars & ScrollBars.Vertical) == ScrollBars.Vertical
-                                    ? lsvMails.Width - SystemInformation.VerticalScrollBarWidth
-                                    : lsvMails.Width;
-        }
-
-        private void exportForReportToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-            if (_selectedMessage == null) return;
-
-            sfdMain.FileName = "message.report";
-
-            if (sfdMain.ShowDialog() != DialogResult.OK) return;
-
-            _selectedMessage.ExportForReport(sfdMain.FileName);
-
-            var test = Message.FromReport(sfdMain.FileName);
-            test.ToString();
-
-        }
-
-        #region Empty folder
-
-        private void emptyFolderToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_lastClickedNode == null) return;
-            if (
-                MessageBox.Show("Do you really want to empty this folder?", "Empty folder", MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question) != DialogResult.Yes)
-                return;
-
-
-            trwFolders.Enabled = lsvMails.Enabled = false;
-
-            (new Thread(EmptyFolder)).Start(_lastClickedNode.Tag);
-        }
-
-        private void EmptyFolder(object folder)
-        {
-            try
-            {
-
-                var args = new ServerCallCompletedEventArgs((folder as Folder).EmptyFolder(), null, folder);
-                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
-                       Program.ImapClient, args);
-            }
-            catch (Exception ex)
-            {
-                var args = new ServerCallCompletedEventArgs(false, ex, folder);
-                Invoke(new EventHandler<ServerCallCompletedEventArgs>(EmptyFolderCompleted),
-                       Program.ImapClient, args);
-            }
-        }
-
-        private void EmptyFolderCompleted(object sender, ServerCallCompletedEventArgs e)
-        {
-            if (e.Result)
-            {
-                if (_selectedFolder == e.Arg)
-                {
-                    _messages.Clear();
-                    lsvMails.VirtualListSize = 0;
-                    lsvMails.Invalidate();
-                }
-
-            }
-            else if (e.Exception != null)
-            {
-                using (var frm = new FrmError(e.Exception))
-                    frm.ShowDialog();
-            }
-            else
-            {
-                MessageBox.Show("Failed to empty folder", "Error", MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-            }
-
-            trwFolders.Enabled = lsvMails.Enabled = true;
-        }
-
-        #endregion
-
-
-        private void trwFolders_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            _lastClickedNode = e.Node;
-            if (e.Node.Tag is Folder && e.Button == MouseButtons.Right)
-            {
-                emptyFolderToolStripMenuItem.Text = string.Format("Empty \"{0}\" folder", e.Node.Text);
-                mnuFolders.Show(trwFolders, e.Location);
-            }
-        }
-
-        private void markAsReadToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            trwFolders.Enabled = lsvMails.Enabled = false;
-
-            (new Thread(MarkSelectedMessageAsRead)).Start();
-        }
-
-        private void MarkSelectedMessageAsRead()
-        {
-            try
-            {
-
-                var args = new ServerCallCompletedEventArgs(_selectedMessage.AddFlag(ImapFlags.SEEN));
-                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
-                       Program.ImapClient, args);
-            }
-            catch (Exception ex)
-            {
-                var args = new ServerCallCompletedEventArgs(false, ex);
-                Invoke(new EventHandler<ServerCallCompletedEventArgs>(MarkSelectedMessageAsReadCompleted),
-                       Program.ImapClient, args);
-            }
-        }
-
-        private void MarkSelectedMessageAsReadCompleted(object sender, ServerCallCompletedEventArgs e)
-        {
-
-            if (e.Result)
-            {
-                
-            }
-            else if (e.Exception != null)
-            {
-                using (var frm = new FrmError(e.Exception))
-                    frm.ShowDialog();
-            }
-            else
-            {
-                MessageBox.Show("Failed to mark the message as read", "Error", MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-            }
-            
-            trwFolders.Enabled = lsvMails.Enabled = true;
-        }
-
-        private void lstCommonFolders_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (lstCommonFolders.SelectedIndex == -1) return;
-            trwFolders.SelectedNode = null;
-
-            Folder folder = null;
-
-            switch (lstCommonFolders.SelectedItem as string)
-            {
-                case "All mails":
-                    folder = Program.ImapClient.Folders.All;
-                    break;
-                case "Archive":
-                    
-                    folder = Program.ImapClient.Folders.Archive;
-                    break;
-                case "Inbox":
-                    folder = Program.ImapClient.Folders.Inbox;
-                    break;
-                case "Drafts":
-                    folder = Program.ImapClient.Folders.Drafts;
-                    break;
-                case "Important":
-                    folder = Program.ImapClient.Folders.Important;
-                    break;
-                case "Flagged":
-                    folder = Program.ImapClient.Folders.Flagged;
-                    break;
-                case "Junk":
-                    folder = Program.ImapClient.Folders.Junk;
-                    break;
-                case "Sent":
-                    folder = Program.ImapClient.Folders.Sent;
-                    break;
-                case "Trash":
-                    folder = Program.ImapClient.Folders.Trash;
-                    break;
-
-            }
-
-            if (folder == null)
-            {
-                MessageBox.Show("This common folder is not available", "Folder unavailable", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-            else
-                _selectedFolder = folder;
-
-            lblSelectFolder.Visible = false;
-
-            trwFolders.Enabled = lsvMails.Enabled = lstCommonFolders.Enabled = false;
-            lsvMails.VirtualListSize = 0;
-
-            pnlInfo.Visible = wbrMain.Visible = pnlAttachments.Visible = false;
-            pgbFetchMails.Visible = true;
-            _selectedMessage = null;
-           
-
-            (new Thread(GetMails)).Start();
-
-        }
- 
     }
 }

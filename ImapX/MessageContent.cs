@@ -1,67 +1,66 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+
 namespace ImapX
 {
     [Serializable]
     public class MessageContent
     {
-        public string BoundaryName { get; set; }
-
-    	public Dictionary<string, string> PartHeaders { get; set; }
-
-        public string ContentStream { get; set; }
-
-    	public string ContentDescription { get; set; }
-
-    	public string MIMEVersion { get; set; }
-
-    	public string ContentFilename { get; set; }
-
-    	public string ContentDisposition { get; set; }
-
-    	public string ContentId { get; set; }
-
-    	public string PartID { get; set; }
-
-    	public string TextData { get; set; }
-
-    	public byte[] BinaryData { get; set; }
-
-    	public string ContentType { get; set; }
-
-    	public string ContentTransferEncoding { get; set; }
-
-    	public int ContentSize { get; set; }
-
-    	public MessageContent()
+        public MessageContent()
         {
             ContentStream = string.Empty;
         }
 
+        public string BoundaryName { get; set; }
+
+        public Dictionary<string, string> PartHeaders { get; set; }
+
+        public string ContentStream { get; set; }
+
+        public string ContentDescription { get; set; }
+
+        public string MIMEVersion { get; set; }
+
+        public string ContentFilename { get; set; }
+
+        public string ContentDisposition { get; set; }
+
+        public string ContentId { get; set; }
+
+        public string PartID { get; set; }
+
+        public string TextData { get; set; }
+
+        public byte[] BinaryData { get; set; }
+
+        public string ContentType { get; set; }
+
+        public string ContentTransferEncoding { get; set; }
+
+        public int ContentSize { get; set; }
+
         /// <summary>
-        /// Some messages contain attachments that are not described in the ContentDisposition,
-        /// but in the ContentStream directly. This method is used to convert a body part to 
-        /// an attachment
+        ///     Some messages contain attachments that are not described in the ContentDisposition,
+        ///     but in the ContentStream directly. This method is used to convert a body part to
+        ///     an attachment
         /// </summary>
         /// <remarks>
-        /// [27.07.2012] Fix by Pavel Azanov (coder13)
+        ///     [27.07.2012] Fix by Pavel Azanov (coder13)
         /// </remarks>
         internal Attachment ToAttachment()
         {
-
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
-            var tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            string[] tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             var attachment = new Attachment();
-            var bodyPart = string.Empty;
+            string bodyPart = string.Empty;
 
             try
             {
-
-
-                if (ContentType != null && ContentType.ToLower().Contains("message/rfc822")) // [2013-04-24] naudelb(Len Naude) - Added
+                if (ContentType != null && ContentType.ToLower().Contains("message/rfc822"))
+                    // [2013-04-24] naudelb(Len Naude) - Added
                 {
                     // This part is an email attachment in mime(text) format that will be atached as an "eml" file
                     // The name of the file will be derived from the attachment's "Subject" line
@@ -70,7 +69,8 @@ namespace ImapX
                     attachment.FileName = ParseHelper.GetRFC822FileName(ContentStream);
                     attachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
                 }
-                else if (ContentType != null && ContentType.ToLower().Contains("message/delivery-status")) // [2013-04-24] naudelb(Len Naude) - Added
+                else if (ContentType != null && ContentType.ToLower().Contains("message/delivery-status"))
+                    // [2013-04-24] naudelb(Len Naude) - Added
                 {
                     // Delivery failed notice atachment in mime(text) format
                     // Name will be hardcoded as "details.txt" as this is what outlook does
@@ -79,20 +79,16 @@ namespace ImapX
                 }
                 else
                 {
-
-
-
-                    for (var i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
+                    for (int i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
                     {
-
                         if (tmp[i].StartsWith("--"))
                             continue;
 
-                        var line = tmp[i].Trim('\t').Trim('\"').Trim().TrimEnd(';'); // [05/28/13] Fix by Woozer 
+                        string line = tmp[i].Trim('\t').Trim('\"').Trim().TrimEnd(';'); // [05/28/13] Fix by Woozer 
 
-                        var parts = line.Contains(';') ? line.Split(';') : new[] { line };
+                        string[] parts = line.Contains(';') ? line.Split(';') : new[] {line};
 
-                        foreach (var match in parts.Select(part => rex.Match(part)))
+                        foreach (Match match in parts.Select(part => rex.Match(part)))
                         {
                             if (!match.Success && parts.Length == 1)
                             {
@@ -103,8 +99,8 @@ namespace ImapX
                                 continue;
 
 
-                            var field = match.Groups[1].Value.ToLower().Trim();
-                            var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                            string field = match.Groups[1].Value.ToLower().Trim();
+                            string value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
 
                             switch (field)
                             {
@@ -125,7 +121,8 @@ namespace ImapX
 
                     // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
                     //switch (attachment.FileEncoding)
-                    switch (string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
+                    switch (
+                        string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
                     {
                         case "base64":
                             attachment.FileData = Base64.FromBase64(bodyPart);
@@ -134,14 +131,13 @@ namespace ImapX
                             attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
                             break;
                         case "quoted-printable":
-                            attachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
+                            attachment.FileData =
+                                Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
                             break;
                         default:
                             attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
                             break;
                     }
-
-
                 }
 
 
@@ -170,7 +166,10 @@ namespace ImapX
                 inlineAttachment.FileEncoding = ContentTransferEncoding;
                 inlineAttachment.FileType = ParseHelper.ExtractFileType(ContentType);
                 inlineAttachment.FileName =
-                    PartHeaders.FirstOrDefault(_ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id").Value.Replace("<", "").Replace(">", "");
+                    PartHeaders.FirstOrDefault(
+                        _ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id")
+                        .Value.Replace("<", "")
+                        .Replace(">", "");
 
                 // [2013-04-24] naudelb(Len Naude) - Cater for mixed case and different encodings
                 //switch (ContentTransferEncoding)
@@ -179,7 +178,10 @@ namespace ImapX
                 //        inlineAttachment.FileData = Base64.FromBase64(ContentStream);
                 //        break;
                 //}
-                switch (string.IsNullOrEmpty(inlineAttachment.FileEncoding) ? "7bit" : inlineAttachment.FileEncoding.ToLower())
+                switch (
+                    string.IsNullOrEmpty(inlineAttachment.FileEncoding)
+                        ? "7bit"
+                        : inlineAttachment.FileEncoding.ToLower())
                 {
                     case "base64":
                         inlineAttachment.FileData = Base64.FromBase64(ContentStream);
@@ -188,7 +190,8 @@ namespace ImapX
                         inlineAttachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
                         break;
                     case "quoted-printable":
-                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
+                        inlineAttachment.FileData =
+                            Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
                         break;
                     default:
                         inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);

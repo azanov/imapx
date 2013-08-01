@@ -1,13 +1,10 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ImapX.Collections
 {
     public abstract class ImapObjectCollection<T> : IEnumerable<T>
     {
-
         protected ImapClient Client;
         protected List<T> List;
 
@@ -27,7 +24,7 @@ namespace ImapX.Collections
         {
             get
             {
-                var result = List[index];
+                T result = List[index];
                 return result;
             }
         }
@@ -54,6 +51,11 @@ namespace ImapX.Collections
             List.RemoveAt(index);
         }
 
+        internal void ClearInternal()
+        {
+            List.Clear();
+        }
+
         #endregion
 
         #region IEnumerable methods
@@ -63,12 +65,11 @@ namespace ImapX.Collections
             return List.GetEnumerator();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return List.GetEnumerator();
         }
 
         #endregion
-
     }
 }

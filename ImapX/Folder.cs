@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,17 +12,16 @@ namespace ImapX
     public class Folder
     {
         private readonly ImapClient _client;
-        private int _exists;
-
-        private string _name;
-        private string _folderPath;
 
         private readonly Folder _parent;
-        private FolderCollection _subFolders;
+        private int _exists;
         private FolderFlagCollection _flags;
+        private string _folderPath;
         private MessageCollection _messages;
+        private string _name;
         private int _recents;
-        
+        private FolderCollection _subFolders;
+
         private int _uidNext;
         private string _uidValidity;
         private int _unseen;
@@ -35,17 +33,12 @@ namespace ImapX
             UpdateFlags(flags);
             _parent = parent;
             _client = client;
-            
-
         }
 
 
         public FolderFlagCollection Flags
         {
-            get
-            {
-                return _flags;
-            }
+            get { return _flags; }
         }
 
         public IEnumerable<string> AllowedPermanentFlags { get; set; }
@@ -102,27 +95,26 @@ namespace ImapX
         [Obsolete("SubFolder is obsolete, please use SubFolders")]
         public FolderCollection SubFolder
         {
-            get { return SubFolders;  }
+            get { return SubFolders; }
         }
 
         public FolderCollection SubFolders
         {
             get
             {
-                return _subFolders ?? (_subFolders = HasChildren ? _client.GetFolders(_folderPath + _client.Behavior.FolderDelimeter, _client.Folders, this) : new FolderCollection(_client, this));
+                return _subFolders ??
+                       (_subFolders =
+                           HasChildren
+                               ? _client.GetFolders(_folderPath + _client.Behavior.FolderDelimeter, _client.Folders,
+                                   this)
+                               : new FolderCollection(_client, this));
             }
-            internal set
-            {
-                _subFolders = value;
-            }
+            internal set { _subFolders = value; }
         }
 
         public string Name
         {
-            get
-            {
-                return _name;
-            }
+            get { return _name; }
             set
             {
                 if (!Rename(value))
@@ -131,7 +123,7 @@ namespace ImapX
         }
 
         /// <summary>
-        /// Ranames the folder
+        ///     Ranames the folder
         /// </summary>
         /// <param name="name">the name to set</param>
         /// <returns></returns>
@@ -142,9 +134,9 @@ namespace ImapX
 
             IList<string> data = new List<string>();
 
-            var encodedName = ImapUTF7.Encode(name);
+            string encodedName = ImapUTF7.Encode(name);
 
-            var i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
+            int i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
 
             string newPath = i < 1 ? encodedName : _folderPath.Substring(0, i + 1) + encodedName;
 
@@ -155,7 +147,7 @@ namespace ImapX
 
                 if (HasChildren && _subFolders != null)
                 {
-                    foreach (var folder in SubFolders)
+                    foreach (Folder folder in SubFolders)
                         folder.UpdatePath(_folderPath);
                 }
 
@@ -167,9 +159,8 @@ namespace ImapX
 
         internal void UpdatePath(string parentPath)
         {
-            var i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
+            int i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
             _folderPath = parentPath + _folderPath.Substring(i, _folderPath.Length - i);
-
         }
 
         internal void UpdateFlags(string flags)
@@ -178,12 +169,13 @@ namespace ImapX
         }
 
         /// <summary>
-        /// Updates the private list of flags, sets properties like HasChildren and Selectable
+        ///     Updates the private list of flags, sets properties like HasChildren and Selectable
         /// </summary>
         /// <param name="flags"></param>
         internal void UpdateFlags(IEnumerable<string> flags)
         {
-            _flags = new FolderFlagCollection((flags ?? new string[0]).Where(_ => !string.IsNullOrEmpty(_)), _client, this);
+            _flags = new FolderFlagCollection((flags ?? new string[0]).Where(_ => !string.IsNullOrEmpty(_)), _client,
+                this);
             Selectable = !flags.Contains(FolderFlags.NoSelect);
             HasChildren = flags.Contains(FolderFlags.HasChildren);
         }
@@ -196,13 +188,13 @@ namespace ImapX
         public MessageCollection CheckNewMessage(bool processMessages)
         {
             var messageCollection = new MessageCollection();
-            var messageCollection2 = _client.SearchMessage("all");
-            var result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
-            var list = messageCollection2.FindAll(m => m.MessageUid > result);
+            MessageCollection messageCollection2 = _client.SearchMessage("all");
+            int result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
+            List<Message> list = messageCollection2.FindAll(m => m.MessageUid > result);
             if (list.Count > 0)
             {
                 LastUpdateMessagesCount = list.Count;
-                foreach (var current2 in list)
+                foreach (Message current2 in list)
                 {
                     current2.Client = _client;
                     if (processMessages)
@@ -223,8 +215,8 @@ namespace ImapX
         private MessageCollection SetMessage()
         {
             Select();
-            var messageCollection = _client.SearchMessage("all");
-            foreach (var current in messageCollection)
+            MessageCollection messageCollection = _client.SearchMessage("all");
+            foreach (Message current in messageCollection)
             {
                 current.Client = _client;
                 current.Folder = this;
@@ -235,19 +227,20 @@ namespace ImapX
         internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
         {
             var rex = new Regex(@".*\((\\.*)+\)\s\""(.)\""\s\""(.*)\""");
-            var match = rex.Match(commandResult);
+            Match match = rex.Match(commandResult);
 
             if (match.Success && match.Groups.Count == 4)
             {
-                var flags = match.Groups[1].Value.Split(' ');
+                string[] flags = match.Groups[1].Value.Split(' ');
 
-                var path = match.Groups[3].Value;
+                string path = match.Groups[3].Value;
 
                 if (client.Behavior.FolderDelimeter == '\0')
-                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value) ? '"' : match.Groups[2].Value.ToCharArray()[0];
+                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value)
+                        ? '"'
+                        : match.Groups[2].Value.ToCharArray()[0];
 
                 return new Folder(path, flags, ref parent, client);
-
             }
 
             return null;
@@ -282,10 +275,10 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            var selectedFolder = _client.SelectedFolder;
+            string selectedFolder = _client.SelectedFolder;
             Select();
-            var messageCollection = _client.SearchMessage(path);
-            foreach (var current in messageCollection)
+            MessageCollection messageCollection = _client.SearchMessage(path);
+            foreach (Message current in messageCollection)
             {
                 current.Client = _client;
                 current.Folder = this; // [5/10/13] Fix by axlns
@@ -343,13 +336,14 @@ namespace ImapX
         }
 
         /// <summary>
-        /// Removes the folder
+        ///     Removes the folder
         /// </summary>
         /// <returns><code>true</code> if the folder could be removed</returns>
         public bool Remove()
         {
             if (!Selectable)
-                throw new InvalidOperationException("A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
+                throw new InvalidOperationException(
+                    "A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
 
             IList<string> data = new List<string>();
             if (!_client.SendAndReceive(string.Format(ImapCommands.DELETE, _folderPath), ref data))
@@ -379,7 +373,7 @@ namespace ImapX
             }
             string selectedFolder = _client.SelectedFolder;
             Select();
-            string text = "UID COPY {0} \"{1}\"\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
+            string text = "UID COPY {0} \"{1}\"\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             IList<string> arrayList = new List<string>();
             if (!_client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
@@ -407,7 +401,7 @@ namespace ImapX
             }
             string selectedFolder = _client.SelectedFolder;
             _client.SelectFolder(FolderPath);
-            string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n";// [21.12.12] Fix by Yaroslav T, added UID command
+            string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
             IList<string> arrayList = new List<string>();
             Select();
             if (_client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
@@ -454,15 +448,15 @@ namespace ImapX
                 flag = "\\draft";
             }
             string command = string.Concat(new object[]
-                                               {
-                                                   "APPEND \"",
-                                                   FolderPath,
-                                                   "\" (",
-                                                   flag,
-                                                   ") {",
-                                                   length - 2,
-                                                   "}\r\n"
-                                               });
+            {
+                "APPEND \"",
+                FolderPath,
+                "\" (",
+                flag,
+                ") {",
+                length - 2,
+                "}\r\n"
+            });
             if (_client.SendAndReceive(command, ref arrayList) && _client.SendData(text))
             {
                 _client.SelectFolder(selectedFolder);

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ImapX.Collections
 {
     public class FolderCollection : ImapObjectCollection<Folder>
     {
-
-        Folder _parentFolder;
+        private Folder _parentFolder;
 
         public FolderCollection(ImapClient client, Folder parentFolder = null)
             : base(client)
@@ -26,13 +24,13 @@ namespace ImapX.Collections
         {
             get
             {
-                var result = List.FirstOrDefault(_ => _.Name.Equals(name));
+                Folder result = List.FirstOrDefault(_ => _.Name.Equals(name));
                 return result;
             }
         }
 
         /// <summary>
-        /// Creates a new folder with the given name
+        ///     Creates a new folder with the given name
         /// </summary>
         /// <param name="folderName">The folder name</param>
         /// <returns><code>true</code> if the folder could be created</returns>
@@ -44,7 +42,9 @@ namespace ImapX.Collections
 
             folderName = ImapUTF7.Encode(folderName);
 
-            var path = _parentFolder == null ? folderName : _parentFolder.FolderPath + Client.Behavior.FolderDelimeter + folderName;
+            string path = _parentFolder == null
+                ? folderName
+                : _parentFolder.FolderPath + Client.Behavior.FolderDelimeter + folderName;
 
             IList<string> data = new List<string>();
 
@@ -60,11 +60,10 @@ namespace ImapX.Collections
             }
 
             return false;
-
         }
 
         /// <summary>
-        /// Removes a folder
+        ///     Removes a folder
         /// </summary>
         /// <param name="item">The folder to remove</param>
         /// <returns><code>true</code> if the folder could be removed</returns>
@@ -74,13 +73,12 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        /// Removes a folder at the specified index
+        ///     Removes a folder at the specified index
         /// </summary>
         /// <returns><code>true</code> if the folder could be removed</returns>
         public bool RemoveAt(int index)
         {
             return Remove(List[index]);
         }
-
     }
 }

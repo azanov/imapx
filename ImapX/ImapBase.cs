@@ -14,8 +14,8 @@ namespace ImapX
 {
     public class ImapBase
     {
-        public const int DEFAULT_IMAP_PORT = 143;
-        public const int DEFAULT_IMAP_SSL_PORT = 993;
+        public const int DefaultImapPort = 143;
+        public const int DefaultImapSslPort = 993;
         internal string SelectedFolder;
 
         private TcpClient _client;
@@ -25,7 +25,7 @@ namespace ImapX
         private string _host;
         private Stream _ioStream;
         private bool _isDebug;
-        private int _port = DEFAULT_IMAP_PORT;
+        private int _port = DefaultImapPort;
 
         private SslProtocols _sslProtocol = SslProtocols.None;
         private StreamReader _streamReader;
@@ -160,7 +160,7 @@ namespace ImapX
         public bool Connect(string host, bool useSsl = false, bool validateServerCertificate = false)
         {
             return Connect(host,
-                useSsl ? DEFAULT_IMAP_SSL_PORT : DEFAULT_IMAP_PORT,
+                useSsl ? DefaultImapSslPort : DefaultImapPort,
                 useSsl ? SslProtocols.Default : SslProtocols.None,
                 validateServerCertificate);
         }
@@ -220,13 +220,13 @@ namespace ImapX
 
                 string result = _streamReader.ReadLine();
 
-                if (result != null && result.StartsWith(ResponseType.SERVER_OK))
+                if (result != null && result.StartsWith(ResponseType.ServerOk))
                 {
                     _connected = true;
                     Capability();
                     return true;
                 }
-                else if (result != null && result.StartsWith(ResponseType.SERVER_PREAUTH))
+                else if (result != null && result.StartsWith(ResponseType.ServerPreAuth))
                 {
                     _connected = true;
                     IsAuthenticated = true;
@@ -363,17 +363,16 @@ namespace ImapX
                         continue;
                     }
 
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.OK)))
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
                         return true;
 
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PREAUTH)))
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
                         return true;
 
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.NO)) || tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.BAD)))
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.NO)) ||
+                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
                         return false;
-
                 }
-
             }
             catch (AuthenticationException ex)
             {

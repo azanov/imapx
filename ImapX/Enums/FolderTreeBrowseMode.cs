@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
 
 namespace ImapX.Enums
 {
-    [DefaultValue(FolderTreeBrowseMode.Lazy)]
+    [DefaultValue(Lazy)]
     public enum FolderTreeBrowseMode
     {
         /// <summary>
-        /// The subfolder list is only loaded when it is being needed
+        ///     The subfolder list is only loaded when it is being needed
         /// </summary>
         Lazy,
 
         /// <summary>
-        /// Full folder structure is loaded.
-        /// WARNING: Will lead to infinite loops if the folder structure is circular!
+        ///     Full folder structure is loaded.
+        ///     WARNING: Will lead to infinite loops if the folder structure is circular!
         /// </summary>
         Full
     }

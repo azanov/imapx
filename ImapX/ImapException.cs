@@ -1,21 +1,19 @@
 ﻿using System;
+
 namespace ImapX
 {
     public class ImapException : Exception
     {
         private readonly string _message;
 
-        public override string Message
-        {
-            get
-            {
-                return this._message;
-            }
-        }
-
         public ImapException(string message) : base(message)
         {
-            this._message = message;
+            _message = message;
+        }
+
+        public override string Message
+        {
+            get { return _message; }
         }
     }
 }

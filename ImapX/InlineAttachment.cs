@@ -1,11 +1,6 @@
-﻿using System;
-using System.IO;
-
-namespace ImapX
+﻿namespace ImapX
 {
-
     public class InlineAttachment : Attachment
     {
-        
     }
 }

@@ -12,49 +12,51 @@ namespace ImapX.EmailParser
         public const char TAB = '\t';
         public const string BOUNDARY = "boundary=";
         public const string BOUNDARY_END_SYMBOLS = "--";
-        public string[] _emailItems;
-        private bool isEmailValid = true;
-        public Dictionary<string, string> _headersCollection;
-        private string _headerLastKey;
-        public List<ParseError> _badParseItems = new List<ParseError>();
-        public List<BodyPart> _parts = new List<BodyPart>();
-        private int _headerStartIndex;
-        private int _headerEndIndex;
-        private int _bodyStartIndex;
+        public List<ParseError> BadParseItems = new List<ParseError>();
         private int _bodyEndIndex;
-        public List<string> _boundaryCollection;
+        private int _bodyStartIndex;
+        public List<string> BoundaryCollection;
+        public string[] EmailItems;
+        private int _headerEndIndex;
+        private string _headerLastKey;
+        private int _headerStartIndex;
+        public Dictionary<string, string> HeadersCollection;
+        public List<BodyPart> Parts = new List<BodyPart>();
+
         public EmailParser(string[] email)
         {
-            this._headersCollection = new Dictionary<string, string>();
-            this._boundaryCollection = new List<string>();
-            this._emailItems = email;
+            HeadersCollection = new Dictionary<string, string>();
+            BoundaryCollection = new List<string>();
+            EmailItems = email;
         }
+
         public void InitializeIndexes()
         {
-            for (int i = 0; i < this._emailItems.Length; i++)
+            for (int i = 0; i < EmailItems.Length; i++)
             {
-                if (string.IsNullOrEmpty(this._emailItems[i]))
+                if (string.IsNullOrEmpty(EmailItems[i]))
                 {
-                    this._headerStartIndex = 0;
-                    this._headerEndIndex = i;
-                    this._bodyStartIndex = i + 1;
-                    this._bodyEndIndex = this._emailItems.Length - 2;
+                    _headerStartIndex = 0;
+                    _headerEndIndex = i;
+                    _bodyStartIndex = i + 1;
+                    _bodyEndIndex = EmailItems.Length - 2;
                     return;
                 }
             }
         }
+
         public void ParseHeaders()
         {
-            for (int i = this._headerStartIndex; i < this._headerEndIndex; i++)
+            for (int i = _headerStartIndex; i < _headerEndIndex; i++)
             {
-                if (this._emailItems[i].ToLower().Contains("boundary="))
+                if (EmailItems[i].ToLower().Contains("boundary="))
                 {
                     try
                     {
-                        string text = this._emailItems[i].Split(new[]
-						{
-							"boundary="
-						}, StringSplitOptions.None)[1];
+                        string text = EmailItems[i].Split(new[]
+                        {
+                            "boundary="
+                        }, StringSplitOptions.None)[1];
                         if (text.Contains(";"))
                         {
                             text = text.Substring(0, text.IndexOf(';'));
@@ -63,58 +65,61 @@ namespace ImapX.EmailParser
                         {
                             text = text.Replace("\"", "");
                         }
-                        this._boundaryCollection.Add(text);
+                        BoundaryCollection.Add(text);
                     }
                     catch (Exception e)
                     {
-                        this._badParseItems.Add(new ParseError(this._emailItems[i], e));
+                        BadParseItems.Add(new ParseError(EmailItems[i], e));
                     }
                 }
-                int num = this._emailItems[i].IndexOf(':');
+                int num = EmailItems[i].IndexOf(':');
 
                 // Fix provided by iamwill 12/12/12
                 // For reference see http://imapx.codeplex.com/workitem/1424
 
                 // Fix provided by itreims  03/05/13
                 // For reference see http://imapx.codeplex.com/workitem/1523
-                try 
-                { 
-                    if (num > 0 & !this._emailItems[i].ToLower().StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[i].ToLower().StartsWith(' '.ToString(CultureInfo.InvariantCulture))) 
-                    { 
-                        string text2 = this._emailItems[i].Substring(0, num);
+                try
+                {
+                    if (num > 0 & !EmailItems[i].ToLower().StartsWith('\t'.ToString(CultureInfo.InvariantCulture)) &
+                        !EmailItems[i].ToLower().StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
+                    {
+                        string text2 = EmailItems[i].Substring(0, num);
                         string text3 = String.Empty;
-                        if (this._emailItems[i].Length > num + 1)
+                        if (EmailItems[i].Length > num + 1)
                         {
-                            text3 = this._emailItems[i].Substring(num + 2);
+                            text3 = EmailItems[i].Substring(num + 2);
                         }
-                        this._headerLastKey = text2; 
-                        var trimmedText2 = text2.Trim(new[] { ' ' }); 
-                        var trimmedText3 = text3.Trim(new[] { ' ' }); 
-                        
-                        if (!this._headersCollection.ContainsKey(trimmedText2)) 
-                        { 
-                            this._headersCollection.Add(trimmedText2, trimmedText3); 
-                        } 
-                    } 
-                    else
-                    { 
-                        Dictionary<string, string> headersCollection; string headerLastKey; 
-                        if (this._headerLastKey != null && this._headersCollection.ContainsKey(this._headerLastKey))
+                        _headerLastKey = text2;
+                        string trimmedText2 = text2.Trim(new[] {' '});
+                        string trimmedText3 = text3.Trim(new[] {' '});
+
+                        if (!HeadersCollection.ContainsKey(trimmedText2))
                         {
-                            (headersCollection = this._headersCollection)[headerLastKey = this._headerLastKey] = headersCollection[headerLastKey] + "\n" + this._emailItems[i];
-                        } 
-                    } 
+                            HeadersCollection.Add(trimmedText2, trimmedText3);
+                        }
+                    }
+                    else
+                    {
+                        if (_headerLastKey != null && HeadersCollection.ContainsKey(_headerLastKey))
+                        {
+                            Dictionary<string, string> headersCollection;
+                            string headerLastKey;
+                            (headersCollection = HeadersCollection)[headerLastKey = _headerLastKey] =
+                                headersCollection[headerLastKey] + "\n" + EmailItems[i];
+                        }
+                    }
                 }
-                catch (Exception e2) 
-                { 
-                    this._badParseItems.Add(new ParseError(this._emailItems[i], e2)); 
+                catch (Exception e2)
+                {
+                    BadParseItems.Add(new ParseError(EmailItems[i], e2));
                 }
             }
         }
+
         public string GetPart(BodyPart p)
         {
-
-            if (_emailItems == null || _emailItems.Length == 0)
+            if (EmailItems == null || EmailItems.Length == 0)
                 return string.Empty;
 
             var stringBuilder = new StringBuilder();
@@ -124,13 +129,14 @@ namespace ImapX.EmailParser
                 if (current < 0) continue;
                 if (flag)
                 {
-                    stringBuilder.Append(this._emailItems[current >= _emailItems.Length ? _emailItems.Length - 1 : current]);
-                    
+                    stringBuilder.Append(EmailItems[current >= EmailItems.Length ? EmailItems.Length - 1 : current]);
+
                     flag = false;
                 }
                 else
                 {
-                    stringBuilder.Append("\r\n" + this._emailItems[current >= _emailItems.Length ? _emailItems.Length - 1 : current]);
+                    stringBuilder.Append("\r\n" +
+                                         EmailItems[current >= EmailItems.Length ? EmailItems.Length - 1 : current]);
                 }
             }
             if (p.Boundary == null && stringBuilder.Length > 0 && stringBuilder[stringBuilder.Length - 1].Equals(')'))
@@ -139,41 +145,43 @@ namespace ImapX.EmailParser
             }
             return stringBuilder.ToString();
         }
+
         public void ParseBody()
         {
-        	var bodyPart = new BodyPart {Boundary = null};
-        	if (this._boundaryCollection.Count < 1)
+            var bodyPart = new BodyPart {Boundary = null};
+            if (BoundaryCollection.Count < 1)
             {
-                for (int i = this._bodyStartIndex; i <= this._bodyEndIndex; i++)
+                for (int i = _bodyStartIndex; i <= _bodyEndIndex; i++)
                 {
                     bodyPart.BodyIndexes.Add(i);
                 }
             }
             else
             {
-                int num = this._bodyStartIndex;
-                while (num < this._bodyEndIndex && (this._boundaryCollection.Count <= 0 || !this._emailItems[num].Contains(this._boundaryCollection[0] + "--")))
+                int num = _bodyStartIndex;
+                while (num < _bodyEndIndex &&
+                       (BoundaryCollection.Count <= 0 || !EmailItems[num].Contains(BoundaryCollection[0] + "--")))
                 {
-                    foreach (string current in this._boundaryCollection)
+                    foreach (string current in BoundaryCollection)
                     {
-                        if (this._emailItems[num].Contains(current))
+                        if (EmailItems[num].Contains(current))
                         {
                             if (bodyPart.Boundary != null)
                             {
-                                this._parts.Add(bodyPart);
+                                Parts.Add(bodyPart);
                             }
-                        	bodyPart = new BodyPart {Boundary = current};
-                        	num++;
-                            while (this._bodyEndIndex >= num && this._emailItems[num] != string.Empty)
+                            bodyPart = new BodyPart {Boundary = current};
+                            num++;
+                            while (_bodyEndIndex >= num && EmailItems[num] != string.Empty)
                             {
-                                if (this._emailItems[num].ToLower().Contains("boundary="))
+                                if (EmailItems[num].ToLower().Contains("boundary="))
                                 {
                                     try
                                     {
-                                        string text = this._emailItems[num].Split(new[]
-										{
-											"boundary="
-										}, StringSplitOptions.None)[1];
+                                        string text = EmailItems[num].Split(new[]
+                                        {
+                                            "boundary="
+                                        }, StringSplitOptions.None)[1];
                                         if (text.Contains(";"))
                                         {
                                             text = text.Substring(0, text.IndexOf(';'));
@@ -182,40 +190,43 @@ namespace ImapX.EmailParser
                                         {
                                             text = text.Replace("\"", "");
                                         }
-                                        this._boundaryCollection.Add(text);
+                                        BoundaryCollection.Add(text);
                                     }
                                     catch (Exception e)
                                     {
-                                        this._badParseItems.Add(new ParseError(this._emailItems[num], e));
+                                        BadParseItems.Add(new ParseError(EmailItems[num], e));
                                     }
                                 }
-                                int num2 = this._emailItems[num].IndexOf(':');
+                                int num2 = EmailItems[num].IndexOf(':');
                                 try
                                 {
-                                    if (num2 > 0 & !this._emailItems[num].StartsWith('\t'
-										.ToString(CultureInfo.InvariantCulture)) & !this._emailItems[num].ToLower().StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
+                                    if (num2 > 0 & !EmailItems[num].StartsWith('\t'
+                                        .ToString(CultureInfo.InvariantCulture)) &
+                                        !EmailItems[num].ToLower()
+                                            .StartsWith(' '.ToString(CultureInfo.InvariantCulture)))
                                     {
-                                        string text2 = this._emailItems[num].Substring(0, num2);
-                                        string text3 = this._emailItems[num].Substring(num2 + 2);
-                                        this._headerLastKey = text2;
+                                        string text2 = EmailItems[num].Substring(0, num2);
+                                        string text3 = EmailItems[num].Substring(num2 + 2);
+                                        _headerLastKey = text2;
                                         bodyPart.Headers.Add(text2.Trim(new[]
-										{
-											' '
-										}), text3.Trim(new[]
-										{
-											' '
-										}));
+                                        {
+                                            ' '
+                                        }), text3.Trim(new[]
+                                        {
+                                            ' '
+                                        }));
                                     }
                                     else
                                     {
                                         Dictionary<string, string> headers;
                                         string headerLastKey;
-                                        (headers = bodyPart.Headers)[headerLastKey = this._headerLastKey] = headers[headerLastKey] + "\n" + this._emailItems[num];
+                                        (headers = bodyPart.Headers)[headerLastKey = _headerLastKey] =
+                                            headers[headerLastKey] + "\n" + EmailItems[num];
                                     }
                                 }
                                 catch (Exception e2)
                                 {
-                                    this._badParseItems.Add(new ParseError(this._emailItems[num], e2));
+                                    BadParseItems.Add(new ParseError(EmailItems[num], e2));
                                 }
                                 num++;
                             }
@@ -227,7 +238,7 @@ namespace ImapX.EmailParser
                     num++;
                 }
             }
-            this._parts.Add(bodyPart);
+            Parts.Add(bodyPart);
         }
     }
 }
