@@ -2,16 +2,16 @@
 {
     public class ResponseType
     {
-        public const string OK = "OK";
+        public const string Ok = "OK";
         public const string NO = "NO";
-        public const string BAD = "BAD";
-        public const string PREAUTH = "PREAUTH";
+        public const string Bad = "BAD";
+        public const string PreAuth = "PREAUTH";
 
-        public const string SERVER_OK = "* OK";
-        public const string SERVER_BAD = "* BAD";
-        public const string SERVER_NO = "* NO";
-        public const string SERVER_PREAUTH = "* PREAUTH";
-        public const string PREFIX = "*";
+        public const string ServerOk = "* OK";
+        public const string ServerBad = "* BAD";
+        public const string ServerNo = "* NO";
+        public const string ServerPreAuth = "* PREAUTH";
+        public const string Prefix = "*";
     }
 }
 

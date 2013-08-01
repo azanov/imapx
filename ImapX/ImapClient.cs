@@ -26,7 +26,7 @@ namespace ImapX
         /// </summary>
         public ImapClient(string host, bool useSsl = false, bool validateServerCertificate = false)
             : this(
-                host, useSsl ? DEFAULT_IMAP_SSL_PORT : DEFAULT_IMAP_PORT,
+                host, useSsl ? DefaultImapSslPort : DefaultImapPort,
                 useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
         {
         }

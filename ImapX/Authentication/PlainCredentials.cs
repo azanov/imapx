@@ -1,26 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ImapX.Authentication
 {
     /// <summary>
-    /// Credentials used for PLAIN authentication or the LOGIN command
+    ///     Credentials used for PLAIN authentication or the LOGIN command
     /// </summary>
     public class PlainCredentials : IImapCredentials
     {
-
-        /// <summary>
-        /// The login name
-        /// </summary>
-        public string Login { get; set; }
-
-        /// <summary>
-        /// The password
-        /// </summary>
-        public string Password { get; set; }
-
         public PlainCredentials(string login, string password)
         {
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
@@ -29,6 +16,16 @@ namespace ImapX.Authentication
             Login = login;
             Password = password;
         }
+
+        /// <summary>
+        ///     The login name
+        /// </summary>
+        public string Login { get; set; }
+
+        /// <summary>
+        ///     The password
+        /// </summary>
+        public string Password { get; set; }
 
         public string ToCommand(Capability capabilities)
         {
@@ -39,8 +36,6 @@ namespace ImapX.Authentication
                 return string.Format(ImapCommands.AUTHENTICATE + " \"{1}\" \"{2}\"", "PLAIN", Login, Password);
 
             return string.Format(ImapCommands.LOGIN, Login, Password);
-
-
         }
 
         public bool IsSupported(Capability capabilities)

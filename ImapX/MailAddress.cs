@@ -1,32 +1,33 @@
 ﻿using System;
+
 namespace ImapX
 {
     [Serializable]
     public class MailAddress
     {
-    	public string DisplayName { get; set; }
-
-    	public string Address { get; set; }
-
-    	public MailAddress()
+        public MailAddress()
         {
-            this.DisplayName = string.Empty;
-            this.Address = string.Empty;
+            DisplayName = string.Empty;
+            Address = string.Empty;
         }
 
         public MailAddress(string display, string addr)
         {
-            this.Address = addr;
-            this.DisplayName = display;
+            Address = addr;
+            DisplayName = display;
         }
+
+        public string DisplayName { get; set; }
+
+        public string Address { get; set; }
 
         public override string ToString()
         {
-            if (this.DisplayName != string.Empty)
+            if (DisplayName != string.Empty)
             {
-                return string.Format("{0} <{1}>", this.DisplayName, this.Address);
+                return string.Format("{0} <{1}>", DisplayName, Address);
             }
-            return this.Address;
+            return Address;
         }
     }
 }

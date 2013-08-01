@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
 
 namespace ImapX.Enums
 {
-    [DefaultValue(MessageFetchMode.HeadersOnly)]
+    [DefaultValue(HeadersOnly)]
     public enum MessageFetchMode
     {
         Full,

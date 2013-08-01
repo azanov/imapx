@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,14 +10,14 @@ namespace ImapX
 {
     public static class ParseHelper
     {
-
         public static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
         {
             try
             {
                 return Encoding.GetEncoding(name);
             }
-            catch {
+            catch
+            {
                 return defaultEncoding;
             }
         }
@@ -29,17 +30,17 @@ namespace ImapX
             {
                 text = text.Replace("\t", "");
                 var regex = new Regex(@"[=]?\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=");
-                var decodedString = string.Empty;
+                string decodedString = string.Empty;
                 while (text.Length > 0)
                 {
-                    var match = regex.Match(text);
+                    Match match = regex.Match(text);
                     if (match.Success)
                     {
                         // If the match isn't at the start of the string, copy the initial few chars to the output
                         decodedString += text.Substring(0, match.Index);
-                        var charset = match.Groups["charset"].Value;
-                        var encoding = match.Groups["encoding"].Value.ToUpper();
-                        var value = match.Groups["value"].Value;
+                        string charset = match.Groups["charset"].Value;
+                        string encoding = match.Groups["encoding"].Value.ToUpper();
+                        string value = match.Groups["value"].Value;
                         if (encoding.Equals("B"))
                         {
                             decodedString += DecodeBase64(value, TryGetEncoding(charset, Encoding.UTF8));
@@ -79,7 +80,7 @@ namespace ImapX
                 encoding = Encoding.Default;
             if (string.IsNullOrEmpty(value))
                 return "";
-            var bytes = Base64.FromBase64(value);
+            byte[] bytes = Base64.FromBase64(value);
             return encoding.GetString(bytes);
         }
 
@@ -89,12 +90,12 @@ namespace ImapX
                 encoding = Encoding.Default;
             if (value.IndexOf('_') > -1 && value.IndexOf(' ') == -1)
                 value = value.Replace('_', ' ');
-            var data = Encoding.ASCII.GetBytes(value);
-            var eq = Convert.ToByte('=');
-            var n = 0;
+            byte[] data = Encoding.ASCII.GetBytes(value);
+            byte eq = Convert.ToByte('=');
+            int n = 0;
             for (int i = 0; i < data.Length; i++)
             {
-                var b = data[i];
+                byte b = data[i];
 
                 if ((b == eq) && ((i + 1) < data.Length))
                 {
@@ -108,7 +109,7 @@ namespace ImapX
                         }
                         continue;
                     }
-                    data[n] = (byte)int.Parse(value.Substring(i + 1, 2), NumberStyles.HexNumber);
+                    data[n] = (byte) int.Parse(value.Substring(i + 1, 2), NumberStyles.HexNumber);
                     n++;
                     i += 2;
                 }
@@ -127,10 +128,10 @@ namespace ImapX
             if (string.IsNullOrEmpty(value))
                 return string.Empty;
             var rex = new Regex(@"(.*\/.*)");
-            var tmp = value.Split(';');
-            foreach (var s in tmp)
+            string[] tmp = value.Split(';');
+            foreach (string s in tmp)
             {
-                var m = rex.Match(s.Trim());
+                Match m = rex.Match(s.Trim());
                 if (m.Success)
                     return m.Value;
             }
@@ -141,19 +142,22 @@ namespace ImapX
         {
             if (string.IsNullOrEmpty(value))
             {
-                contentType = null; return null;
+                contentType = null;
+                return null;
             }
             value = value.ToLower().Trim();
             var rex = (new Regex("(.*);.*charset=(.*)[;]?"));
             value = value.Replace("\"", "").Replace("\'", "").Replace("\n", "").Replace("\t", "");
-            var tmp = rex.Match(value);
+            Match tmp = rex.Match(value);
             if (!tmp.Success)
             {
-                contentType = (new Regex(@"(.*)\/(.*)[;]?").IsMatch(value)) ? value.Replace(";", "").TrimEnd() : string.Empty;
+                contentType = (new Regex(@"(.*)\/(.*)[;]?").IsMatch(value))
+                    ? value.Replace(";", "").TrimEnd()
+                    : string.Empty;
                 return Encoding.Default;
             }
-            contentType = tmp.Groups[tmp.Groups.Count - 2].Value.Split(new[] { ';' })[0].Trim();
-            return TryGetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] { ';' })[0].Trim(), Encoding.UTF8);
+            contentType = tmp.Groups[tmp.Groups.Count - 2].Value.Split(new[] {';'})[0].Trim();
+            return TryGetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] {';'})[0].Trim(), Encoding.UTF8);
         }
 
         public static bool Exists(string line, ref int property)
@@ -162,9 +166,9 @@ namespace ImapX
             {
                 int num;
                 if (int.TryParse(line.Split(new[]
-				{
-					' '
-				})[1], out num))
+                {
+                    ' '
+                })[1], out num))
                 {
                     property = num;
                 }
@@ -179,9 +183,9 @@ namespace ImapX
             {
                 int num;
                 if (int.TryParse(line.Split(new[]
-				{
-					' '
-				})[1], out num))
+                {
+                    ' '
+                })[1], out num))
                 {
                     property = num;
                 }
@@ -196,9 +200,9 @@ namespace ImapX
             {
                 int num;
                 if (int.TryParse(line.Split(new[]
-				{
-					' '
-				})[3].Replace("]", ""), out num))
+                {
+                    ' '
+                })[3].Replace("]", ""), out num))
                 {
                     property = num;
                 }
@@ -212,9 +216,9 @@ namespace ImapX
             if (line.Contains("UIDVALIDITY"))
             {
                 string text = line.Split(new[]
-				{
-					' '
-				})[3].Replace("]", "");
+                {
+                    ' '
+                })[3].Replace("]", "");
                 property = text;
                 return true;
             }
@@ -227,9 +231,9 @@ namespace ImapX
             {
                 int num;
                 if (int.TryParse(line.Split(new[]
-				{
-					' '
-				})[3].Replace("]", ""), out num))
+                {
+                    ' '
+                })[3].Replace("]", ""), out num))
                 {
                     property = num;
                 }
@@ -256,12 +260,12 @@ namespace ImapX
                 return new MailAddress(null, line.Trim());
             }
             string addr = line.Substring(num).Trim().TrimStart(new[]
-			{
-				'<'
-			}).TrimEnd(new[]
-			{
-				'>'
-			});
+            {
+                '<'
+            }).TrimEnd(new[]
+            {
+                '>'
+            });
             string display = "";
             if (num >= 1)
             {
@@ -274,21 +278,21 @@ namespace ImapX
         {
             var list = new List<MailAddress>();
             string[] array = value.Trim().Split(new[]
-			{
-				">,", 
-				"> ,"
-			}, StringSplitOptions.None);
+            {
+                ">,",
+                "> ,"
+            }, StringSplitOptions.None);
             string[] array2 = array;
             foreach (string line in array2)
             {
-            	try
-            	{
-            		list.Add(Address(line));
-            	}
-            	catch (Exception)
-            	{
-            		throw new Exception("Not correct mail address");
-            	}
+                try
+                {
+                    list.Add(Address(line));
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Not correct mail address");
+                }
             }
             return list;
         }
@@ -298,23 +302,20 @@ namespace ImapX
             if (string.IsNullOrEmpty(p)) return string.Empty;
 
             var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
-            foreach (var match in p.Split(';').Select(part => rex.Match(part)))
+            foreach (Match match in p.Split(';').Select(part => rex.Match(part)))
             {
-                
                 if (!match.Success)
                     continue;
 
 
-                var field = match.Groups[1].Value.ToLower().Trim();
-                var value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                string field = match.Groups[1].Value.ToLower().Trim();
+                string value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
 
                 switch (field)
                 {
-                    
                     case "name":
                     case "filename":
                         return DecodeName(value.Trim('"').Trim('\''));
-                        
                 }
             }
             return string.Empty;
@@ -342,15 +343,16 @@ namespace ImapX
             {
                 s = "ATT.eml";
                 int i = 0;
-                while (System.IO.File.Exists(s))
+                while (File.Exists(s))
                 {
-                    s = "ATT" + i.ToString() + ".eml";
+                    s = "ATT" + i + ".eml";
                     i++;
                 }
             }
 
             return s;
         }
+
         // [2013-04-24] naudelb(Len Naude) - Added
         public static string RemoveIllegalFileNameChars(string s)
         {

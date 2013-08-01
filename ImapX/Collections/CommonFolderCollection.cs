@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using ImapX.Flags;
 
 namespace ImapX.Collections
 {
     public class CommonFolderCollection : FolderCollection
     {
+        public CommonFolderCollection(ImapClient client) : base(client)
+        {
+        }
 
         public Folder All { get; private set; }
         public Folder Archive { get; private set; }
@@ -18,8 +18,6 @@ namespace ImapX.Collections
         public Folder Junk { get; private set; }
         public Folder Sent { get; private set; }
         public Folder Trash { get; private set; }
-
-        public CommonFolderCollection(ImapClient client) : base(client) { }
 
         internal void TryBind(ref Folder folder)
         {
@@ -42,8 +40,5 @@ namespace ImapX.Collections
             else if (folder.Flags.Contains(FolderFlags.Trash))
                 Trash = folder;
         }
-
-
-
     }
 }

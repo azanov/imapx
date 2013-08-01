@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ImapX.Collections
 {
@@ -10,8 +8,8 @@ namespace ImapX.Collections
         public GMailMessageLabelCollection(ImapClient client, Message message)
             : base(client, message)
         {
-            this._addType = "+X-GM-LABELS";
-            this._removeType = "-X-GM-LABELS";
+            AddType = "+X-GM-LABELS";
+            RemoveType = "-X-GM-LABELS";
         }
 
         /// <summary>
@@ -82,6 +80,5 @@ namespace ImapX.Collections
                 throw new NotSupportedException("Google Mail labels are not supported on this server!");
             return base.RemoveRange(labels);
         }
-
     }
 }

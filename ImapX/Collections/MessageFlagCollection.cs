@@ -8,8 +8,8 @@ namespace ImapX.Collections
     {
         private readonly Message _message;
 
-        protected string _addType = "+FLAGS";
-        protected string _removeType = "-FLAGS";
+        protected string AddType = "+FLAGS";
+        protected string RemoveType = "-FLAGS";
 
         public MessageFlagCollection(ImapClient client, Message message)
             : base(client)
@@ -40,7 +40,7 @@ namespace ImapX.Collections
         {
             IList<string> data = new List<string>();
             if (Client.SendAndReceive(string.Format(ImapCommands.STORE,
-                _message.MessageUid, _addType,
+                _message.MessageUid, AddType,
                 string.Join(" ", _message.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct())),
                 ref data))
             {
@@ -87,8 +87,8 @@ namespace ImapX.Collections
             IList<string> data = new List<string>();
             if (
                 Client.SendAndReceive(
-                    string.Format(ImapCommands.STORE, _message.MessageUid, _removeType,
-                        string.Join(" ", _message.Flags.Except(flags.Where(_ => !string.IsNullOrEmpty(_))))), ref data))
+                    string.Format(ImapCommands.STORE, _message.MessageUid, RemoveType,
+                        string.Join(" ", flags.Where(_ => !string.IsNullOrEmpty(_)))), ref data))
             {
                 foreach (string flag in flags)
                     List.Remove(flag);
@@ -99,9 +99,5 @@ namespace ImapX.Collections
             return false;
         }
 
-        public void ClearInternal()
-        {
-            List.Clear();
-        }
     }
 }
