@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace ImapX.Collections
 {
@@ -10,6 +12,8 @@ namespace ImapX.Collections
         {
             AddType = "+X-GM-LABELS";
             RemoveType = "-X-GM-LABELS";
+            IsUTF7 = true;
+            AddQuotes = true;
         }
 
         /// <summary>

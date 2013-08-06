@@ -10,6 +10,8 @@ namespace ImapX.Collections
 
         protected string AddType = "+FLAGS";
         protected string RemoveType = "-FLAGS";
+        protected bool IsUTF7 = false;
+        protected bool AddQuotes = false;
 
         public MessageFlagCollection(ImapClient client, Message message)
             : base(client)
@@ -39,17 +41,18 @@ namespace ImapX.Collections
         public bool AddRange(IEnumerable<string> flags)
         {
             IList<string> data = new List<string>();
-            if (Client.SendAndReceive(string.Format(ImapCommands.STORE,
+            if (!Client.SendAndReceive(string.Format(ImapCommands.STORE,
                 _message.MessageUid, AddType,
-                string.Join(" ", _message.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct())),
-                ref data))
-            {
-                AddRangeInternal(flags.Except(List));
+                string.Join(" ",
+                    this.Concat(flags.Where(_ => !string.IsNullOrEmpty(_)))
+                        .Distinct()
+                        .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
+                        .Select(_ =>  (IsUTF7 ? ImapUTF7.Encode(_) : _)))),
+                ref data)) return false;
 
-                return true;
-            }
+            AddRangeInternal(flags.Except(List));
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -85,18 +88,17 @@ namespace ImapX.Collections
         public bool RemoveRange(IEnumerable<string> flags)
         {
             IList<string> data = new List<string>();
-            if (
-                Client.SendAndReceive(
-                    string.Format(ImapCommands.STORE, _message.MessageUid, RemoveType,
-                        string.Join(" ", flags.Where(_ => !string.IsNullOrEmpty(_)))), ref data))
-            {
-                foreach (string flag in flags)
-                    List.Remove(flag);
+            if (!Client.SendAndReceive(
+                string.Format(ImapCommands.STORE, _message.MessageUid, RemoveType,
+                    string.Join(" ",
+                        flags.Where(_ => !string.IsNullOrEmpty(_))
+                             .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
+                             .Select(_ => IsUTF7 ? ImapUTF7.Encode(_) : _))),
+                ref data)) return false;
+            foreach (string flag in flags)
+                List.Remove(flag);
 
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
     }
