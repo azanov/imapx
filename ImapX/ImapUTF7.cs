@@ -34,7 +34,7 @@ namespace ImapX
         {
             string result = name.Replace("&-", "&");
             var encoding = new UnicodeEncoding(true, false);
-            var rex = new Regex(@"&[\w|,]*-");
+            var rex = new Regex(@"&[\w|,|\+]*-");
 
             MatchCollection matches = rex.Matches(name);
 

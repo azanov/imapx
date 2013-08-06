@@ -286,9 +286,17 @@ namespace ImapX
             command = "UID FETCH " + MessageUid + " (X-GM-LABELS)\r\n";
             data.Clear();
 
-            if (Client.SendAndReceive(command, ref data))
-                Labels.AddRangeInternal(
-                    labelsRex.Match(data[0]).Groups[1].Value.Split(' ').Where(_ => !string.IsNullOrEmpty(_)));
+
+            if (!Client.SendAndReceive(command, ref data)) return;
+
+            var labelSplitRex = new Regex(@"("".*?""|[^""\s]+)+(?=\s*|\s*$)");
+            var labelsMatch = labelSplitRex.Match(labelsRex.Match(data[0]).Groups[1].Value);
+
+            if (labelsMatch.Groups.Count > 1)
+                Labels.AddRangeInternal(labelsMatch.Groups.Cast<Group>().Skip(1).Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
+
+            Labels.RemoveRange(new[] {"label", "my label", "my тест", "ололо", "тест тест"});
+
         }
 
         public string GetDecodedBody(out bool isHtml)
