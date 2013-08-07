@@ -295,7 +295,6 @@ namespace ImapX
             if (labelsMatch.Groups.Count > 1)
                 Labels.AddRangeInternal(labelsMatch.Groups.Cast<Group>().Skip(1).Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
 
-            Labels.RemoveRange(new[] {"label", "my label", "my тест", "ололо", "тест тест"});
 
         }
 
