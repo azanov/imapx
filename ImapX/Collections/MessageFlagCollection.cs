@@ -47,7 +47,7 @@ namespace ImapX.Collections
                     this.Concat(flags.Where(_ => !string.IsNullOrEmpty(_)))
                         .Distinct()
                         .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
-                        .Select(_ =>  (IsUTF7 ? ImapUTF7.Encode(_) : _)))),
+                        .Select(_ =>  (IsUTF7 ? ImapUTF7.Encode(_) : _)).ToArray())),
                 ref data)) return false;
 
             AddRangeInternal(flags.Except(List));
@@ -93,7 +93,7 @@ namespace ImapX.Collections
                     string.Join(" ",
                         flags.Where(_ => !string.IsNullOrEmpty(_))
                              .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
-                             .Select(_ => IsUTF7 ? ImapUTF7.Encode(_) : _))),
+                             .Select(_ => IsUTF7 ? ImapUTF7.Encode(_) : _).ToArray())),
                 ref data)) return false;
             foreach (string flag in flags)
                 List.Remove(flag);

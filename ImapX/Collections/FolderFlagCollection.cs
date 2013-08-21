@@ -48,7 +48,7 @@ namespace ImapX.Collections
             IList<string> data = new List<string>();
             if (Client.SendAndReceive(string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath,
                 Client.Behavior.SpecialUseMetadataPath,
-                string.Join(" ", _folder.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct())), ref data))
+                string.Join(" ", _folder.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct().ToArray())), ref data))
             {
                 AddRangeInternal(flags.Except(List));
 
@@ -98,7 +98,7 @@ namespace ImapX.Collections
             if (
                 Client.SendAndReceive(
                     string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath, Client.Behavior.SpecialUseMetadataPath,
-                        string.Join(" ", _folder.Flags.Except(flags.Where(_ => !string.IsNullOrEmpty(_))))), ref data))
+                        string.Join(" ", _folder.Flags.Except(flags.Where(_ => !string.IsNullOrEmpty(_))).ToArray())), ref data))
             {
                 foreach (string flag in flags)
                     List.Remove(flag);

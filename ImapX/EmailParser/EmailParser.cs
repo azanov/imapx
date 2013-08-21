@@ -98,6 +98,10 @@ namespace ImapX.EmailParser
                         {
                             HeadersCollection.Add(trimmedText2, trimmedText3);
                         }
+                        else
+                        {
+                            HeadersCollection[trimmedText2] += "\r\n" + trimmedText3;
+                        }
                     }
                     else
                     {
