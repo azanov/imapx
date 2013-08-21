@@ -351,8 +351,8 @@ namespace ImapX
                 {
                     string tmp = _streamReader.ReadLine();
 
-                    //if (string.IsNullOrEmpty(tmp))
-                    //    return false;
+                    if (IsDebug)
+                        Console.WriteLine(tmp);
 
                     data.Add(tmp);
 
