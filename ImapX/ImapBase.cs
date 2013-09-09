@@ -9,6 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Exceptions;
+using System.Collections;
 
 namespace ImapX
 {
@@ -333,6 +334,58 @@ namespace ImapX
             }
         }
 
+        public bool SendAndReceiveMessage(string command, ref ArrayList data, Message msg)
+        {
+            const string tmpl = "IMAPX{0} {1}";
+            _counter++;
+
+            var parts = new Queue<string>(new Regex(@"\r\n").Split(command).Where(_ => !string.IsNullOrEmpty(_)));
+
+            string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
+            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+
+            try
+            {
+                _ioStream.Write(bytes, 0, bytes.Length);
+
+                while (true)
+                {
+                    string tmp = _streamReader.ReadLine();
+
+                    if (IsDebug)
+                        Console.WriteLine(tmp);
+
+                    data.Add(tmp);
+
+                    if (tmp.StartsWith("+ "))
+                    {
+                        this.SendData(msg.MessageBuilder());
+                        continue;
+                    }
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
+                        return true;
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
+                        return true;
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.NO)) ||
+                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
+                        return false;
+                }
+            }
+            catch (AuthenticationException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return false;   
+        }
+
         public bool SendAndReceive(string command, ref IList<string> data)
         {
             const string tmpl = "IMAPX{0} {1}";
@@ -380,7 +433,7 @@ namespace ImapX
             }
             catch (Exception ex)
             {
-                ex.ToString();
+                throw;
             }
 
             return false;
