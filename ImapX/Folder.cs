@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using ImapX.Collections;
 using ImapX.Exceptions;
 using ImapX.Flags;
+using System.Collections;
 
 namespace ImapX
 {
@@ -440,7 +441,7 @@ namespace ImapX
             }
             string selectedFolder = _client.SelectedFolder;
             Select();
-            IList<string> arrayList = new List<string>();
+            var arrayList = new ArrayList();
             string text = msg.MessageBuilder();
             int length = text.Length;
             if (string.IsNullOrEmpty(flag))
@@ -448,22 +449,23 @@ namespace ImapX
                 flag = "\\draft";
             }
             string command = string.Concat(new object[]
-            {
-                "APPEND \"",
-                FolderPath,
-                "\" (",
-                flag,
-                ") {",
-                length - 2,
-                "}\r\n"
-            });
-            if (_client.SendAndReceive(command, ref arrayList) && _client.SendData(text))
+                                           {
+                                               "APPEND \"",
+                                               FolderPath,
+                                               "\" (",
+                                               flag,
+                                               ") {",
+                                               length - 2,
+                                               "}\r\n"
+                                           });
+            if (_client.SendAndReceiveMessage(command, ref arrayList, msg))
             {
                 _client.SelectFolder(selectedFolder);
                 return true;
             }
             _client.SelectFolder(selectedFolder);
             return false;
+
         }
     }
 }
