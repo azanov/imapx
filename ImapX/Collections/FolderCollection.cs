@@ -24,7 +24,7 @@ namespace ImapX.Collections
         {
             get
             {
-                Folder result = List.FirstOrDefault(_ => _.Name.Equals(name));
+                Folder result = List.FirstOrDefault(_ => _.Name.Equals(name) || _.FolderPath.Equals(name));
                 return result;
             }
         }
