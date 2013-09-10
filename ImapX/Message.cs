@@ -124,7 +124,7 @@ namespace ImapX
 
         public void ProcessHeader()
         {
-            GetMessage("body[HEADER]", false);
+            GetMessage("BODY.PEEK[HEADER]", false);
         }
 
         public void ProcessFlags()

@@ -87,10 +87,10 @@ namespace ImapX
             }
         }
 
-        internal string FolderPath
+        public string FolderPath
         {
             get { return _folderPath; }
-            set { _folderPath = value; }
+            internal set { _folderPath = value; }
         }
 
         [Obsolete("SubFolder is obsolete, please use SubFolders")]
