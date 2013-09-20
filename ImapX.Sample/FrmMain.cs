@@ -190,18 +190,6 @@ namespace ImapX.Sample
                 : lsvMails.Width;
         }
 
-        private void exportForReportToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_selectedMessage == null) return;
-
-            sfdMain.FileName = "message.report";
-
-            if (sfdMain.ShowDialog() != DialogResult.OK) return;
-
-            _selectedMessage.ExportForReport(sfdMain.FileName);
-
-        }
-
         private void trwFolders_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             _lastClickedNode = e.Node;

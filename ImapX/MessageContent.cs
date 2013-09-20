@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ImapX
 {
-    [Serializable]
+
     public class MessageContent
     {
         public MessageContent()
@@ -67,7 +67,7 @@ namespace ImapX
                     // Remove leading blank line
                     ContentStream = ContentStream.TrimStart("\r\n".ToCharArray());
                     attachment.FileName = ParseHelper.GetRFC822FileName(ContentStream);
-                    attachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                    attachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
                 }
                 else if (ContentType != null && ContentType.ToLower().Contains("message/delivery-status"))
                     // [2013-04-24] naudelb(Len Naude) - Added
@@ -75,7 +75,7 @@ namespace ImapX
                     // Delivery failed notice atachment in mime(text) format
                     // Name will be hardcoded as "details.txt" as this is what outlook does
                     attachment.FileName = "details.txt";
-                    attachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                    attachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
                 }
                 else
                 {
@@ -128,7 +128,7 @@ namespace ImapX
                             attachment.FileData = Base64.FromBase64(bodyPart);
                             break;
                         case "7bit":
-                            attachment.FileData = Encoding.ASCII.GetBytes(bodyPart);
+                            attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
                             break;
                         case "quoted-printable":
                             attachment.FileData =
@@ -187,7 +187,7 @@ namespace ImapX
                         inlineAttachment.FileData = Base64.FromBase64(ContentStream);
                         break;
                     case "7bit":
-                        inlineAttachment.FileData = Encoding.ASCII.GetBytes(ContentStream);
+                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
                         break;
                     case "quoted-printable":
                         inlineAttachment.FileData =

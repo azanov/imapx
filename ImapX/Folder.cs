@@ -9,7 +9,7 @@ using System.Collections;
 
 namespace ImapX
 {
-    [Serializable]
+
     public class Folder
     {
         private readonly ImapClient _client;
@@ -133,7 +133,7 @@ namespace ImapX
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Folder name cannot be empty");
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
 
             string encodedName = ImapUTF7.Encode(name);
 
@@ -191,10 +191,10 @@ namespace ImapX
             var messageCollection = new MessageCollection();
             MessageCollection messageCollection2 = _client.SearchMessage("all");
             int result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
-            List<Message> list = messageCollection2.FindAll(m => m.MessageUid > result);
-            if (list.Count > 0)
+            var list = messageCollection2.Where(m => m.MessageUid > result);
+            if (list.Count() > 0)
             {
-                LastUpdateMessagesCount = list.Count;
+                LastUpdateMessagesCount = list.Count();
                 foreach (Message current2 in list)
                 {
                     current2.Client = _client;
@@ -253,7 +253,7 @@ namespace ImapX
             {
                 throw new ImapException("Dont Connect");
             }
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             string command = "EXAMINE \"" + FolderPath + "\"\r\n";
             if (!_client.SendAndReceive(command, ref arrayList))
             {
@@ -304,7 +304,7 @@ namespace ImapX
                 throw new ImapException("Dont Connect");
             }
             string text = "UID STORE {0}:{1} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             if (Messages.Count == 0)
             {
                 return true;
@@ -346,7 +346,7 @@ namespace ImapX
                 throw new InvalidOperationException(
                     "A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (!_client.SendAndReceive(string.Format(ImapCommands.DELETE, _folderPath), ref data))
                 return false;
 
@@ -375,7 +375,7 @@ namespace ImapX
             string selectedFolder = _client.SelectedFolder;
             Select();
             string text = "UID COPY {0} \"{1}\"\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             if (!_client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
             {
                 _client.SelectFolder(selectedFolder);
@@ -403,7 +403,7 @@ namespace ImapX
             string selectedFolder = _client.SelectedFolder;
             _client.SelectFolder(FolderPath);
             string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             Select();
             if (_client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
             {
@@ -441,7 +441,7 @@ namespace ImapX
             }
             string selectedFolder = _client.SelectedFolder;
             Select();
-            var arrayList = new ArrayList();
+            var arrayList = new List<string>();
             string text = msg.MessageBuilder();
             int length = text.Length;
             if (string.IsNullOrEmpty(flag))

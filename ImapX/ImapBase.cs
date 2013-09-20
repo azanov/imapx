@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Security;
+
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -10,6 +10,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Exceptions;
 using System.Collections;
+#if WINDOWS_PHONE
+using SocketEx;
+#else
+using System.Net.Security;
+#endif
 
 namespace ImapX
 {
@@ -205,6 +210,7 @@ namespace ImapX
 
             try
             {
+#if !WINDOWS_PHONE
                 _client = new TcpClient(_host, _port);
 
                 if (_sslProtocol == SslProtocols.None)
@@ -214,10 +220,16 @@ namespace ImapX
                 }
                 else
                 {
+
                     _ioStream = new SslStream(_client.GetStream(), false, CertificateValidationCallback, null);
                     (_ioStream as SslStream).AuthenticateAsClient(_host, null, _sslProtocol, false);
                     _streamReader = new StreamReader(_ioStream);
                 }
+
+#else
+                //TODO: Add support for Tls
+                _client = _sslProtocol == SslProtocols.None ? new TcpClient(_host, _port) : new SecureTcpClient(_host, _port);
+#endif
 
                 string result = _streamReader.ReadLine();
 
@@ -267,27 +279,30 @@ namespace ImapX
                 return;
 
             if (_streamReader != null)
-                _streamReader.Close();
+                _streamReader.Dispose();
 
             if (_ioStream != null)
-                _ioStream.Close();
+                _ioStream.Dispose();
 
             if (_client != null)
+#if !WINDOWS_PHONE
                 _client.Close();
-
+#else
+                _client.Dispose();
+#endif
             _connected = false;
         }
 
         internal void Capability()
         {
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (SendAndReceive(ImapCommands.CAPABILITY, ref data) && data.Count > 0)
                 Capabilities = new Capability(data[0]);
         }
 
         public bool SendData(string data)
         {
-            byte[] bytes = Encoding.ASCII.GetBytes(data.ToCharArray());
+            byte[] bytes = Encoding.UTF8.GetBytes(data.ToCharArray());
             try
             {
                 _ioStream.Write(bytes, 0, data.Length);
@@ -320,7 +335,7 @@ namespace ImapX
                 " ",
                 command
             });
-            byte[] bytes = Encoding.ASCII.GetBytes(text.ToCharArray());
+            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
             if (_isDebug)
             {
                 Console.WriteLine(text);
@@ -334,7 +349,7 @@ namespace ImapX
             }
         }
 
-        public bool SendAndReceiveMessage(string command, ref ArrayList data, Message msg)
+        public bool SendAndReceiveMessage(string command, ref List<string> data, Message msg)
         {
             const string tmpl = "IMAPX{0} {1}";
             _counter++;
@@ -386,7 +401,7 @@ namespace ImapX
             return false;   
         }
 
-        public bool SendAndReceive(string command, ref IList<string> data)
+        public bool SendAndReceive(string command, ref List<string> data)
         {
             const string tmpl = "IMAPX{0} {1}";
             _counter++;
@@ -431,13 +446,11 @@ namespace ImapX
             {
                 throw;
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
 
             return false;
         }
+
+#if !WINDOWS_PHONE
 
         /// <summary>
         ///     The certificate validation callback
@@ -447,5 +460,8 @@ namespace ImapX
         {
             return sslPolicyErrors == SslPolicyErrors.None || !_validateServerCertificate;
         }
+
+#endif
+
     }
 }

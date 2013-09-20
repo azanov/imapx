@@ -40,7 +40,7 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be added</returns>
         public bool AddRange(IEnumerable<string> flags)
         {
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (!Client.SendAndReceive(string.Format(ImapCommands.STORE,
                 _message.MessageUid, AddType,
                 string.Join(" ",
@@ -87,7 +87,7 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be removed</returns>
         public bool RemoveRange(IEnumerable<string> flags)
         {
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (!Client.SendAndReceive(
                 string.Format(ImapCommands.STORE, _message.MessageUid, RemoveType,
                     string.Join(" ",

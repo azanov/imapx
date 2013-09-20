@@ -43,7 +43,6 @@
             this.moveToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.markAsReadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exportForReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.istPlaceHolder = new System.Windows.Forms.ImageList(this.components);
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.pnlAttachments = new System.Windows.Forms.Panel();
@@ -224,40 +223,32 @@
             this.mnuMessages.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.moveToFolderToolStripMenuItem,
             this.deleteToolStripMenuItem,
-            this.markAsReadToolStripMenuItem,
-            this.exportForReportToolStripMenuItem});
+            this.markAsReadToolStripMenuItem});
             this.mnuMessages.Name = "mnuMessages";
             this.mnuMessages.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.mnuMessages.Size = new System.Drawing.Size(170, 114);
+            this.mnuMessages.Size = new System.Drawing.Size(162, 92);
             this.mnuMessages.Opening += new System.ComponentModel.CancelEventHandler(this.mnuMessages_Opening);
             // 
             // moveToFolderToolStripMenuItem
             // 
             this.moveToFolderToolStripMenuItem.Name = "moveToFolderToolStripMenuItem";
-            this.moveToFolderToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.moveToFolderToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.moveToFolderToolStripMenuItem.Text = "Move to folder...";
             this.moveToFolderToolStripMenuItem.Click += new System.EventHandler(this.moveToFolderToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // markAsReadToolStripMenuItem
             // 
             this.markAsReadToolStripMenuItem.Name = "markAsReadToolStripMenuItem";
-            this.markAsReadToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.markAsReadToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.markAsReadToolStripMenuItem.Text = "Read";
             this.markAsReadToolStripMenuItem.Click += new System.EventHandler(this.markAsReadToolStripMenuItem_Click);
-            // 
-            // exportForReportToolStripMenuItem
-            // 
-            this.exportForReportToolStripMenuItem.Name = "exportForReportToolStripMenuItem";
-            this.exportForReportToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.exportForReportToolStripMenuItem.Text = "Export for report...";
-            this.exportForReportToolStripMenuItem.Click += new System.EventHandler(this.exportForReportToolStripMenuItem_Click);
             // 
             // istPlaceHolder
             // 
@@ -490,7 +481,6 @@
         private System.Windows.Forms.ToolStripMenuItem moveToFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader clmMessages;
-        private System.Windows.Forms.ToolStripMenuItem exportForReportToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip mnuFolders;
         private System.Windows.Forms.ToolStripMenuItem emptyFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem markAsReadToolStripMenuItem;

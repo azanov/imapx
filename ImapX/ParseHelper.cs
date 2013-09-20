@@ -77,20 +77,20 @@ namespace ImapX
         public static string DecodeBase64(string value, Encoding encoding)
         {
             if (encoding == null)
-                encoding = Encoding.Default;
+                encoding = Encoding.UTF8;
             if (string.IsNullOrEmpty(value))
                 return "";
             byte[] bytes = Base64.FromBase64(value);
-            return encoding.GetString(bytes);
+            return encoding.GetString(bytes, 0, bytes.Length);
         }
 
         public static string DecodeQuotedPrintable(string value, Encoding encoding)
         {
             if (encoding == null)
-                encoding = Encoding.Default;
+                encoding = Encoding.UTF8;
             if (value.IndexOf('_') > -1 && value.IndexOf(' ') == -1)
                 value = value.Replace('_', ' ');
-            byte[] data = Encoding.ASCII.GetBytes(value);
+            byte[] data = Encoding.UTF8.GetBytes(value);
             byte eq = Convert.ToByte('=');
             int n = 0;
             for (int i = 0; i < data.Length; i++)
@@ -154,7 +154,7 @@ namespace ImapX
                 contentType = (new Regex(@"(.*)\/(.*)[;]?").IsMatch(value))
                     ? value.Replace(";", "").TrimEnd()
                     : string.Empty;
-                return Encoding.Default;
+                return Encoding.UTF8;
             }
             contentType = tmp.Groups[tmp.Groups.Count - 2].Value.Split(new[] {';'})[0].Trim();
             return TryGetEncoding(tmp.Groups[tmp.Groups.Count - 1].Value.Split(new[] {';'})[0].Trim(), Encoding.UTF8);
