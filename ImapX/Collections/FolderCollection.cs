@@ -46,7 +46,7 @@ namespace ImapX.Collections
                 ? folderName
                 : _parentFolder.FolderPath + Client.Behavior.FolderDelimeter + folderName;
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
 
             if (Client.SendAndReceive(string.Format(ImapCommands.CREATE, path), ref data))
             {

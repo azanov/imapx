@@ -42,7 +42,8 @@ namespace ImapX
             {
                 string v = m.Value.TrimStart('&').TrimEnd('-').Replace(",", "/");
                 v += v.Length%4 == 2 ? "==" : (v.Length%4 == 3 ? "=" : "");
-                result = result.Replace(m.Value, encoding.GetString(Base64.FromBase64(v)).Replace("\0", ""));
+                var data = Base64.FromBase64(v);
+                result = result.Replace(m.Value, encoding.GetString(data, 0, data.Length).Replace("\0", ""));
             }
 
             return result;

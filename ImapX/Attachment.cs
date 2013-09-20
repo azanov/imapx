@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ImapX
 {
-    [Serializable]
+
     public class Attachment
     {
         private byte[] _fileData;

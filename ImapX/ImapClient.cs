@@ -126,7 +126,7 @@ namespace ImapX
         {
             var result = new FolderCollection(this, parent);
             var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.X_LIST : ImapCommands.LIST, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (SendAndReceive(cmd, ref data))
             {
                 for (var i = 0; i < data.Count - 1; i++)
@@ -161,7 +161,7 @@ namespace ImapX
             {
                 throw new ImapException("Not Set Search Path");
             }
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
 
 
             string command = "UID SEARCH " + path + "\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
@@ -169,7 +169,7 @@ namespace ImapX
             {
                 throw new ImapException("Bad or not correct search query");
             }
-            string[] array = (data.FirstOrDefault(_=>_.StartsWith("* SEARCH", true, CultureInfo.InvariantCulture)) ?? "").Split(new[]
+            string[] array = (data.FirstOrDefault(_=>_.StartsWith("* SEARCH", StringComparison.InvariantCultureIgnoreCase)) ?? "").Split(new[]
             {
                 ' '
             });
@@ -211,7 +211,7 @@ namespace ImapX
         public bool Login(IImapCredentials credentials)
         {
             Credentials = credentials;
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data);
             return IsAuthenticated;
         }
@@ -227,7 +227,7 @@ namespace ImapX
         /// <returns><code>true</code> if the logout was successful</returns>
         public bool Logout()
         {
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (SendAndReceive(ImapCommands.LOGOUT, ref data))
             {
                 IsAuthenticated = false;
@@ -247,7 +247,7 @@ namespace ImapX
             {
                 return false;
             }
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             string command = "SELECT \"" + folderName + "\"\r\n";
             if (!SendAndReceive(command, ref arrayList))
             {

@@ -45,7 +45,7 @@ namespace ImapX.Collections
                 !_folder.AllowedPermanentFlags.Intersect(flags).Any())
                 return false;
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (Client.SendAndReceive(string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath,
                 Client.Behavior.SpecialUseMetadataPath,
                 string.Join(" ", _folder.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct().ToArray())), ref data))
@@ -94,7 +94,7 @@ namespace ImapX.Collections
                 !_folder.AllowedPermanentFlags.Intersect(flags).Any())
                 return false;
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             if (
                 Client.SendAndReceive(
                     string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath, Client.Behavior.SpecialUseMetadataPath,

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,6 +30,10 @@ namespace ImapX
         /// <returns></returns>
         public static string ToBase64(byte[] data)
         {
+
+#if WINDOWS_PHONE
+            return Convert.ToBase64String(data);
+#else
             var builder = new StringBuilder();
             using (var writer = new StringWriter(builder))
             {
@@ -50,14 +55,14 @@ namespace ImapX
                         i += inputBlockSize;
 
 
-                        writer.Write(Encoding.UTF8.GetString(bufferedOutputBytes));
+                        writer.Write(Encoding.UTF8.GetString(bufferedOutputBytes, 0, bufferedOutputBytes.Length));
                     }
 
                     // Transform the final block of data.
 
                     bufferedOutputBytes = transformation.TransformFinalBlock(data, i, data.Length - i);
 
-                    writer.Write(Encoding.UTF8.GetString(bufferedOutputBytes));
+                    writer.Write(Encoding.UTF8.GetString(bufferedOutputBytes, 0, bufferedOutputBytes.Length));
 
                     // Free up any used resources.
 
@@ -67,6 +72,7 @@ namespace ImapX
                 writer.Close();
             }
             return builder.ToString();
+#endif
         }
 
         /// <summary>
@@ -76,6 +82,9 @@ namespace ImapX
         /// <returns></returns>
         public static byte[] FromBase64(string s)
         {
+#if WINDOWS_PHONE
+            return Convert.FromBase64String(s);
+#else
             byte[] bytes;
 
             s = Regex.Replace(Regex.Replace(s, @"\r\n?|\n", string.Empty), @"--.*", string.Empty);
@@ -120,6 +129,7 @@ namespace ImapX
                 writer.Close();
             }
             return bytes;
+#endif
         }
     }
 }

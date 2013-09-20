@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Collections;
@@ -12,8 +10,8 @@ using ImapX.EmailParser;
 
 namespace ImapX
 {
-    [Serializable]
-    public class Message : ISerializable
+
+    public class Message
     {
         internal ImapClient Client;
         internal Folder Folder; // [5/10/13] Fix by axlns
@@ -33,15 +31,6 @@ namespace ImapX
             To = new List<MailAddress>();
             TextBody = new MessageContent();
             HtmlBody = new MessageContent();
-        }
-
-        public Message(SerializationInfo info, StreamingContext ctxt)
-        {
-            BodyParts = (List<MessageContent>) info.GetValue("Parts", typeof (List<MessageContent>));
-            ContentTransferEncoding = (string) info.GetValue("Encoding", typeof (string));
-            ContentType = (string) info.GetValue("Type", typeof (string));
-            Subject = (string) info.GetValue("Subject", typeof (string));
-            XMailer = (string) info.GetValue("XMailer", typeof (string));
         }
 
         public Dictionary<string, string> Headers { get; private set; }
@@ -99,15 +88,6 @@ namespace ImapX
         {
             get { return _subject ?? string.Empty; }
             set { _subject = value; }
-        }
-
-        public void GetObjectData(SerializationInfo info, StreamingContext ctxt)
-        {
-            info.AddValue("Encoding", ContentTransferEncoding);
-            info.AddValue("Type", ContentType);
-            info.AddValue("Subject", Subject);
-            info.AddValue("XMailer", XMailer);
-            info.AddValue("Parts", BodyParts);
         }
 
         [Obsolete("AddFlag is obsolete, please use Flags.Add instead")]
@@ -219,7 +199,7 @@ namespace ImapX
                                     attachment.FileData = Base64.FromBase64(current.ContentStream);
                                     break;
                                 case "7bit":
-                                    attachment.FileData = Encoding.ASCII.GetBytes(current.ContentStream);
+                                    attachment.FileData = Encoding.UTF8.GetBytes(current.ContentStream);
                                     break;
                                 case "quoted-printable":
                                     attachment.FileData =
@@ -273,7 +253,7 @@ namespace ImapX
             var flagRex = new Regex(@"FLAGS \((.*?)\)");
             var labelsRex = new Regex(@"X-GM-LABELS \((.*?)\)");
 
-            IList<string> data = new List<string>();
+            List<string> data = new List<string>();
             string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n";
                 // [21.12.12] Fix by Yaroslav T, added UID command
 
@@ -303,7 +283,7 @@ namespace ImapX
             string body = "";
             string transferEncoding = "";
             string contentType = "";
-            Encoding encoding = Encoding.Default;
+            Encoding encoding = Encoding.UTF8;
 
             if (HtmlBody != null && !string.IsNullOrEmpty(HtmlBody.ContentStream))
             {
@@ -389,7 +369,7 @@ namespace ImapX
         /// </remarks>
         private void GetMessage(string path, bool processBody)
         {
-            IList<string> arrayList = new List<string>();
+            List<string> arrayList = new List<string>();
             string command = string.Concat(new object[]
             {
                 "UID FETCH ", // [21.12.12] Fix by Yaroslav T, added UID command
@@ -576,7 +556,7 @@ namespace ImapX
             StringBuilder eml = GetEml();
             using (var fileStream = new FileStream(path + filename + ".eml", FileMode.Create, FileAccess.Write))
             {
-                using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.ASCII))
+                using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.UTF8))
                 {
                     textWriter.Write(eml.ToString());
                 }
@@ -588,7 +568,7 @@ namespace ImapX
             var stringBuilder = new StringBuilder();
             DateTime now = DateTime.Now;
             stringBuilder.AppendFormat("Date: {0}{1}",
-                now.ToString("dd-MM-yyyy hh:mm:ss", CultureInfo.CreateSpecificCulture("en-US")), "\r\n");
+                now.ToString("dd-MM-yyyy hh:mm:ss", new  CultureInfo("en-US")), "\r\n");
             if (From != null)
             {
                 stringBuilder.Append("From: ");
@@ -710,26 +690,5 @@ namespace ImapX
             return stringBuilder.ToString();
         }
 
-        public void ExportForReport(string fileName)
-        {
-            using (Stream stream = File.Open(fileName, FileMode.Create))
-            {
-                var bFormatter = new BinaryFormatter();
-                bFormatter.Serialize(stream, this);
-                stream.Close();
-            }
-        }
-
-        public static Message FromReport(string fileName)
-        {
-            Message objectToSerialize;
-            using (Stream stream = File.Open(fileName, FileMode.Open))
-            {
-                var bFormatter = new BinaryFormatter();
-                objectToSerialize = (Message) bFormatter.Deserialize(stream);
-                stream.Close();
-            }
-            return objectToSerialize;
-        }
     }
 }

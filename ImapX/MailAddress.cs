@@ -2,7 +2,7 @@
 
 namespace ImapX
 {
-    [Serializable]
+
     public class MailAddress
     {
         public MailAddress()
