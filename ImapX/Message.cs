@@ -183,7 +183,7 @@ namespace ImapX
                             var attachment = new Attachment
                             {
                                 FileName =
-                                    ParseHelper.DecodeName(string.IsNullOrEmpty(current.ContentFilename)
+                                    StringDecoder.Decode(string.IsNullOrEmpty(current.ContentFilename)
                                         ? ParseHelper.ExtractFileName(current.ContentType)
                                         : current.ContentFilename),
                                 FileType = ParseHelper.ExtractFileType(current.ContentType),
@@ -209,7 +209,7 @@ namespace ImapX
                                 case "quoted-printable":
                                     attachment.FileData =
                                         Encoding.UTF8.GetBytes(
-                                            ParseHelper.DecodeQuotedPrintable(current.ContentStream,
+                                            StringDecoder.DecodeQuotedPrintable(current.ContentStream,
                                                 Encoding.UTF8));
                                     break;
                                 default:
@@ -353,10 +353,10 @@ namespace ImapX
             switch (transferEncoding)
             {
                 case "base64":
-                    body = ParseHelper.DecodeBase64(body, encoding);
+                    body = StringDecoder.DecodeBase64(body, encoding);
                     break;
                 case "quoted-printable":
-                    body = ParseHelper.DecodeQuotedPrintable(body, encoding);
+                    body = StringDecoder.DecodeQuotedPrintable(body, encoding);
                     break;
             }
 
@@ -438,7 +438,7 @@ namespace ImapX
                         References = current.Value;
                         break;
                     case MessageProperty.REPLY_TO:
-                        ReplyTo = ParseHelper.DecodeName(current.Value);
+                        ReplyTo = StringDecoder.Decode(current.Value);
                         break;
                     case MessageProperty.X_MAILER:
                         XMailer = current.Value;
@@ -450,7 +450,7 @@ namespace ImapX
                         Bcc = HeaderFieldParser.ParseMailAddressCollection(current.Value);
                         break;
                     case MessageProperty.SUBJECT:
-                        _subject = ParseHelper.DecodeName(current.Value);
+                        _subject = StringDecoder.Decode(current.Value);
                         break;
                 }
             }

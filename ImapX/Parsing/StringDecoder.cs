@@ -8,7 +8,7 @@ namespace ImapX.Parsing
 {
     internal class StringDecoder
     {
-        private static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
+        internal static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace ImapX.Parsing
             }
         }
 
-        private static string DecodeBase64(string value, Encoding encoding)
+        internal static string DecodeBase64(string value, Encoding encoding)
         {
             if (encoding == null)
                 encoding = Encoding.UTF8;
@@ -30,7 +30,7 @@ namespace ImapX.Parsing
             return encoding.GetString(bytes, 0, bytes.Length);
         }
 
-        private static string DecodeQuotedPrintable(string value, Encoding encoding)
+        internal static string DecodeQuotedPrintable(string value, Encoding encoding)
         {
             if (encoding == null)
                 encoding = Encoding.UTF8;
