@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.EncodingHelpers;
+using ImapX.Parsing;
 
 namespace ImapX
 {
@@ -110,7 +111,7 @@ namespace ImapX
                                     break;
                                 case "name":
                                 case "filename":
-                                    attachment.FileName = ParseHelper.DecodeName(value.Trim('"').Trim('\''));
+                                    attachment.FileName = StringDecoder.Decode(value.Trim('"').Trim('\''));
                                     break;
                                 case MessageProperty.CONTENT_TRANSFER_ENCODING:
                                     attachment.FileEncoding = value.ToLower();
@@ -133,7 +134,7 @@ namespace ImapX
                             break;
                         case "quoted-printable":
                             attachment.FileData =
-                                Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
+                                Encoding.UTF8.GetBytes(StringDecoder.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
                             break;
                         default:
                             attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
@@ -192,7 +193,7 @@ namespace ImapX
                         break;
                     case "quoted-printable":
                         inlineAttachment.FileData =
-                            Encoding.UTF8.GetBytes(ParseHelper.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
+                            Encoding.UTF8.GetBytes(StringDecoder.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
                         break;
                     default:
                         inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
