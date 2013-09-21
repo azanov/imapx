@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ImapX.Collections;
+using ImapX.EncodingHelpers;
 using ImapX.Exceptions;
 using ImapX.Flags;
 using System.Collections;

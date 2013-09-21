@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ImapX
+namespace ImapX.EncodingHelpers
 {
     public class ImapUTF7
     {

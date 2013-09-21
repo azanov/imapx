@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Collections;
 using ImapX.EmailParser;
+using ImapX.EncodingHelpers;
+using ImapX.Parsing;
 
 namespace ImapX
 {
@@ -28,7 +31,9 @@ namespace ImapX
             Attachments = new List<Attachment>();
             InlineAttachments = new List<InlineAttachment>();
             BodyParts = new List<MessageContent>();
-            To = new List<MailAddress>();
+            To = new MailAddressCollection();
+            Cc = new MailAddressCollection();
+            Bcc = new MailAddressCollection();
             TextBody = new MessageContent();
             HtmlBody = new MessageContent();
         }
@@ -68,13 +73,13 @@ namespace ImapX
 
         public List<MessageContent> BodyParts { get; set; }
 
-        public List<MailAddress> To { get; set; }
+        public MailAddressCollection To { get; set; }
 
         public MailAddress From { get; set; }
 
-        public List<MailAddress> Cc { get; set; }
+        public MailAddressCollection Cc { get; set; }
 
-        public List<MailAddress> Bcc { get; set; }
+        public MailAddressCollection Bcc { get; set; }
 
         public DateTime Date
         {
@@ -399,10 +404,10 @@ namespace ImapX
                 switch (key)
                 {
                     case MessageProperty.TO:
-                        To = ParseHelper.AddressCollection(current.Value);
+                        To = HeaderFieldParser.ParseMailAddressCollection(current.Value);
                         break;
                     case MessageProperty.FROM:
-                        From = ParseHelper.Address(current.Value);
+                        From = HeaderFieldParser.ParseMailAddress(current.Value);
                         break;
                     case MessageProperty.DATE:
                         DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()),
@@ -439,10 +444,10 @@ namespace ImapX
                         XMailer = current.Value;
                         break;
                     case MessageProperty.CC:
-                        Cc = ParseHelper.AddressCollection(current.Value);
+                        Cc = HeaderFieldParser.ParseMailAddressCollection(current.Value);
                         break;
                     case MessageProperty.BCC:
-                        Bcc = ParseHelper.AddressCollection(current.Value);
+                        Bcc = HeaderFieldParser.ParseMailAddressCollection(current.Value);
                         break;
                     case MessageProperty.SUBJECT:
                         _subject = ParseHelper.DecodeName(current.Value);

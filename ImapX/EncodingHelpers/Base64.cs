@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ImapX
+namespace ImapX.EncodingHelpers
 {
     /// <summary>
     ///     Transforms text to and from base64 encoding using streams.

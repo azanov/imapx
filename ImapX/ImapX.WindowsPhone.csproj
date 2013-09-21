@@ -63,7 +63,6 @@
     <Compile Include="Authentication\IImapCredentials.cs" />
     <Compile Include="Authentication\OAuth2Credentials.cs" />
     <Compile Include="Authentication\PlainCredentials.cs" />
-    <Compile Include="Base64.cs" />
     <Compile Include="Capability.cs" />
     <Compile Include="ClientBehavior.cs" />
     <Compile Include="Collections\CommonFolderCollection.cs" />
@@ -73,6 +72,8 @@
     <Compile Include="Collections\ImapObjectCollection.cs" />
     <Compile Include="Collections\MessageFlagCollection.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="EncodingHelpers\Base64.cs" />
+    <Compile Include="EncodingHelpers\ImapUTF7.cs" />
     <Compile Include="Enums\FolderTreeBrowseMode.cs" />
     <Compile Include="Enums\MessageFetchMode.cs" />
     <Compile Include="Exceptions\InvalidStateException.cs" />
@@ -89,15 +90,17 @@
     <Compile Include="ImapClient.cs" />
     <Compile Include="ImapException.cs" />
     <Compile Include="ImapFlags.cs" />
-    <Compile Include="ImapUTF7.cs" />
-    <Compile Include="MailAddress.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageCollection.cs" />
     <Compile Include="MessageContent.cs" />
     <Compile Include="MessageProperty.cs" />
     <Compile Include="ParseHelper.cs" />
+    <Compile Include="Parsing\HeaderFieldParser.cs" />
+    <Compile Include="Parsing\StringDecoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseType.cs" />
+    <Compile Include="System\Net\Mail\MailAddress.cs" />
+    <Compile Include="System\Net\Mail\MailAddressCollection.cs" />
     <Compile Include="System\Security\Authentication\AuthenticationException.cs" />
     <Compile Include="System\Security\Authentication\SslProtocols.cs" />
   </ItemGroup>

@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace ImapX
+﻿namespace System.Net.Mail
 {
-
     public class MailAddress
     {
         public MailAddress()
@@ -23,11 +20,7 @@ namespace ImapX
 
         public override string ToString()
         {
-            if (DisplayName != string.Empty)
-            {
-                return string.Format("{0} <{1}>", DisplayName, Address);
-            }
-            return Address;
+            return DisplayName != string.Empty ? string.Format("{0} <{1}>", DisplayName, Address) : Address;
         }
     }
 }
