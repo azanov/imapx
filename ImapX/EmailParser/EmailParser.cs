@@ -107,9 +107,9 @@ namespace ImapX.EmailParser
                     {
                         if (_headerLastKey != null && HeadersCollection.ContainsKey(_headerLastKey))
                         {
-                            Dictionary<string, string> headersCollection;
-                            string headerLastKey;
-                            (headersCollection = HeadersCollection)[headerLastKey = _headerLastKey] =
+                            Dictionary<string, string> headersCollection = HeadersCollection;
+                            string headerLastKey = _headerLastKey;
+                            headersCollection[headerLastKey] =
                                 headersCollection[headerLastKey] + "\n" + EmailItems[i];
                         }
                     }
@@ -222,9 +222,9 @@ namespace ImapX.EmailParser
                                     }
                                     else
                                     {
-                                        Dictionary<string, string> headers;
-                                        string headerLastKey;
-                                        (headers = bodyPart.Headers)[headerLastKey = _headerLastKey] =
+                                        Dictionary<string, string> headers = bodyPart.Headers;
+                                        string headerLastKey =  _headerLastKey;
+                                        headers[headerLastKey] =
                                             headers[headerLastKey] + "\n" + EmailItems[num];
                                     }
                                 }
