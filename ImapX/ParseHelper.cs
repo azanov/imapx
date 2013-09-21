@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ImapX.EncodingHelpers;
 
 namespace ImapX
 {
@@ -250,51 +251,6 @@ namespace ImapX
                 return true;
             }
             return false;
-        }
-
-        public static MailAddress Address(string line)
-        {
-            int num = line.LastIndexOf("<", StringComparison.Ordinal);
-            if (num < 0)
-            {
-                return new MailAddress(null, line.Trim());
-            }
-            string addr = line.Substring(num).Trim().TrimStart(new[]
-            {
-                '<'
-            }).TrimEnd(new[]
-            {
-                '>'
-            });
-            string display = "";
-            if (num >= 1)
-            {
-                display = line.Substring(0, num - 1).Trim();
-            }
-            return new MailAddress(DecodeName(display), addr);
-        }
-
-        public static List<MailAddress> AddressCollection(string value)
-        {
-            var list = new List<MailAddress>();
-            string[] array = value.Trim().Split(new[]
-            {
-                ">,",
-                "> ,"
-            }, StringSplitOptions.None);
-            string[] array2 = array;
-            foreach (string line in array2)
-            {
-                try
-                {
-                    list.Add(Address(line));
-                }
-                catch (Exception)
-                {
-                    throw new Exception("Not correct mail address");
-                }
-            }
-            return list;
         }
 
         internal static string ExtractFileName(string p)
