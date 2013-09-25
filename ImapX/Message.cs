@@ -13,7 +13,6 @@ using ImapX.Parsing;
 
 namespace ImapX
 {
-
     public class Message
     {
         internal ImapClient Client;
@@ -258,9 +257,9 @@ namespace ImapX
             var flagRex = new Regex(@"FLAGS \((.*?)\)");
             var labelsRex = new Regex(@"X-GM-LABELS \((.*?)\)");
 
-            List<string> data = new List<string>();
+            var data = new List<string>();
             string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n";
-                // [21.12.12] Fix by Yaroslav T, added UID command
+            // [21.12.12] Fix by Yaroslav T, added UID command
 
             if (Client.SendAndReceive(command, ref data))
                 Flags.AddRangeInternal(
@@ -275,12 +274,13 @@ namespace ImapX
             if (!Client.SendAndReceive(command, ref data)) return;
 
             var labelSplitRex = new Regex(@"("".*?""|[^""\s]+)+(?=\s*|\s*$)");
-            var labelsMatch = labelSplitRex.Match(labelsRex.Match(data[0]).Groups[1].Value);
+            Match labelsMatch = labelSplitRex.Match(labelsRex.Match(data[0]).Groups[1].Value);
 
             if (labelsMatch.Groups.Count > 1)
-                Labels.AddRangeInternal(labelsMatch.Groups.Cast<Group>().Skip(1).Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
-
-
+                Labels.AddRangeInternal(
+                    labelsMatch.Groups.Cast<Group>()
+                        .Skip(1)
+                        .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
         }
 
         public string GetDecodedBody(out bool isHtml)
@@ -374,7 +374,7 @@ namespace ImapX
         /// </remarks>
         private void GetMessage(string path, bool processBody)
         {
-            List<string> arrayList = new List<string>();
+            var arrayList = new List<string>();
             string command = string.Concat(new object[]
             {
                 "UID FETCH ", // [21.12.12] Fix by Yaroslav T, added UID command
@@ -573,7 +573,7 @@ namespace ImapX
             var stringBuilder = new StringBuilder();
             DateTime now = DateTime.Now;
             stringBuilder.AppendFormat("Date: {0}{1}",
-                now.ToString("dd-MM-yyyy hh:mm:ss", new  CultureInfo("en-US")), "\r\n");
+                now.ToString("dd-MM-yyyy hh:mm:ss", new CultureInfo("en-US")), "\r\n");
             if (From != null)
             {
                 stringBuilder.Append("From: ");
@@ -694,6 +694,5 @@ namespace ImapX
             }
             return stringBuilder.ToString();
         }
-
     }
 }
