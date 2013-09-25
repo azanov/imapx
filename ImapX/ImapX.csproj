@@ -92,6 +92,7 @@
     <Compile Include="ResponseType.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ImapX.cd" />
     <None Include="ImapX.snk" />
   </ItemGroup>
   <ItemGroup />

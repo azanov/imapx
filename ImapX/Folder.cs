@@ -228,7 +228,7 @@ namespace ImapX
 
         internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
         {
-            var rex = new Regex(@".*\((\\.*)+\)\s\""(.)\""\s\""(.*)\""");
+            var rex = new Regex(@".*\((\\.*)+\)\s\""(.)\""\s[\""]?([^\""]*)[\""]?");
             Match match = rex.Match(commandResult);
 
             if (match.Success && match.Groups.Count == 4)
