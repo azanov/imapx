@@ -228,7 +228,7 @@ namespace ImapX
 
         internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
         {
-            var rex = new Regex(@".*\((\\.*)+\)\s\""(.)\""\s[\""]?([^\""]*)[\""]?");
+            var rex = new Regex(@".*\((\\.*)+\)\s[""]?(.|[NIL]{3})[""]?\s[""]?([^""]*)[""]?", RegexOptions.IgnoreCase);
             Match match = rex.Match(commandResult);
 
             if (match.Success && match.Groups.Count == 4)
@@ -237,10 +237,8 @@ namespace ImapX
 
                 string path = match.Groups[3].Value;
 
-                if (client.Behavior.FolderDelimeter == '\0')
-                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value)
-                        ? '"'
-                        : match.Groups[2].Value.ToCharArray()[0];
+                if (client.Behavior.FolderDelimeter == '\0' && !(string.IsNullOrEmpty(match.Groups[2].Value) || match.Groups[2].Value.ToUpper().Equals("NIL")))
+                    client.Behavior.FolderDelimeter = match.Groups[2].Value.ToCharArray()[0];
 
                 return new Folder(path, flags, ref parent, client);
             }
