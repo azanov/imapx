@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -8,8 +9,10 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using ImapX.Constants;
 using ImapX.Exceptions;
 using System.Collections;
+using ImapX.Parsing;
 #if WINDOWS_PHONE
 using SocketEx;
 #else
@@ -18,11 +21,11 @@ using System.Net.Security;
 
 namespace ImapX
 {
-    public class ImapBase
+    public class ImapBase : IDisposable
     {
         public const int DefaultImapPort = 143;
         public const int DefaultImapSslPort = 993;
-        internal string SelectedFolder;
+        private static readonly Regex NewLineRex = new Regex(@"\r\n");
 
         private TcpClient _client;
         private bool _connected;
@@ -30,7 +33,6 @@ namespace ImapX
 
         private string _host;
         private Stream _ioStream;
-        private bool _isDebug;
         private int _port = DefaultImapPort;
 
         private SslProtocols _sslProtocol = SslProtocols.None;
@@ -42,13 +44,6 @@ namespace ImapX
         /// </summary>
         public bool IsAuthenticated { get; internal set; }
 
-        [Obsolete("IsLogin is obsolete, please use IsAuthenticated instead", true)]
-        public bool IsLogged
-        {
-            get { return IsAuthenticated; }
-            internal set { IsAuthenticated = value; }
-        }
-
         /// <summary>
         ///     Gets whether the client is connected to the server
         /// </summary>
@@ -57,28 +52,7 @@ namespace ImapX
             get { return _connected; }
         }
 
-        /// <summary>
-        ///     Get or set whether the server certificate should be validated when using SSL. <code>true</code> by default
-        /// </summary>
-        /// <exception cref="Exceptions.InvalidStateException">On set, if the client is connected.</exception>
-        public bool ValidateServerCertificate
-        {
-            get { return _validateServerCertificate; }
-            set
-            {
-                if (_connected)
-                    throw new InvalidStateException(
-                        "The certificate validation mode cannot be changed after the connection has been established. Please disconnect first.");
-
-                _validateServerCertificate = value;
-            }
-        }
-
-        public bool IsDebug
-        {
-            get { return _isDebug; }
-            set { _isDebug = value; }
-        }
+        public bool IsDebug { get; set; }
 
         /// <summary>
         ///     The server address to connect to
@@ -140,10 +114,34 @@ namespace ImapX
         }
 
         /// <summary>
+        ///     Get or set whether the server certificate should be validated when using SSL. <code>true</code> by default
+        /// </summary>
+        /// <exception cref="Exceptions.InvalidStateException">On set, if the client is connected.</exception>
+        public bool ValidateServerCertificate
+        {
+            get { return _validateServerCertificate; }
+            set
+            {
+                if (_connected)
+                    throw new InvalidStateException(
+                        "The certificate validation mode cannot be changed after the connection has been established. Please disconnect first.");
+
+                _validateServerCertificate = value;
+            }
+        }
+
+        /// <summary>
         ///     The server capabilities
         /// </summary>
-        public Capability Capabilities { get; private set; }
+        public Capability Capabilities { get; protected set; }
 
+        /// <summary>
+        ///     Disconnects from server and disposes the objects
+        /// </summary>
+        public void Dispose()
+        {
+            CleanUp();
+        }
 
         /// <summary>
         ///     Connect using set values.
@@ -163,7 +161,7 @@ namespace ImapX
         /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
         /// <returns><code>true</code> if the connection was successful</returns>
         /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect(string host, bool useSsl = false, bool validateServerCertificate = false)
+        public bool Connect(string host, bool useSsl = false, bool validateServerCertificate = true)
         {
             return Connect(host,
                 useSsl ? DefaultImapSslPort : DefaultImapPort,
@@ -180,7 +178,7 @@ namespace ImapX
         /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
         /// <returns><code>true</code> if the connection was successful</returns>
         /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect(string host, int port, bool useSsl = false, bool validateServerCertificate = false)
+        public bool Connect(string host, int port, bool useSsl = false, bool validateServerCertificate = true)
         {
             return Connect(host,
                 port,
@@ -198,7 +196,7 @@ namespace ImapX
         /// <returns><code>true</code> if the connection was successful</returns>
         /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
         public bool Connect(string host, int port, SslProtocols sslProtocol = SslProtocols.None,
-            bool validateServerCertificate = false)
+            bool validateServerCertificate = true)
         {
             _host = host;
             _port = port;
@@ -260,6 +258,7 @@ namespace ImapX
             }
         }
 
+
         /// <summary>
         ///     Disconnects from server
         /// </summary>
@@ -293,162 +292,6 @@ namespace ImapX
             _connected = false;
         }
 
-        internal void Capability()
-        {
-            List<string> data = new List<string>();
-            if (SendAndReceive(ImapCommands.CAPABILITY, ref data) && data.Count > 0)
-                Capabilities = new Capability(data[0]);
-        }
-
-        public bool SendData(string data)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(data.ToCharArray());
-            try
-            {
-                _ioStream.Write(bytes, 0, data.Length);
-
-                bool flag = true;
-                while (flag)
-                {
-                    string value = _streamReader.ReadLine();
-                    if (_isDebug)
-                    {
-                        Console.WriteLine(value);
-                    }
-                    flag = false;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public void SendCommand(string command)
-        {
-            _counter++;
-            string text = string.Concat(new object[]
-            {
-                "IMAP00",
-                _counter,
-                " ",
-                command
-            });
-            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-            if (_isDebug)
-            {
-                Console.WriteLine(text);
-            }
-            try
-            {
-                _ioStream.Write(bytes, 0, bytes.Length);
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        public bool SendAndReceiveMessage(string command, ref List<string> data, Message msg)
-        {
-            const string tmpl = "IMAPX{0} {1}";
-            _counter++;
-
-            var parts = new Queue<string>(new Regex(@"\r\n").Split(command).Where(_ => !string.IsNullOrEmpty(_)));
-
-            string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
-            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-
-            try
-            {
-                _ioStream.Write(bytes, 0, bytes.Length);
-
-                while (true)
-                {
-                    string tmp = _streamReader.ReadLine();
-
-                    if (IsDebug)
-                        Console.WriteLine(tmp);
-
-                    data.Add(tmp);
-
-                    if (tmp.StartsWith("+ "))
-                    {
-                        this.SendData(msg.MessageBuilder());
-                        continue;
-                    }
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
-                        return true;
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
-                        return true;
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.NO)) ||
-                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
-                        return false;
-                }
-            }
-            catch (AuthenticationException ex)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
-            return false;   
-        }
-
-        public bool SendAndReceive(string command, ref List<string> data)
-        {
-            const string tmpl = "IMAPX{0} {1}";
-            _counter++;
-
-            var parts = new Queue<string>(new Regex(@"\r\n").Split(command).Where(_ => !string.IsNullOrEmpty(_)));
-
-            string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
-            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-
-            try
-            {
-                _ioStream.Write(bytes, 0, bytes.Length);
-
-                while (true)
-                {
-                    string tmp = _streamReader.ReadLine();
-
-                    if (IsDebug)
-                        Console.WriteLine(tmp);
-
-                    data.Add(tmp);
-
-                    if (tmp.StartsWith("+ ") && parts.Count > 0)
-                    {
-                        bytes = Encoding.UTF8.GetBytes((parts.Dequeue().Trim() + "\r\n").ToCharArray());
-                        _ioStream.Write(bytes, 0, bytes.Length);
-                        continue;
-                    }
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
-                        return true;
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
-                        return true;
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.NO)) ||
-                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
-                        return false;
-                }
-            }
-            catch (AuthenticationException ex)
-            {
-                throw;
-            }
-
-            return false;
-        }
 
 #if !WINDOWS_PHONE
 
@@ -463,5 +306,97 @@ namespace ImapX
 
 #endif
 
+        internal void Capability()
+        {
+            IList<string> data = new List<string>();
+            if (SendAndReceive(ImapCommands.Capability, ref data) && data.Count > 0)
+                Capabilities = new Capability(data[0]);
+        }
+
+        public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
+            Encoding encoding = null)
+        {
+            if (_client == null || !_client.Connected)
+                throw new SocketException((int)SocketError.NotConnected);
+
+            const string tmpl = "IMAPX{0} {1}";
+            _counter++;
+
+            StreamReader reader = encoding == null || Equals(encoding, Encoding.UTF8)
+                ? _streamReader
+                : new StreamReader(_ioStream, encoding);
+
+            var parts = new Queue<string>(NewLineRex.Split(command));
+
+            string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
+            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+
+            if (IsDebug)
+                Debug.WriteLine(text);
+
+            _ioStream.Write(bytes, 0, bytes.Length);
+
+            while (true)
+            {
+                string tmp = reader.ReadLine() ?? "";
+
+                if (IsDebug)
+                    Debug.WriteLine(tmp);
+
+                data.Add(tmp);
+
+                if (processor != null)
+                    processor.ProcessCommandResult(tmp);
+
+                if (tmp.StartsWith("+ ") && (parts.Count > 0 || (processor != null && processor.TwoWayProcessing)))
+                {
+                    if (parts.Count > 0)
+                    {
+                        text = parts.Dequeue().Trim() + "\r\n";
+
+                        if (IsDebug)
+                            Debug.WriteLine(text);
+
+                        bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+                    }
+                    else if (processor != null)
+                        bytes = processor.AppendCommandData(tmp);
+
+                    _ioStream.Write(bytes, 0, bytes.Length);
+                    continue;
+                }
+
+                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
+                    return true;
+
+                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
+                    return true;
+
+                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
+                    tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
+                    return false;
+            }
+        }
+
+        #region Obsolete
+
+        [Obsolete("SendCommand is obsolete", true)]
+        public void SendCommand(string command)
+        {
+        }
+
+        [Obsolete("SendData", true)]
+        public bool SendData(string data)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete("SendAndReceiveMessage", true)]
+        public bool SendAndReceiveMessage(string command, ref List<string> data, Message msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

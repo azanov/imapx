@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ImapX.Collections;
+using ImapX.Constants;
 using ImapX.EncodingHelpers;
+using ImapX.Enums;
 using ImapX.Exceptions;
+using ImapX.Extensions;
 using ImapX.Flags;
 using System.Collections;
+using ImapX.Parsing;
 
 namespace ImapX
 {
@@ -16,90 +20,45 @@ namespace ImapX
         private readonly ImapClient _client;
 
         private readonly Folder _parent;
-        private int _exists;
         private FolderFlagCollection _flags;
-        private string _folderPath;
         private MessageCollection _messages;
         private string _name;
-        private int _recents;
+        private string _path;
         private FolderCollection _subFolders;
 
-        private int _uidNext;
-        private string _uidValidity;
-        private int _unseen;
+        internal Folder() { }
 
         internal Folder(string path, IEnumerable<string> flags, ref Folder parent, ImapClient client)
         {
-            _folderPath = path;
-            _name = ImapUTF7.Decode(_folderPath.Split(client.Behavior.FolderDelimeter).Last());
+            _path = path;
+            _name = ImapUTF7.Decode(_path.Split(client.Behavior.FolderDelimeter).Last());
             UpdateFlags(flags);
             _parent = parent;
             _client = client;
+            GMailThreads = new GMailThreadCollection();
         }
 
+        /// <summary>
+        ///     The number of messages in the mailbox.
+        /// </summary>
+        public long Exists { get; private set; }
 
-        public FolderFlagCollection Flags
-        {
-            get { return _flags; }
-        }
+        /// <summary>
+        ///     The number of messages with the \Recent flag set.
+        /// </summary>
+        public long Recent { get; private set; }
 
-        public IEnumerable<string> AllowedPermanentFlags { get; set; }
+        [Obsolete("Recents is obsolete, please use Recent instead", true)]
+        public long Recents { get; private set; }
 
-        public bool Selectable { get; private set; }
+        /// <summary>
+        ///     The message sequence number of the first unseen message in the mailbox.
+        /// </summary>
+        public long Unseen { get; private set; }
 
-        public int LastUpdateMessagesCount { get; private set; }
-
-        public bool HasChildren { get; internal set; }
-
-        public int Unseen
-        {
-            get { return _unseen; }
-        }
-
-        public int Recents
-        {
-            get { return _recents; }
-            set { _recents = value; }
-        }
-
-        public int Exists
-        {
-            get { return _exists; }
-        }
-
-        public int UidNext
-        {
-            get { return _uidNext; }
-        }
-
-        public string UidValidity
-        {
-            get { return _uidValidity; }
-        }
-
-        public MessageCollection Messages
-        {
-            get { return _messages ?? (_messages = SetMessage()); }
-            set
-            {
-                if (_messages == null)
-                    _messages = SetMessage();
-                _messages = value;
-            }
-        }
-
-        public string FolderPath
-        {
-            get { return _folderPath; }
-            internal set { _folderPath = value; }
-        }
-
-        [Obsolete("SubFolder is obsolete, please use SubFolders")]
-        public FolderCollection SubFolder
-        {
-            get { return SubFolders; }
-        }
-
+        /// <summary>
+        ///     Subfolders of the current folder
+        /// </summary>
         public FolderCollection SubFolders
         {
             get
@@ -107,13 +66,41 @@ namespace ImapX
                 return _subFolders ??
                        (_subFolders =
                            HasChildren
-                               ? _client.GetFolders(_folderPath + _client.Behavior.FolderDelimeter, _client.Folders,
-                                   this)
+                               ? _client.GetFolders(_path + _client.Behavior.FolderDelimeter, _client.Folders, this)
                                : new FolderCollection(_client, this));
             }
             internal set { _subFolders = value; }
         }
 
+        /// <summary>
+        ///     Messages stored in this folder
+        /// </summary>
+        public MessageCollection Messages
+        {
+            get
+            {
+                if (_messages != null) return _messages;
+                _messages = new MessageCollection(_client, this);
+                if (_client.Behavior.AutoPopulateFolderMessages)
+                    _messages.Download();
+                return _messages;
+            }
+            internal set { _messages = value; }
+        }
+
+        /// <summary>
+        ///     The collection of GMail message threads in this folder. The collection is populated when messages are requested.
+        /// </summary>
+        public GMailThreadCollection GMailThreads { get; internal set; }
+
+        /// <summary>
+        ///     Gets whether the current folder has subfolders
+        /// </summary>
+        public bool HasChildren { get; internal set; }
+
+        /// <summary>
+        ///     Gets or sets the name of the folder. Setting this property will rename the folder.
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -125,44 +112,70 @@ namespace ImapX
         }
 
         /// <summary>
-        ///     Ranames the folder
+        ///     Gets whether the folder can be selected (messages can be searched)
         /// </summary>
-        /// <param name="name">the name to set</param>
-        /// <returns></returns>
-        internal bool Rename(string name)
+        public bool Selectable { get; private set; }
+
+        /// <summary>
+        ///     Folder path on the server
+        /// </summary>
+        public string Path
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException("Folder name cannot be empty");
-
-            List<string> data = new List<string>();
-
-            string encodedName = ImapUTF7.Encode(name);
-
-            int i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
-
-            string newPath = i < 1 ? encodedName : _folderPath.Substring(0, i + 1) + encodedName;
-
-            if (_client.SendAndReceive(string.Format(ImapCommands.RENAME, _folderPath, newPath), ref data))
-            {
-                _name = name;
-                _folderPath = newPath;
-
-                if (HasChildren && _subFolders != null)
-                {
-                    foreach (Folder folder in SubFolders)
-                        folder.UpdatePath(_folderPath);
-                }
-
-                return true;
-            }
-
-            return false;
+            get { return _path; }
+            internal set { _path = value; }
         }
 
-        internal void UpdatePath(string parentPath)
+        [Obsolete("FolderPath is obsolete, please use Path instead")]
+        public string FolderPath
         {
-            int i = _folderPath.LastIndexOf(_client.Behavior.FolderDelimeter);
-            _folderPath = parentPath + _folderPath.Substring(i, _folderPath.Length - i);
+            get { return _path; }
+            internal set { _path = value; }
+        }
+
+        /// <summary>
+        ///     Flags of current folder. Determine the type of the folder.
+        /// </summary>
+        /// <see cref="ImapY.Flags.FolderFlags" />
+        public FolderFlagCollection Flags
+        {
+            get { return _flags; }
+        }
+
+        /// <summary>
+        ///     A list of message flags that the client can change permanently.  If this is missing, the client should assume that
+        ///     all flags can be changed permanently.
+        /// </summary>
+        public IEnumerable<string> AllowedPermanentFlags { get; internal set; }
+
+        /// <summary>
+        ///     The next unique identifier value.
+        /// </summary>
+        public long UidNext { get; private set; }
+
+        /// <summary>
+        ///     The unique identifier validity value.
+        /// </summary>
+        public string UidValidity { get; private set; }
+
+        internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
+        {
+            Match match = Expressions.FolderParseRex.Match(commandResult);
+
+            if (match.Success && match.Groups.Count == 4)
+            {
+                string[] flags = match.Groups[1].Value.Split(' ');
+
+                string path = match.Groups[3].Value;
+
+                if (client.Behavior.FolderDelimeter == '\0')
+                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value)
+                        ? '"'
+                        : match.Groups[2].Value.ToCharArray()[0];
+
+                return new Folder(path, flags, ref parent, client);
+            }
+
+            return null;
         }
 
         internal void UpdateFlags(string flags)
@@ -182,157 +195,40 @@ namespace ImapX
             HasChildren = flags.Contains(FolderFlags.HasChildren);
         }
 
-        public override string ToString()
+        internal void UpdatePath(string parentPath)
         {
-            return Name;
+            int i = _path.LastIndexOf(_client.Behavior.FolderDelimeter);
+            _path = parentPath + _path.Substring(i, _path.Length - i);
         }
 
-        public MessageCollection CheckNewMessage(bool processMessages)
+        /// <summary>
+        ///     Ranames the folder
+        /// </summary>
+        /// <param name="name">the name to set</param>
+        /// <returns></returns>
+        internal bool Rename(string name)
         {
-            var messageCollection = new MessageCollection();
-            MessageCollection messageCollection2 = _client.SearchMessage("all");
-            int result = _messages.Select(current => current.MessageUid).Concat(new[] {-1}).Max();
-            var list = messageCollection2.Where(m => m.MessageUid > result);
-            if (list.Count() > 0)
-            {
-                LastUpdateMessagesCount = list.Count();
-                foreach (Message current2 in list)
-                {
-                    current2.Client = _client;
-                    if (processMessages)
-                    {
-                        current2.Process();
-                    }
-                }
-                _messages.AddRange(list);
-                messageCollection.AddRange(list);
-            }
-            else
-            {
-                LastUpdateMessagesCount = 0;
-            }
-            return messageCollection;
-        }
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Folder name cannot be empty");
 
-        private MessageCollection SetMessage()
-        {
-            Select();
-            MessageCollection messageCollection = _client.SearchMessage("all");
-            foreach (Message current in messageCollection)
-            {
-                current.Client = _client;
-                current.Folder = this;
-            }
-            return messageCollection;
-        }
+            IList<string> data = new List<string>();
 
-        internal static Folder Parse(string commandResult, ref Folder parent, ImapClient client)
-        {
-            var rex = new Regex(@".*\((\\.*)+\)\s[""]?(.|[NIL]{3})[""]?\s[""]?([^""]*)[""]?", RegexOptions.IgnoreCase);
-            Match match = rex.Match(commandResult);
+            string encodedName = ImapUTF7.Encode(name);
 
-            if (match.Success && match.Groups.Count == 4)
-            {
-                string[] flags = match.Groups[1].Value.Split(' ');
+            int i = _path.LastIndexOf(_client.Behavior.FolderDelimeter);
 
-                string path = match.Groups[3].Value;
+            string newPath = i < 1 ? encodedName : _path.Substring(0, i + 1) + encodedName;
 
-                if (client.Behavior.FolderDelimeter == '\0' && !(string.IsNullOrEmpty(match.Groups[2].Value) || match.Groups[2].Value.ToUpper().Equals("NIL")))
-                    client.Behavior.FolderDelimeter = match.Groups[2].Value.ToCharArray()[0];
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Rename, _path, newPath), ref data)) return false;
 
-                return new Folder(path, flags, ref parent, client);
-            }
+            _name = name;
+            _path = newPath;
 
-            return null;
-        }
+            if (!HasChildren || _subFolders == null) return true;
+            foreach (var folder in SubFolders)
+                folder.UpdatePath(_path);
 
-        public bool Examine()
-        {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            List<string> arrayList = new List<string>();
-            string command = "EXAMINE \"" + FolderPath + "\"\r\n";
-            if (!_client.SendAndReceive(command, ref arrayList))
-            {
-                return false;
-            }
-            foreach (string line in arrayList)
-            {
-                if (!ParseHelper.Exists(line, ref _exists) && !ParseHelper.Recent(line, ref _recents) &&
-                    !ParseHelper.UidNext(line, ref _uidNext) && !ParseHelper.Unseen(line, ref _unseen))
-                {
-                    ParseHelper.UidValidity(line, ref _uidValidity);
-                }
-            }
             return true;
-        }
-
-        public MessageCollection Search(string path, bool makeProcess)
-        {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            string selectedFolder = _client.SelectedFolder;
-            Select();
-            MessageCollection messageCollection = _client.SearchMessage(path);
-            foreach (Message current in messageCollection)
-            {
-                current.Client = _client;
-                current.Folder = this; // [5/10/13] Fix by axlns
-                if (makeProcess)
-                {
-                    current.Process();
-                }
-            }
-            _client.SelectFolder(selectedFolder);
-            return messageCollection;
-        }
-
-        public void Select()
-        {
-            _client.SelectFolder(FolderPath);
-        }
-
-        public bool EmptyFolder()
-        {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            string text = "UID STORE {0}:{1} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            List<string> arrayList = new List<string>();
-            if (Messages.Count == 0)
-            {
-                return true;
-            }
-            int messageUid = Messages[0].MessageUid;
-            int messageUid2 = Messages[Messages.Count - 1].MessageUid;
-            Select();
-            if (_client.SendAndReceive(string.Format(text, messageUid, messageUid2), ref arrayList))
-            {
-                text = "EXPUNGE\r\n";
-                if (_client.SendAndReceive(text, ref arrayList))
-                {
-                    _messages.Clear();
-                    Examine();
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public bool CreateFolder(string name)
-        {
-            return SubFolders.Add(name);
-        }
-
-        [Obsolete("DeleteFolder is obsolete, please use Remove instead")]
-        public bool DeleteFolder()
-        {
-            return Remove();
         }
 
         /// <summary>
@@ -345,8 +241,8 @@ namespace ImapX
                 throw new InvalidOperationException(
                     "A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
 
-            List<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.DELETE, _folderPath), ref data))
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Delete, _path), ref data))
                 return false;
 
             if (_parent != null)
@@ -357,114 +253,250 @@ namespace ImapX
             return true;
         }
 
-        public bool CopyMessageToFolder(Message msg, Folder folder)
+        /// <summary>
+        ///     Permanently removes all messages that have the \Deleted flag set from the current folder.
+        /// </summary>
+        /// <returns></returns>
+        public bool Expunge()
         {
-            if (_client == null || !_client.IsConnected)
+            Folder selectedFolder = _client.SelectedFolder;
+
+            if (!Equals(selectedFolder))
+                Select();
+
+            IList<string> data = new List<string>();
+            bool result = _client.SendAndReceive(ImapCommands.Expunge, ref data);
+
+            if (!Equals(selectedFolder))
+                selectedFolder.Select();
+
+            return result;
+        }
+
+        private void ProcessSelectOrExamineResult(IList<string> data)
+        {
+            if (data == null)
+                return;
+
+            for (int i = 0; i < data.Count - 1; i++)
             {
-                throw new ImapException("Dont Connect");
+                Match m = Expressions.ExistsRex.Match(data[i]);
+
+                if (m.Success)
+                {
+                    Exists = long.Parse(m.Groups[1].Value);
+                    continue;
+                }
+
+                m = Expressions.RecentRex.Match(data[i]);
+
+                if (m.Success)
+                {
+                    Recent = long.Parse(m.Groups[1].Value);
+                    continue;
+                }
+
+                m = Expressions.UnseenRex.Match(data[i]);
+
+                if (m.Success)
+                {
+                    Unseen = long.Parse(m.Groups[1].Value);
+                    continue;
+                }
+
+                m = Expressions.UIdValidityRex.Match(data[i]);
+
+                if (m.Success)
+                {
+                    UidValidity = m.Groups[1].Value;
+                    continue;
+                }
+
+                m = Expressions.UIdNextRex.Match(data[i]);
+
+                if (m.Success)
+                {
+                    UidNext = long.Parse(m.Groups[1].Value);
+                    continue;
+                }
+
+                m = Expressions.PermanentFlagsRex.Match(data[i]);
+
+                if (m.Success)
+                    AllowedPermanentFlags = m.Groups[1].Value.Split(' ').Where(_ => !string.IsNullOrEmpty(_));
+                //else
+                //{
+                //    m = Expressions.FlagsRex.Match(data[i]);
+
+                //    if (m.Success)
+                //        UpdateFlags(m.Groups[1].Value.Split(' '));
+                //}
             }
-            if (msg == null)
-            {
-                throw new ImapException("Message is null");
-            }
-            if (folder == null)
-            {
-                throw new ImapException("Folder is null");
-            }
-            string selectedFolder = _client.SelectedFolder;
-            Select();
-            string text = "UID COPY {0} \"{1}\"\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            List<string> arrayList = new List<string>();
-            if (!_client.SendAndReceive(string.Format(text, msg.MessageUid, folder.FolderPath), ref arrayList))
-            {
-                _client.SelectFolder(selectedFolder);
+        }
+
+        public bool Examine()
+        {
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Examine, _path), ref data))
                 return false;
-            }
-            text = "EXPUNGE\r\n";
-            if (!_client.SendAndReceive(text, ref arrayList))
-            {
-                return false;
-            }
-            _client.SelectFolder(selectedFolder);
+
+            ProcessSelectOrExamineResult(data);
+
             return true;
         }
 
+        /// <summary>
+        ///     Selects the folder, making messages available for queries
+        /// </summary>
+        /// <returns></returns>
+        public bool Select()
+        {
+            if (!Selectable)
+                throw new InvalidOperationException("A non-selectable folder cannot be selected.");
+
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Select, _path), ref data))
+                return false;
+
+            ProcessSelectOrExamineResult(data);
+
+            _client.SelectedFolder = this;
+
+            return true;
+        }
+
+        internal Message[] Fetch(IEnumerable<long> uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
+        {
+            var result = new List<Message>();
+
+            foreach (
+                Message msg in
+                    uIds.Select(uId => Messages.FirstOrDefault(_ => _.UId == uId) ?? new Message(uId, _client, this))
+                )
+            {
+                msg.Download(mode);
+
+                if (!Messages.Contains(msg))
+                    Messages.AddInternal(msg);
+
+                if (!result.Contains(msg))
+                    result.Add(msg);
+            }
+            return result.ToArray();
+        }
+
+        internal long[] SearchMessageIds(string query = "ALL", int count = -1)
+        {
+            if (_client.SelectedFolder != this && !Select())
+                throw new OperationFailedException("The folder couldn't be selected for search.");
+
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Search, query), ref data))
+                throw new ArgumentException("The search query couldn't be processed");
+
+            var result = Expressions.SearchRex.Match(data.FirstOrDefault(Expressions.SearchRex.IsMatch) ?? "");
+
+            if (!result.Success)
+                //throw new OperationFailedException("The data returned from the server doesn't match the requirements");
+                return new long[0];
+
+            return count < 0
+                ? result.Groups[1].Value.Split(' ').Select(long.Parse).ToArray()
+                : result.Groups[1].Value.Split(' ').OrderBy(_ => _).Take(count).Select(long.Parse).ToArray();
+        }
+
+        /// <summary>
+        ///     Downloads messages from server using default or given mode.
+        /// </summary>
+        /// <param name="query">The search query to filter messages. <code>ALL</code> by default</param>
+        /// <param name="mode">The message fetch mode, allows to select which parts of the message will be requested.</param>
+        /// <param name="count">
+        ///     The maximum number of messages that will be requested. Set <code>count</code> to <code>-1</code>
+        ///     will request all messages which match the given query.
+        /// </param>
+        public Message[] Search(string query = "ALL", MessageFetchMode mode = MessageFetchMode.ClientDefault,
+            int count = -1)
+        {
+            return Fetch(SearchMessageIds(query, count), mode);
+        }
+
+         [Obsolete("This Search overload is obsolete, please use another instead", true)]
+        public MessageCollection Search(string path, bool makeProcess)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete("CreateFolder is obsolete, please use SubFolders.Add instead", true)]
+        public bool CreateFolder(string name)
+        {
+            return SubFolders.Add(name) != null;
+        }
+
+        [Obsolete("CopyMessageToFolder is obsolete, please use Message.CopyTo instead", true)]
+        public bool CopyMessageToFolder(Message msg, Folder folder)
+        {
+            return msg.CopyTo(folder);
+        }
+
+        [Obsolete("DeleteMessage is obsolete, please use Message.Remove instead", true)]
         public bool DeleteMessage(Message msg)
         {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            if (msg == null)
-            {
-                throw new ImapException("Message is null");
-            }
-            string selectedFolder = _client.SelectedFolder;
-            _client.SelectFolder(FolderPath);
-            string text = "UID STORE {0} +FLAGS (\\Deleted)\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            List<string> arrayList = new List<string>();
-            Select();
-            if (_client.SendAndReceive(string.Format(text, msg.MessageUid), ref arrayList))
-            {
-                text = "EXPUNGE\r\n";
-                if (_client.SendAndReceive(text, ref arrayList))
-                {
-                    Messages.Remove(msg);
-                    Examine();
-                }
-                _client.SelectFolder(selectedFolder);
-                return true;
-            }
-            _client.SelectFolder(selectedFolder);
-            return false;
+            return msg.Remove();
         }
 
+        [Obsolete("DeleteFolder is obsolete, please use Remove instead")]
+        public bool DeleteFolder()
+        {
+            return Remove();
+        }
+
+
+        [Obsolete("MoveMessageToFolder is obsolete, please use Message.MoveTo instead", true)]
         public bool MoveMessageToFolder(Message msg, Folder folder)
         {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            return CopyMessageToFolder(msg, folder) && DeleteMessage(msg);
+            return msg.MoveTo(folder);
         }
 
+         [Obsolete("SubFolder is obsolete, please use SubFolders instead", true)]
+         public FolderCollection SubFolder { get; internal set; }
+
+         [Obsolete("CheckNewMessage is obsolete", true)]
+        public MessageCollection CheckNewMessage(bool processMessages)
+        {
+            throw new NotImplementedException();
+        }
+
+         [Obsolete("AppendMessage is obsolete", true)]
         public bool AppendMessage(Message msg, string flag)
         {
-            if (_client == null || !_client.IsConnected)
-            {
-                throw new ImapException("Dont Connect");
-            }
-            if (msg == null)
-            {
-                throw new ImapException("Message is null");
-            }
-            string selectedFolder = _client.SelectedFolder;
-            Select();
-            var arrayList = new List<string>();
-            string text = msg.MessageBuilder();
-            int length = text.Length;
-            if (string.IsNullOrEmpty(flag))
-            {
-                flag = "\\draft";
-            }
-            string command = string.Concat(new object[]
-                                           {
-                                               "APPEND \"",
-                                               FolderPath,
-                                               "\" (",
-                                               flag,
-                                               ") {",
-                                               length - 2,
-                                               "}\r\n"
-                                           });
-            if (_client.SendAndReceiveMessage(command, ref arrayList, msg))
-            {
-                _client.SelectFolder(selectedFolder);
-                return true;
-            }
-            _client.SelectFolder(selectedFolder);
-            return false;
+            throw new NotImplementedException();
+        }
 
+        /// <summary>
+        ///     Removes all messages from current folder
+        /// </summary>
+        /// <returns></returns>
+        public bool EmptyFolder()
+        {
+            IEnumerable<string> ids = SearchMessageIds().GroupUIdSequences();
+
+            foreach (string group in ids)
+            {
+                IList<string> data = new List<string>();
+                if (
+                    !_client.SendAndReceive(
+                        string.Format(ImapCommands.Store, group.First() + ":" + group.Last(), "+FLAGS",
+                            MessageFlags.Deleted), ref data)) return false;
+            }
+
+            if (!Expunge())
+                return false;
+
+            Messages.ClearInternal();
+
+            Examine();
+
+            return true;
         }
     }
 }

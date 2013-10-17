@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImapX.Constants;
 using ImapX.EncodingHelpers;
 
 namespace ImapX.Collections
 {
     public class FolderCollection : ImapObjectCollection<Folder>
     {
-        private Folder _parentFolder;
+
+        Folder _parentFolder;
 
         public FolderCollection(ImapClient client, Folder parentFolder = null)
             : base(client)
@@ -25,46 +27,42 @@ namespace ImapX.Collections
         {
             get
             {
-                Folder result = List.FirstOrDefault(_ => _.Name.Equals(name) || _.FolderPath.Equals(name));
+                var result = List.FirstOrDefault(_ => _.Name.Equals(name));
                 return result;
             }
         }
 
         /// <summary>
-        ///     Creates a new folder with the given name
+        /// Creates a new folder with the given name
         /// </summary>
         /// <param name="folderName">The folder name</param>
-        /// <returns><code>true</code> if the folder could be created</returns>
+        /// <returns>The new folder if it could be created, otherwise null</returns>
         /// <exception cref="System.ArgumentException">If the folder name is empty</exception>
-        public bool Add(string folderName)
+        public Folder Add(string folderName)
         {
             if (string.IsNullOrEmpty(folderName))
                 throw new ArgumentException("The folder name cannot be empty");
 
             folderName = ImapUTF7.Encode(folderName);
 
-            string path = _parentFolder == null
-                ? folderName
-                : _parentFolder.FolderPath + Client.Behavior.FolderDelimeter + folderName;
+            var path = _parentFolder == null ? folderName : _parentFolder.Path + Client.Behavior.FolderDelimeter + folderName;
 
-            List<string> data = new List<string>();
+            IList<string> data = new List<string>();
 
-            if (Client.SendAndReceive(string.Format(ImapCommands.CREATE, path), ref data))
-            {
-                var folder = new Folder(path, new string[0], ref _parentFolder, Client);
+            if (!Client.SendAndReceive(string.Format(ImapCommands.Create, path), ref data)) return null;
+            
+            var folder = new Folder(path, new string[0], ref _parentFolder, Client);
 
-                if (Client.Behavior.ExamineFolders)
-                    folder.Examine();
+            if (Client.Behavior.ExamineFolders)
+                folder.Examine();
 
-                AddInternal(folder);
-                return true;
-            }
+            AddInternal(folder);
 
-            return false;
+            return folder;
         }
 
         /// <summary>
-        ///     Removes a folder
+        /// Removes a folder
         /// </summary>
         /// <param name="item">The folder to remove</param>
         /// <returns><code>true</code> if the folder could be removed</returns>
@@ -74,12 +72,13 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        ///     Removes a folder at the specified index
+        /// Removes a folder at the specified index
         /// </summary>
         /// <returns><code>true</code> if the folder could be removed</returns>
         public bool RemoveAt(int index)
         {
             return Remove(List[index]);
         }
+
     }
 }

@@ -5,8 +5,11 @@ namespace ImapX.Collections
 {
     public abstract class ImapObjectCollection<T> : IEnumerable<T>
     {
+
         protected ImapClient Client;
         protected List<T> List;
+
+        internal ImapObjectCollection(){}
 
         protected ImapObjectCollection(ImapClient client)
         {
@@ -24,7 +27,7 @@ namespace ImapX.Collections
         {
             get
             {
-                T result = List[index];
+                var result = List[index];
                 return result;
             }
         }
@@ -41,6 +44,11 @@ namespace ImapX.Collections
             List.AddRange(collection);
         }
 
+        internal void ClearInternal()
+        {
+            List.Clear();
+        }
+
         internal void RemoveInternal(T item)
         {
             List.Remove(item);
@@ -49,11 +57,6 @@ namespace ImapX.Collections
         internal void RemoveAtInternal(int index)
         {
             List.RemoveAt(index);
-        }
-
-        internal void ClearInternal()
-        {
-            List.Clear();
         }
 
         #endregion
@@ -71,5 +74,6 @@ namespace ImapX.Collections
         }
 
         #endregion
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImapX.Constants;
 using ImapX.EncodingHelpers;
 
 namespace ImapX.Collections
@@ -13,6 +14,8 @@ namespace ImapX.Collections
         protected string RemoveType = "-FLAGS";
         protected bool IsUTF7 = false;
         protected bool AddQuotes = false;
+
+        internal MessageFlagCollection(){}
 
         public MessageFlagCollection(ImapClient client, Message message)
             : base(client)
@@ -41,9 +44,9 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be added</returns>
         public bool AddRange(IEnumerable<string> flags)
         {
-            List<string> data = new List<string>();
-            if (!Client.SendAndReceive(string.Format(ImapCommands.STORE,
-                _message.MessageUid, AddType,
+            IList<string> data = new List<string>();
+            if (!Client.SendAndReceive(string.Format(ImapCommands.Store,
+                _message.UId, AddType,
                 string.Join(" ",
                     this.Concat(flags.Where(_ => !string.IsNullOrEmpty(_)))
                         .Distinct()
@@ -88,9 +91,9 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be removed</returns>
         public bool RemoveRange(IEnumerable<string> flags)
         {
-            List<string> data = new List<string>();
+            IList<string> data = new List<string>();
             if (!Client.SendAndReceive(
-                string.Format(ImapCommands.STORE, _message.MessageUid, RemoveType,
+                string.Format(ImapCommands.Store, _message.UId, RemoveType,
                     string.Join(" ",
                         flags.Where(_ => !string.IsNullOrEmpty(_))
                              .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))

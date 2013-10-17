@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImapX.Constants;
 
 namespace ImapX.Collections
 {
     public class FolderFlagCollection : ImapObjectCollection<string>
     {
-        private readonly Folder _folder;
+        readonly Folder _folder;
 
         public FolderFlagCollection(ImapClient client, Folder folder)
             : base(client)
@@ -21,7 +22,7 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        ///     Adds a folder flag
+        /// Adds a folder flag
         /// </summary>
         /// <param name="flag">The flag to be added</param>
         /// <returns><code>true</code> if the flag could be added</returns>
@@ -31,24 +32,23 @@ namespace ImapX.Collections
             if (string.IsNullOrEmpty(flag))
                 throw new ArgumentException("Flag cannot be empty");
 
-            return AddRange(new[] {flag});
+            return AddRange(new[] { flag });
         }
 
         /// <summary>
-        ///     Adds a list of specified folder flags
+        /// Adds a list of specified folder flags
         /// </summary>
         /// <param name="flags">The flags to be added</param>
         /// <returns><code>true</code> if the flags could be added</returns>
         public bool AddRange(IEnumerable<string> flags)
         {
-            if (!Client.Capabilities.Metadata || _folder.AllowedPermanentFlags == null ||
-                !_folder.AllowedPermanentFlags.Intersect(flags).Any())
+            if (!Client.Capabilities.Metadata || _folder.AllowedPermanentFlags == null || !_folder.AllowedPermanentFlags.Intersect(flags).Any())
                 return false;
 
-            List<string> data = new List<string>();
-            if (Client.SendAndReceive(string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath,
-                Client.Behavior.SpecialUseMetadataPath,
-                string.Join(" ", _folder.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct().ToArray())), ref data))
+            IList<string> data = new List<string>();
+            if (Client.SendAndReceive(string.Format(ImapCommands.SetMetaData, _folder.Path,
+                                                                                Client.Behavior.SpecialUseMetadataPath,
+                                                                                    string.Join(" ", _folder.Flags.Concat(flags.Where(_ => !string.IsNullOrEmpty(_))).Distinct())), ref data))
             {
                 AddRangeInternal(flags.Except(List));
 
@@ -59,7 +59,7 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        ///     Removes a folder flag
+        /// Removes a folder flag
         /// </summary>
         /// <param name="flag">The flag to be removed</param>
         /// <returns><code>true</code> if the flag could be removed</returns>
@@ -69,11 +69,11 @@ namespace ImapX.Collections
             if (string.IsNullOrEmpty(flag))
                 throw new ArgumentException("Flag cannot be empty");
 
-            return RemoveRange(new[] {flag});
+            return RemoveRange(new[] { flag });
         }
 
         /// <summary>
-        ///     Removes a list of specified folder flags
+        /// Removes a list of specified folder flags
         /// </summary>
         /// <param name="index">The index of the first flag to be removed</param>
         /// <param name="count">The number of flags to be removed</param>
@@ -84,29 +84,26 @@ namespace ImapX.Collections
         }
 
         /// <summary>
-        ///     Removes a list of specified folder flags
+        /// Removes a list of specified folder flags
         /// </summary>
         /// <param name="flags">The flags to be removed</param>
         /// <returns><code>true</code> if the flags could be removed</returns>
         public bool RemoveRange(IEnumerable<string> flags)
         {
-            if (!Client.Capabilities.Metadata || _folder.AllowedPermanentFlags == null ||
-                !_folder.AllowedPermanentFlags.Intersect(flags).Any())
+            if (!Client.Capabilities.Metadata || _folder.AllowedPermanentFlags == null || !_folder.AllowedPermanentFlags.Intersect(flags).Any())
                 return false;
 
-            List<string> data = new List<string>();
+            IList<string> data = new List<string>();
             if (
-                Client.SendAndReceive(
-                    string.Format(ImapCommands.SET_META_DATA, _folder.FolderPath, Client.Behavior.SpecialUseMetadataPath,
-                        string.Join(" ", _folder.Flags.Except(flags.Where(_ => !string.IsNullOrEmpty(_))).ToArray())), ref data))
-            {
-                foreach (string flag in flags)
-                    List.Remove(flag);
+                !Client.SendAndReceive(
+                    string.Format(ImapCommands.SetMetaData, _folder.Path, Client.Behavior.SpecialUseMetadataPath,
+                        string.Join(" ", _folder.Flags.Except(flags.Where(_ => !string.IsNullOrEmpty(_))))), ref data))
+                return false;
 
-                return true;
-            }
+            foreach (var flag in flags)
+                List.Remove(flag);
 
-            return false;
+            return true;
         }
     }
 }
