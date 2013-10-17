@@ -1,96 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using System.Globalization;
 using System.Linq;
 using System.Security.Authentication;
 using ImapX.Authentication;
 using ImapX.Collections;
+using ImapX.Constants;
 using ImapX.Enums;
 
 namespace ImapX
 {
     public class ImapClient : ImapBase
     {
+
         private CommonFolderCollection _folders;
-
-        /// <summary>
-        ///     Creates a new IMAP client
-        /// </summary>
-        public ImapClient()
-        {
-            Behavior = new ClientBehavior();
-        }
-
-        /// <summary>
-        ///     Creates a new IMAP client, specifies the server to connect to. The default port is used (143; 993 if SSL is used)
-        /// </summary>
-        public ImapClient(string host, bool useSsl = false, bool validateServerCertificate = false)
-            : this(
-                host, useSsl ? DefaultImapSslPort : DefaultImapPort,
-                useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
-        {
-        }
-
-        /// <summary>
-        ///     Creates a new IMAP client, specifies the server and the port to connect to.
-        /// </summary>
-        public ImapClient(string host, int port, bool useSsl = false, bool validateServerCertificate = false)
-            : this(host, port, useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
-        {
-        }
-
-        /// <summary>
-        ///     Creates a new IMAP client, specifies the server and the port to connect to.
-        /// </summary>
-        public ImapClient(string host, int port, SslProtocols sslProtocol = SslProtocols.None,
-            bool validateServerCertificate = false)
-            : this()
-        {
-            Host = host;
-            Port = port;
-            SslProtocol = sslProtocol;
-            ValidateServerCertificate = validateServerCertificate;
-        }
-
-        [Obsolete("Please use another constructor. This will be removed in future releases.", true)]
-        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default,
-            bool validateServerCertificate = true)
-            : this(host, port, useSsl ? sslProtocols : SslProtocols.None, validateServerCertificate)
-        {
-        }
 
         /// <summary>
         /// Basic client behavior settings like folder browse mode and message download mode
         /// </summary>
         public ClientBehavior Behavior { get; private set; }
-
-        /// <summary>
-        ///     Get or set the credentials used to authenticate
-        /// </summary>
-        public IImapCredentials Credentials { get; set; }
-
-        [Obsolete("UserLogin is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
-            true)]
-        public string UserLogin
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-
-        [Obsolete(
-            "UserPassword is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
-            true)]
-        public string UserPassword
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-
-        [Obsolete("IsLogined is obsolete, please use IsAuthenticated instead", true)]
-        public bool IsLogined
-        {
-            get { return IsAuthenticated; }
-        }
 
         /// <summary>
         /// The folder structure
@@ -101,6 +30,115 @@ namespace ImapX
             {
                 return _folders ?? (_folders = GetFolders());
             }
+        }
+
+        /// <summary>
+        /// Get or set the credentials used to authenticate
+        /// </summary>
+        public IImapCredentials Credentials { get; set; }
+
+        internal Folder SelectedFolder { get; set; }
+
+        /// <summary>
+        /// Creates a new IMAP client
+        /// </summary>
+        public ImapClient()
+        {
+            Behavior = new ClientBehavior();
+        }
+
+        /// <summary>
+        /// Creates a new IMAP client, specifies the server to connect to. The default port is used (143; 993 if SSL is used)
+        /// </summary>
+        public ImapClient(string host, bool useSsl = false, bool validateServerCertificate = true)
+            : this(host, useSsl ? DefaultImapSslPort : DefaultImapPort, useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
+        {
+
+        }
+
+        /// <summary>
+        /// Creates a new IMAP client, specifies the server and the port to connect to. 
+        /// </summary>
+        public ImapClient(string host, int port, bool useSsl = false, bool validateServerCertificate = true)
+            : this(host, port, useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
+        {
+
+        }
+
+        /// <summary>
+        /// Creates a new IMAP client, specifies the server and the port to connect to. 
+        /// </summary>
+        public ImapClient(string host, int port, SslProtocols sslProtocol = SslProtocols.None, bool validateServerCertificate = true)
+            : this()
+        {
+            Host = host;
+            Port = port;
+            SslProtocol = sslProtocol;
+            ValidateServerCertificate = validateServerCertificate;
+        }
+
+        [Obsolete("Please use another constructor. This will be removed in future releases.", true)]
+        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default, bool validateServerCertificate = true)
+            : this(host, port, useSsl ? sslProtocols : SslProtocols.None, validateServerCertificate)
+        {
+
+        }
+
+        /// <summary>
+        /// Authenticate using credentials set through the <code>Credentials</code> property
+        /// </summary>
+        /// <returns><code>true</code> if the authentication was successful</returns>
+        public bool Login()
+        {
+            if(Credentials == null)
+                throw new ArgumentNullException("The credentials cannot be null");
+
+            return Login(Credentials);
+        }
+
+        /// <summary>
+        /// Authenticate using a login and password
+        /// </summary>
+        /// <returns><code>true</code> if the authentication was successful</returns>
+        public bool Login(string login, string password)
+        {
+            return Login(new PlainCredentials(login, password));
+        }
+
+        /// <summary>
+        /// Authenticate using given credentials
+        /// </summary>
+        /// <returns><code>true</code> if the authentication was successful</returns>
+        public bool Login(IImapCredentials credentials)
+        {
+            Credentials = credentials;
+            IList<string> data = new List<string>();
+            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data);
+
+            var capabilities = data.FirstOrDefault(_ => _.StartsWith("* CAPABILITY"));
+
+            if (Capabilities == null)
+                Capabilities = new Capability(capabilities);
+            else
+                Capabilities.Update(capabilities);
+
+            return IsAuthenticated;
+        }
+
+        /// <summary>
+        /// Logout from server
+        /// </summary>
+        /// <returns><code>true</code> if the logout was successful</returns>
+        public bool Logout()
+        {
+            IList<string> data = new List<string>();
+            if (SendAndReceive(ImapCommands.Logout, ref data))
+            {
+                IsAuthenticated = false;
+                Behavior.FolderDelimeter = '\0';
+                _folders = null;
+            }
+            return !IsAuthenticated;
         }
 
         /// <summary>
@@ -125,8 +163,8 @@ namespace ImapX
         internal FolderCollection GetFolders(string path, CommonFolderCollection commonFolders, Folder parent = null, bool isFirstLevel = false)
         {
             var result = new FolderCollection(this, parent);
-            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.X_LIST : ImapCommands.LIST, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
-            List<string> data = new List<string>();
+            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
+            IList<string> data = new List<string>();
             if (SendAndReceive(cmd, ref data))
             {
                 for (var i = 0; i < data.Count - 1; i++)
@@ -138,7 +176,7 @@ namespace ImapX
                         folder.Examine();
 
                     if (folder.HasChildren && (isFirstLevel || Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full))
-                        folder.SubFolders = GetFolders(folder.FolderPath + Behavior.FolderDelimeter, commonFolders, folder);
+                        folder.SubFolders = GetFolders(folder.Path + Behavior.FolderDelimeter, commonFolders, folder);
 
                     result.AddInternal(folder);
 
@@ -149,113 +187,52 @@ namespace ImapX
 
         }
 
+        #region Obsolete
 
-
-        internal MessageCollection SearchMessage(string path)
+        [Obsolete("SelectFolder is obsolete", true)]
+        public bool SelectFolder(string folderName)
         {
-            if (!IsConnected)
-            {
-                throw new ImapException("Not Connect");
-            }
-            if (path == null)
-            {
-                throw new ImapException("Not Set Search Path");
-            }
-            List<string> data = new List<string>();
-
-
-            string command = "UID SEARCH " + path + "\r\n"; // [21.12.12] Fix by Yaroslav T, added UID command
-            if (!SendAndReceive(command, ref data))
-            {
-                throw new ImapException("Bad or not correct search query");
-            }
-            string[] array = (data.FirstOrDefault(_=>_.StartsWith("* SEARCH", StringComparison.InvariantCultureIgnoreCase)) ?? "").Split(new[]
-            {
-                ' '
-            });
-            var messageCollection = new MessageCollection();
-            string[] array2 = array;
-            foreach (string s in array2)
-            {
-                int messageUid;
-                if (int.TryParse(s, out messageUid))
-                {
-                    messageCollection.Add(new Message(this)
-                    {
-                        MessageUid = messageUid
-                    });
-                }
-            }
-            return messageCollection;
+            throw new NotImplementedException();
         }
 
-        [Obsolete("Connection is obsolete, please use Connect instead")]
-        public bool Connection()
-        {
-            return Connect();
-        }
-
-        /// <summary>
-        ///     Authenticate using a login and password
-        /// </summary>
-        /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login(string login, string password)
-        {
-            return Login(new PlainCredentials(login, password));
-        }
-
-        /// <summary>
-        ///     Authenticate using given credentials
-        /// </summary>
-        /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login(IImapCredentials credentials)
-        {
-            Credentials = credentials;
-            List<string> data = new List<string>();
-            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data);
-            return IsAuthenticated;
-        }
-
+        [Obsolete("OAuth2LogIn is obsolete, please use Login(IImapCredentials) with OAuth2Credentials instead", true)]
         public bool OAuth2LogIn(string login, string authToken)
         {
             return Login(new OAuth2Credentials(login, authToken));
         }
 
-        /// <summary>
-        ///     Logout from server
-        /// </summary>
-        /// <returns><code>true</code> if the logout was successful</returns>
-        public bool Logout()
+        [Obsolete("Connection is obsolete, please use Connect instead", true)]
+        public bool Connection()
         {
-            List<string> data = new List<string>();
-            if (SendAndReceive(ImapCommands.LOGOUT, ref data))
-            {
-                IsAuthenticated = false;
-                Behavior.FolderDelimeter = '\0';
-                _folders = null;
-            }
-            return !IsAuthenticated;
+            return Connect();
         }
 
-        public bool SelectFolder(string folderName)
+        [Obsolete("UserLogin is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
+            true)]
+        public string UserLogin
         {
-            if (!IsConnected)
-            {
-                throw new ImapException("Not Connect");
-            }
-            if (string.IsNullOrEmpty(folderName))
-            {
-                return false;
-            }
-            List<string> arrayList = new List<string>();
-            string command = "SELECT \"" + folderName + "\"\r\n";
-            if (!SendAndReceive(command, ref arrayList))
-            {
-                return false;
-            }
-            SelectedFolder = folderName;
-            return true;
+            get { throw new NotSupportedException(); }
+            set { throw new NotSupportedException(); }
         }
+
+        [Obsolete(
+            "UserPassword is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
+            true)]
+        public string UserPassword
+        {
+            get { throw new NotSupportedException(); }
+            set { throw new NotSupportedException(); }
+        }
+
+        [Obsolete("IsLogined is obsolete, please use IsAuthenticated instead", true)]
+        public bool IsLogined
+        {
+            get { return IsAuthenticated; }
+        }
+
+
+        #endregion
+
 
     }
 }

@@ -28,182 +28,303 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtServer = new System.Windows.Forms.TextBox();
-            this.txtPort = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.txtLogin = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txtPass = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.bgwMain = new System.ComponentModel.BackgroundWorker();
+            this.components = new System.ComponentModel.Container();
+            this.pnlTop = new System.Windows.Forms.Panel();
+            this.btnDefaultAuth = new System.Windows.Forms.Button();
+            this.pnlLogin = new System.Windows.Forms.Panel();
+            this.chkValidateCertificate = new System.Windows.Forms.CheckBox();
+            this.btnSignIn = new System.Windows.Forms.Button();
+            this.lblPassword = new System.Windows.Forms.Label();
+            this.txtPassword = new System.Windows.Forms.TextBox();
             this.cmbEncryption = new System.Windows.Forms.ComboBox();
-            this.lnkGOAuthSignIn = new System.Windows.Forms.LinkLabel();
+            this.lblPort = new System.Windows.Forms.Label();
+            this.cmbPort = new System.Windows.Forms.ComboBox();
+            this.lblLogin = new System.Windows.Forms.Label();
+            this.txtLogin = new System.Windows.Forms.TextBox();
+            this.lblServer = new System.Windows.Forms.Label();
+            this.txtServer = new System.Windows.Forms.TextBox();
+            this.lblWait = new System.Windows.Forms.Label();
+            this.wbrMain = new System.Windows.Forms.WebBrowser();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.tltMain = new System.Windows.Forms.ToolTip(this.components);
+            this.picGMailLogin = new System.Windows.Forms.PictureBox();
+            this.picLogo = new System.Windows.Forms.PictureBox();
+            this.pnlTop.SuspendLayout();
+            this.pnlLogin.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.SuspendLayout();
             // 
-            // label1
+            // pnlTop
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 50);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 16);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Server:";
+            this.pnlTop.BackColor = System.Drawing.Color.White;
+            this.pnlTop.Controls.Add(this.btnDefaultAuth);
+            this.pnlTop.Controls.Add(this.picGMailLogin);
+            this.pnlTop.Controls.Add(this.picLogo);
+            this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTop.Location = new System.Drawing.Point(0, 0);
+            this.pnlTop.Name = "pnlTop";
+            this.pnlTop.Padding = new System.Windows.Forms.Padding(24, 12, 12, 12);
+            this.pnlTop.Size = new System.Drawing.Size(544, 84);
+            this.pnlTop.TabIndex = 1;
             // 
-            // txtServer
+            // btnDefaultAuth
             // 
-            this.txtServer.Location = new System.Drawing.Point(68, 47);
-            this.txtServer.Name = "txtServer";
-            this.txtServer.Size = new System.Drawing.Size(252, 21);
-            this.txtServer.TabIndex = 1;
-            this.txtServer.Text = "imap.gmail.com";
+            this.btnDefaultAuth.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(223)))), ((int)(((byte)(74)))), ((int)(((byte)(50)))));
+            this.btnDefaultAuth.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDefaultAuth.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDefaultAuth.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(247)))), ((int)(((byte)(246)))));
+            this.btnDefaultAuth.Location = new System.Drawing.Point(337, 22);
+            this.btnDefaultAuth.Name = "btnDefaultAuth";
+            this.btnDefaultAuth.Size = new System.Drawing.Size(182, 40);
+            this.btnDefaultAuth.TabIndex = 2;
+            this.btnDefaultAuth.Text = "Default authentication";
+            this.btnDefaultAuth.UseVisualStyleBackColor = false;
+            this.btnDefaultAuth.Visible = false;
+            this.btnDefaultAuth.Click += new System.EventHandler(this.btnDefaultAuth_Click);
             // 
-            // txtPort
+            // pnlLogin
             // 
-            this.txtPort.Location = new System.Drawing.Point(68, 73);
-            this.txtPort.Name = "txtPort";
-            this.txtPort.Size = new System.Drawing.Size(128, 21);
-            this.txtPort.TabIndex = 3;
-            this.txtPort.Text = "993";
+            this.pnlLogin.BackColor = System.Drawing.Color.Transparent;
+            this.pnlLogin.Controls.Add(this.chkValidateCertificate);
+            this.pnlLogin.Controls.Add(this.btnSignIn);
+            this.pnlLogin.Controls.Add(this.lblPassword);
+            this.pnlLogin.Controls.Add(this.txtPassword);
+            this.pnlLogin.Controls.Add(this.cmbEncryption);
+            this.pnlLogin.Controls.Add(this.lblPort);
+            this.pnlLogin.Controls.Add(this.cmbPort);
+            this.pnlLogin.Controls.Add(this.lblLogin);
+            this.pnlLogin.Controls.Add(this.txtLogin);
+            this.pnlLogin.Controls.Add(this.lblServer);
+            this.pnlLogin.Controls.Add(this.txtServer);
+            this.pnlLogin.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlLogin.Location = new System.Drawing.Point(0, 84);
+            this.pnlLogin.Name = "pnlLogin";
+            this.pnlLogin.Size = new System.Drawing.Size(544, 357);
+            this.pnlLogin.TabIndex = 2;
             // 
-            // label2
+            // chkValidateCertificate
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(30, 76);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(35, 16);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Port:";
+            this.chkValidateCertificate.AutoSize = true;
+            this.chkValidateCertificate.Checked = true;
+            this.chkValidateCertificate.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkValidateCertificate.Location = new System.Drawing.Point(403, 126);
+            this.chkValidateCertificate.Name = "chkValidateCertificate";
+            this.chkValidateCertificate.Size = new System.Drawing.Size(15, 14);
+            this.chkValidateCertificate.TabIndex = 3;
+            this.tltMain.SetToolTip(this.chkValidateCertificate, "Validate server certificate");
+            this.chkValidateCertificate.UseVisualStyleBackColor = true;
+            this.chkValidateCertificate.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
             // 
-            // label3
+            // btnSignIn
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(12, 12);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(69, 20);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Connect";
+            this.btnSignIn.Location = new System.Drawing.Point(208, 213);
+            this.btnSignIn.Name = "btnSignIn";
+            this.btnSignIn.Size = new System.Drawing.Size(210, 30);
+            this.btnSignIn.TabIndex = 6;
+            this.btnSignIn.Text = "Sign in";
+            this.btnSignIn.UseVisualStyleBackColor = true;
+            this.btnSignIn.Click += new System.EventHandler(this.btnSignIn_Click);
             // 
-            // txtLogin
+            // lblPassword
             // 
-            this.txtLogin.Location = new System.Drawing.Point(68, 100);
-            this.txtLogin.Name = "txtLogin";
-            this.txtLogin.Size = new System.Drawing.Size(252, 21);
-            this.txtLogin.TabIndex = 7;
+            this.lblPassword.AutoSize = true;
+            this.lblPassword.Location = new System.Drawing.Point(114, 185);
+            this.lblPassword.Name = "lblPassword";
+            this.lblPassword.Size = new System.Drawing.Size(64, 17);
+            this.lblPassword.TabIndex = 12;
+            this.lblPassword.Text = "Password";
             // 
-            // label4
+            // txtPassword
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(21, 103);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(44, 16);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Login:";
-            // 
-            // txtPass
-            // 
-            this.txtPass.Location = new System.Drawing.Point(68, 127);
-            this.txtPass.Name = "txtPass";
-            this.txtPass.PasswordChar = '●';
-            this.txtPass.Size = new System.Drawing.Size(252, 21);
-            this.txtPass.TabIndex = 9;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(23, 130);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(42, 16);
-            this.label5.TabIndex = 8;
-            this.label5.Text = "Pass:";
-            // 
-            // btnConnect
-            // 
-            this.btnConnect.Location = new System.Drawing.Point(17, 157);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(303, 33);
-            this.btnConnect.TabIndex = 10;
-            this.btnConnect.Text = "Connect";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
-            // 
-            // bgwMain
-            // 
-            this.bgwMain.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwMain_DoWork);
-            this.bgwMain.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwMain_RunWorkerCompleted);
+            this.txtPassword.Location = new System.Drawing.Point(208, 182);
+            this.txtPassword.Name = "txtPassword";
+            this.txtPassword.PasswordChar = '●';
+            this.txtPassword.Size = new System.Drawing.Size(210, 25);
+            this.txtPassword.TabIndex = 5;
+            this.txtPassword.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
             // 
             // cmbEncryption
             // 
             this.cmbEncryption.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbEncryption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbEncryption.FormattingEnabled = true;
             this.cmbEncryption.Items.AddRange(new object[] {
-            "No encryption",
+            "None",
             "SSL",
             "TLS"});
-            this.cmbEncryption.Location = new System.Drawing.Point(199, 73);
+            this.cmbEncryption.Location = new System.Drawing.Point(316, 120);
             this.cmbEncryption.Name = "cmbEncryption";
-            this.cmbEncryption.Size = new System.Drawing.Size(121, 21);
-            this.cmbEncryption.TabIndex = 11;
+            this.cmbEncryption.Size = new System.Drawing.Size(79, 25);
+            this.cmbEncryption.TabIndex = 2;
+            this.cmbEncryption.SelectedIndexChanged += new System.EventHandler(this.cmbEncryption_SelectedIndexChanged);
+            this.cmbEncryption.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
             // 
-            // lnkGOAuthSignIn
+            // lblPort
             // 
-            this.lnkGOAuthSignIn.AutoSize = true;
-            this.lnkGOAuthSignIn.Location = new System.Drawing.Point(225, 15);
-            this.lnkGOAuthSignIn.Name = "lnkGOAuthSignIn";
-            this.lnkGOAuthSignIn.Size = new System.Drawing.Size(99, 16);
-            this.lnkGOAuthSignIn.TabIndex = 12;
-            this.lnkGOAuthSignIn.TabStop = true;
-            this.lnkGOAuthSignIn.Text = "Google OAuth2";
-            this.lnkGOAuthSignIn.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkGOAuthSignIn_LinkClicked);
+            this.lblPort.AutoSize = true;
+            this.lblPort.Location = new System.Drawing.Point(114, 123);
+            this.lblPort.Name = "lblPort";
+            this.lblPort.Size = new System.Drawing.Size(32, 17);
+            this.lblPort.TabIndex = 9;
+            this.lblPort.Text = "Port";
+            // 
+            // cmbPort
+            // 
+            this.cmbPort.FormattingEnabled = true;
+            this.cmbPort.Items.AddRange(new object[] {
+            "143",
+            "993"});
+            this.cmbPort.Location = new System.Drawing.Point(208, 120);
+            this.cmbPort.Name = "cmbPort";
+            this.cmbPort.Size = new System.Drawing.Size(102, 25);
+            this.cmbPort.TabIndex = 1;
+            this.cmbPort.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cmbPort_KeyDown);
+            // 
+            // lblLogin
+            // 
+            this.lblLogin.AutoSize = true;
+            this.lblLogin.Location = new System.Drawing.Point(114, 154);
+            this.lblLogin.Name = "lblLogin";
+            this.lblLogin.Size = new System.Drawing.Size(40, 17);
+            this.lblLogin.TabIndex = 7;
+            this.lblLogin.Text = "Login";
+            // 
+            // txtLogin
+            // 
+            this.txtLogin.Location = new System.Drawing.Point(208, 151);
+            this.txtLogin.Name = "txtLogin";
+            this.txtLogin.Size = new System.Drawing.Size(210, 25);
+            this.txtLogin.TabIndex = 4;
+            this.txtLogin.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
+            // 
+            // lblServer
+            // 
+            this.lblServer.AutoSize = true;
+            this.lblServer.Location = new System.Drawing.Point(114, 92);
+            this.lblServer.Name = "lblServer";
+            this.lblServer.Size = new System.Drawing.Size(45, 17);
+            this.lblServer.TabIndex = 3;
+            this.lblServer.Text = "Server";
+            // 
+            // txtServer
+            // 
+            this.txtServer.Location = new System.Drawing.Point(208, 89);
+            this.txtServer.Name = "txtServer";
+            this.txtServer.Size = new System.Drawing.Size(210, 25);
+            this.txtServer.TabIndex = 0;
+            this.txtServer.Text = "imap.gmail.com";
+            this.txtServer.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
+            // 
+            // lblWait
+            // 
+            this.lblWait.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(223)))), ((int)(((byte)(74)))), ((int)(((byte)(50)))));
+            this.lblWait.ForeColor = System.Drawing.Color.White;
+            this.lblWait.Location = new System.Drawing.Point(169, 255);
+            this.lblWait.Name = "lblWait";
+            this.lblWait.Padding = new System.Windows.Forms.Padding(15, 10, 15, 10);
+            this.lblWait.Size = new System.Drawing.Size(212, 37);
+            this.lblWait.TabIndex = 15;
+            this.lblWait.Text = "Connecting...";
+            this.lblWait.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblWait.Visible = false;
+            // 
+            // wbrMain
+            // 
+            this.wbrMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.wbrMain.Location = new System.Drawing.Point(0, 0);
+            this.wbrMain.MinimumSize = new System.Drawing.Size(20, 20);
+            this.wbrMain.Name = "wbrMain";
+            this.wbrMain.Size = new System.Drawing.Size(544, 441);
+            this.wbrMain.TabIndex = 14;
+            this.wbrMain.Visible = false;
+            this.wbrMain.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.wbrMain_DocumentCompleted);
+            // 
+            // lblTitle
+            // 
+            this.lblTitle.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.lblTitle.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTitle.Location = new System.Drawing.Point(0, 84);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Padding = new System.Windows.Forms.Padding(12);
+            this.lblTitle.Size = new System.Drawing.Size(544, 49);
+            this.lblTitle.TabIndex = 3;
+            this.lblTitle.Text = "Sign in";
+            // 
+            // picGMailLogin
+            // 
+            this.picGMailLogin.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picGMailLogin.Image = global::ImapX.Sample.Properties.Resources.sign_in_with_google;
+            this.picGMailLogin.Location = new System.Drawing.Point(337, 22);
+            this.picGMailLogin.Name = "picGMailLogin";
+            this.picGMailLogin.Size = new System.Drawing.Size(182, 40);
+            this.picGMailLogin.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picGMailLogin.TabIndex = 1;
+            this.picGMailLogin.TabStop = false;
+            this.picGMailLogin.Click += new System.EventHandler(this.picGMailLogin_Click);
+            // 
+            // picLogo
+            // 
+            this.picLogo.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picLogo.Dock = System.Windows.Forms.DockStyle.Left;
+            this.picLogo.Image = global::ImapX.Sample.Properties.Resources.logo;
+            this.picLogo.Location = new System.Drawing.Point(24, 12);
+            this.picLogo.Name = "picLogo";
+            this.picLogo.Size = new System.Drawing.Size(150, 60);
+            this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picLogo.TabIndex = 0;
+            this.picLogo.TabStop = false;
+            this.picLogo.Click += new System.EventHandler(this.picLogo_Click);
             // 
             // FrmConnect
             // 
-            this.AcceptButton = this.btnConnect;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(336, 202);
-            this.Controls.Add(this.lnkGOAuthSignIn);
-            this.Controls.Add(this.cmbEncryption);
-            this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.txtPass);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.txtLogin);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.txtPort);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.txtServer);
-            this.Controls.Add(this.label1);
-            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ClientSize = new System.Drawing.Size(544, 441);
+            this.Controls.Add(this.lblWait);
+            this.Controls.Add(this.lblTitle);
+            this.Controls.Add(this.pnlLogin);
+            this.Controls.Add(this.pnlTop);
+            this.Controls.Add(this.wbrMain);
+            this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
             this.Name = "FrmConnect";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Connect";
+            this.Text = "ImapX";
+            this.pnlTop.ResumeLayout(false);
+            this.pnlTop.PerformLayout();
+            this.pnlLogin.ResumeLayout(false);
+            this.pnlLogin.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txtServer;
-        private System.Windows.Forms.TextBox txtPort;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.PictureBox picLogo;
+        private System.Windows.Forms.Panel pnlTop;
+        private System.Windows.Forms.Panel pnlLogin;
+        private System.Windows.Forms.Label lblLogin;
         private System.Windows.Forms.TextBox txtLogin;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtPass;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Button btnConnect;
-        private System.ComponentModel.BackgroundWorker bgwMain;
+        private System.Windows.Forms.Label lblServer;
+        private System.Windows.Forms.TextBox txtServer;
+        private System.Windows.Forms.ComboBox cmbPort;
         private System.Windows.Forms.ComboBox cmbEncryption;
-        private System.Windows.Forms.LinkLabel lnkGOAuthSignIn;
+        private System.Windows.Forms.Label lblPort;
+        private System.Windows.Forms.Button btnSignIn;
+        private System.Windows.Forms.Label lblPassword;
+        private System.Windows.Forms.TextBox txtPassword;
+        private System.Windows.Forms.PictureBox picGMailLogin;
+        private System.Windows.Forms.WebBrowser wbrMain;
+        private System.Windows.Forms.Button btnDefaultAuth;
+        private System.Windows.Forms.Label lblWait;
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.CheckBox chkValidateCertificate;
+        private System.Windows.Forms.ToolTip tltMain;
     }
 }

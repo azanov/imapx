@@ -1,10 +1,11 @@
 ﻿namespace ImapX.Flags
 {
     /// <summary>
-    ///     Predefined system folder flags and additional flags returned by the XLIST command
+    /// Predefined system folder flags and additional flags returned by the XLIST command
     /// </summary>
     public sealed class FolderFlags
     {
+
         public const string All = @"\All";
 
         public const string Archive = @"\Archive";
@@ -31,6 +32,8 @@
 
         public const string Unmarked = @"\Unmarked";
 
+
+
         public const string XAllMail = @"\AllMail";
 
         public const string XImportant = @"\Important";
@@ -40,5 +43,7 @@
         public const string XSpam = @"\Spam";
 
         public const string XStarred = @"\Starred";
+
+
     }
 }

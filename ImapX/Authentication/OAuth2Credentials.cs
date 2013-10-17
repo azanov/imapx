@@ -1,9 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using ImapX.Constants;
 
 namespace ImapX.Authentication
 {
+    /// <summary>
+    /// Credentials used for OAuth2 authentication
+    /// </summary>
     public class OAuth2Credentials : IImapCredentials
     {
         public OAuth2Credentials(string login, string authToken)
@@ -30,7 +34,7 @@ namespace ImapX.Authentication
             if (!IsSupported(capabilities))
                 throw new NotSupportedException("The selected authentication mechanism is not supported");
 
-            return string.Format(ImapCommands.AUTHENTICATE + " \"{1}\"", "XOAUTH2",
+            return string.Format(ImapCommands.Authenticate + " \"{1}\"", "XOAUTH2",
                 PrepareOAuthCredentials(Login, AuthToken));
         }
 
@@ -46,7 +50,7 @@ namespace ImapX.Authentication
 
         public bool IsSupported(Capability capabilities)
         {
-            return capabilities.XOAuth2;
+            return capabilities.XoAuth2;
         }
 
         private string PrepareOAuthCredentials(string login, string token)
@@ -67,4 +71,5 @@ namespace ImapX.Authentication
             }
         }
     }
+
 }

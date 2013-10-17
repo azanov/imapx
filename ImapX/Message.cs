@@ -1,698 +1,722 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
+using System.Net.Mime;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Collections;
-using ImapX.EmailParser;
+using ImapX.Constants;
 using ImapX.EncodingHelpers;
+using ImapX.Enums;
+using ImapX.Extensions;
+using ImapX.Flags;
 using ImapX.Parsing;
 
 namespace ImapX
 {
-    public class Message
+    public class Message : CommandProcessor
     {
-        internal ImapClient Client;
-        internal Folder Folder; // [5/10/13] Fix by axlns
-        private DateTime _date;
-        private EmailParser.EmailParser _emailParser;
-        private string _subject;
+        private readonly ImapClient _client;
+        private Folder _folder;
 
-        public Message(ImapClient client)
+        private MessageFetchMode _downloadProgress;
+        private MessageFetchState _fetchState;
+        private string _lastAddedHeader;
+
+        internal Message()
         {
-            Client = client;
             Headers = new Dictionary<string, string>();
-            Flags = new MessageFlagCollection(Client, this);
-            Labels = new GMailMessageLabelCollection(Client, this);
-            Attachments = new List<Attachment>();
-            InlineAttachments = new List<InlineAttachment>();
-            BodyParts = new List<MessageContent>();
-            To = new MailAddressCollection();
-            Cc = new MailAddressCollection();
-            Bcc = new MailAddressCollection();
-            TextBody = new MessageContent();
-            HtmlBody = new MessageContent();
+            To = new List<MailAddress>();
+            Cc = new List<MailAddress>();
+            Bcc = new List<MailAddress>();
         }
 
-        public Dictionary<string, string> Headers { get; private set; }
+        internal Message(ImapClient client, Folder folder)
+            : this()
+        {
+            Flags = new MessageFlagCollection(client, this);
+            Labels = new GMailMessageLabelCollection(client, this);
 
+            _client = client;
+            _folder = folder;
+        }
+
+        internal Message(long uId, ImapClient client, Folder folder)
+            : this(client, folder)
+        {
+            UId = uId;
+        }
+
+        /// <summary>
+        ///     A unique identifier of the message.
+        /// </summary>
+        public long UId { get; private set; }
+
+        /// <summary>
+        ///     A relative position from 1 to the number of messages in the mailbox.
+        /// </summary>
+        public long SequenceNumber { get; set; }
+
+        /// <summary>
+        ///     Size of the message in bytes
+        /// </summary>
+        public long Size { get; private set; }
+
+        /// <summary>
+        ///     A list of zero or more named tokens associated with the message.
+        ///     Can contain system flags (<code>Flags.MessageFlags</code>) or keywords defined by the server.
+        /// </summary>
+        /// <see cref="ImapX.Flags.MessageFlags" />
         public MessageFlagCollection Flags { get; private set; }
 
+        /// <summary>
+        ///     A list of GMail labels associated with the message
+        /// </summary>
         public GMailMessageLabelCollection Labels { get; private set; }
 
-        public List<Attachment> Attachments { get; set; }
-        public List<InlineAttachment> InlineAttachments { get; set; }
+        public DateTime? InternalDate { get; private set; }
 
-        public MessageContent TextBody { get; set; }
+        /// <summary>
+        ///     The time when the message was written (or submitted)
+        /// </summary>
+        public DateTime? Date { get; set; }
 
-        public MessageContent HtmlBody { get; set; }
+        /// <summary>
+        ///     All headers associated with the message
+        /// </summary>
+        public Dictionary<string, string> Headers { get; set; }
 
+        /// <summary>
+        ///     An indicator that this message is formatted according to the MIME standard, and an indication of which version of
+        ///     MIME is utilized.
+        /// </summary>
         public string MimeVersion { get; set; }
 
-        public string Organization { get; set; }
+        /// <summary>
+        ///     Text that provides a summary, or indicates the nature, of the message
+        /// </summary>
+        public string Subject { get; set; }
 
-        public string Priority { get; set; }
+        /// <summary>
+        ///     Data type and format of content
+        /// </summary>
+        public ContentType ContentType { get; set; }
 
-        public string Received { get; set; }
-
-        public string References { get; set; }
-
-        public string ReplyTo { get; set; }
-
-        public string XMailer { get; set; }
-
-        public string MessageId { get; set; }
-
-        public string ContentType { get; set; }
-
+        /// <summary>
+        ///     Coding method used in a MIME message body
+        /// </summary>
         public string ContentTransferEncoding { get; set; }
 
-        public List<MessageContent> BodyParts { get; set; }
-
-        public MailAddressCollection To { get; set; }
-
+        /// <summary>
+        ///     Author or person taking responsibility for the message.
+        /// </summary>
         public MailAddress From { get; set; }
 
-        public MailAddressCollection Cc { get; set; }
+        /// <summary>
+        ///     The person or agent submitting the message to the network, if other than shown by the From header
+        /// </summary>
+        public MailAddress Sender { get; set; }
 
-        public MailAddressCollection Bcc { get; set; }
+        /// <summary>
+        ///     Primary recipient(s)
+        /// </summary>
+        public List<MailAddress> To { get; set; }
 
-        public DateTime Date
+        /// <summary>
+        ///     Secondary, informational recipients. (cc = Carbon Copy)
+        /// </summary>
+        public List<MailAddress> Cc { get; set; }
+
+        /// <summary>
+        ///     Recipient(s) not to be disclosed to other recipients ("blind carbon copy")
+        /// </summary>
+        public List<MailAddress> Bcc { get; set; }
+
+        public MailAddress ReturnPath { get; set; }
+
+        /// <summary>
+        ///     The organization to which the sender belongs, or to which the machine belongs
+        /// </summary>
+        public string Organization { get; set; }
+
+        /// <summary>
+        ///     A hint from the sender to the recipients about how important a message is
+        /// </summary>
+        public MessageImportance Importance { get; set; }
+
+        /// <summary>
+        ///     How sensitive it is to disclose this message to other people than the specified recipients
+        /// </summary>
+        public MessageSensitivity Sensitivity { get; set; }
+
+        /// <summary>
+        ///     Unique ID of this message.
+        /// </summary>
+        public string MessageId { get; set; }
+
+        /// <summary>
+        ///     Client software used by the sender
+        /// </summary>
+        /// <remarks>Parsed from Mailer or X-Mailer header.</remarks>
+        public string Mailer { get; set; }
+
+        /// <summary>
+        ///     Suggested E-mail address(es) for replies
+        /// </summary>
+        public List<MailAddress> ReplyTo { get; set; }
+
+        /// <summary>
+        ///     Code for natural language used in the message.
+        /// </summary>
+        /// <remarks>Parsed from Language or Content-Language header.</remarks>
+        public string Language { get; set; }
+
+        /// <summary>
+        ///     Reference to message which this message is a reply to.
+        /// </summary>
+        public string InReplyTo { get; set; }
+
+        /// <summary>
+        ///     Text comments added to the message
+        /// </summary>
+        public string Comments { get; set; }
+
+        /// <summary>
+        ///     Gets or sets whether the message has been read/seen
+        /// </summary>
+        public bool Seen
         {
-            get { return _date; }
-            set { _date = value; }
-        }
-
-        public int MessageUid { get; set; }
-
-        public string Subject
-        {
-            get { return _subject ?? string.Empty; }
-            set { _subject = value; }
-        }
-
-        [Obsolete("AddFlag is obsolete, please use Flags.Add instead")]
-        public bool AddFlag(string flag)
-        {
-            return Flags.Add(flag);
-        }
-
-        [Obsolete("RemoveFlag is obsolete, please use Flags.Remove instead")]
-        public bool RemoveFlag(string flag)
-        {
-            return Flags.Remove(flag);
-        }
-
-        public void ProcessHeader()
-        {
-            GetMessage("BODY.PEEK[HEADER]", false);
-        }
-
-        public void ProcessFlags()
-        {
-            GetFlags();
-        }
-
-        /// <remarks>
-        ///     [27.07.2012] Fix by Pavel Azanov (coder13)
-        ///     Some messages contain attachments that are not described in the ContentDisposition,
-        ///     but in the ContentStream directly.
-        ///     [5/10/13] Fix by axlns
-        /// </remarks>
-        public bool Process()
-        {
-            // [5/10/13] Fix by axlns
-
-            string returnToFolder = "";
-
-            if (Client.SelectedFolder != Folder.FolderPath)
+            get { return Flags.Contains(MessageFlags.Seen); }
+            set
             {
-                returnToFolder = Client.SelectedFolder;
-                Client.SelectFolder(Folder.FolderPath);
-            }
-
-
-            try
-            {
-                GetFlags();
-                GetMessage("BODY.PEEK[]", true);
-
-
-                foreach (MessageContent current in BodyParts)
-                {
-                    if (current.ContentType != null && current.ContentType.ToLower().Contains("text/plain"))
-                    {
-                        TextBody = current;
-                        TextBody.TextData = TextBody.ContentStream;
-                    }
-                    else if (current.ContentType != null && current.ContentType.ToLower().Contains("text/html"))
-                    {
-                        HtmlBody = current;
-                        HtmlBody.TextData = HtmlBody.ContentStream;
-                    }
-                    else if (current.ContentType != null && current.ContentType.ToLower().Contains("message/rfc822"))
-                        // [2013-04-24] naudelb(Len Naude) - Added
-                    {
-                        // This part is an email attachment in mime(text) format that will be atached as an "eml" file
-                        // The name of the file will be derived from the attachment's "Subject" line
-                        Attachments.Add(current.ToAttachment());
-                    }
-                    else if (current.ContentType != null &&
-                             current.ContentType.ToLower().Contains("message/delivery-status"))
-                        // [2013-04-24] naudelb(Len Naude) - Added
-                    {
-                        // Delivery failed notice atachment in mime(text) format
-                        // Name will be hardcoded as "details.txt" as this is what outlook does
-                        Attachments.Add(current.ToAttachment());
-                    }
-                    else if (current.ContentDisposition != null &&
-                             current.ContentDisposition.ToLower().Contains("attachment") ||
-                             !string.IsNullOrEmpty(current.ContentType) &&
-                             current.ContentType.Replace(" ", "").ToLower().Contains("name="))
-                        //Mails sent from powershell do not have attachments marked as attachments.. Recognize them by containing a filename in ContentType
-                    {
-                        // [2013-04-24] naudelb(Len Naude) - Embedded Image/Inline Attachment if the Content-ID is present and not explicitly specified as attachment
-                        if (string.IsNullOrEmpty(current.ContentId) ||
-                            (current.ContentDisposition != null &&
-                             current.ContentDisposition.ToLower().Contains("attachment")))
-                        {
-                            var attachment = new Attachment
-                            {
-                                FileName =
-                                    StringDecoder.Decode(string.IsNullOrEmpty(current.ContentFilename)
-                                        ? ParseHelper.ExtractFileName(current.ContentType)
-                                        : current.ContentFilename),
-                                FileType = ParseHelper.ExtractFileType(current.ContentType),
-                                FileEncoding = current.ContentTransferEncoding
-                            };
-
-                            // [2013-04-24] naudelb(Len Naude) - Clean File Name 
-                            attachment.FileName = attachment.FileName.Replace(":", "_").Replace("\\", "_");
-                            current.ContentStream = current.ContentStream.TrimStart("\r\n".ToCharArray());
-                            // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
-                            //switch (attachment.FileEncoding)
-                            switch (
-                                string.IsNullOrEmpty(attachment.FileEncoding)
-                                    ? "7bit"
-                                    : attachment.FileEncoding.ToLower())
-                            {
-                                case "base64":
-                                    attachment.FileData = Base64.FromBase64(current.ContentStream);
-                                    break;
-                                case "7bit":
-                                    attachment.FileData = Encoding.UTF8.GetBytes(current.ContentStream);
-                                    break;
-                                case "quoted-printable":
-                                    attachment.FileData =
-                                        Encoding.UTF8.GetBytes(
-                                            StringDecoder.DecodeQuotedPrintable(current.ContentStream,
-                                                Encoding.UTF8));
-                                    break;
-                                default:
-                                    attachment.FileData = Encoding.UTF8.GetBytes(current.ContentStream);
-                                    break;
-                            }
-                            Attachments.Add(attachment);
-                        }
-                        else
-                        {
-                            InlineAttachments.Add(current.ToInlineAttachment());
-                        }
-                    }
-                    else if (
-                        current.ContentStream.ToLower()
-                            .Replace(" ", "")
-                            .Replace("\"", "")
-                            .Contains("n=attachment") ||
-                        current.ContentStream.ToLower()
-                            .Replace(" ", "")
-                            .Replace("\"", "")
-                            .Contains("n:attachment")) // [27.07.2012]
-                        Attachments.Add(current.ToAttachment()); // [27.07.2012]
-                    else if (current.PartHeaders.Any(_ => _.Key.ToLower().Contains("attachment")))
-                    {
-                        InlineAttachments.Add(current.ToInlineAttachment());
-                    }
-                }
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                if (!string.IsNullOrEmpty(returnToFolder))
-                {
-                    Client.SelectFolder(returnToFolder);
-                }
+                if (value)
+                    Flags.Add(MessageFlags.Seen);
+                else
+                    Flags.Remove(MessageFlags.Seen);
             }
         }
 
-        private void GetFlags()
+        /// <summary>
+        ///     A GMail thread associating a group of connected messages
+        /// </summary>
+        public GMailMessageThread GmailThread { get; private set; }
+
+        public MessageContent[] BodyParts { get; private set; }
+
+        public Attachment[] Attachments { get; private set; }
+
+        public Attachment[] EmbeddedResources { get; private set; }
+
+        public MessageBody Body { get; set; }
+
+        /// <summary>
+        ///     Unique message identifier across multiple folders on GMail
+        /// </summary>
+        public long? GMailMessageId { get; private set; }
+
+        public override void ProcessCommandResult(string data)
         {
-            var flagRex = new Regex(@"FLAGS \((.*?)\)");
-            var labelsRex = new Regex(@"X-GM-LABELS \((.*?)\)");
+            if (_client.Capabilities.XGMExt1 && !_downloadProgress.HasFlag(MessageFetchMode.GMailThreads))
+                TryProcessGmThreadId(data);
 
-            var data = new List<string>();
-            string command = "UID FETCH " + MessageUid + " (FLAGS)\r\n";
-            // [21.12.12] Fix by Yaroslav T, added UID command
+            if (_client.Capabilities.XGMExt1 && !_downloadProgress.HasFlag(MessageFetchMode.GMailMessageId))
+                TryProcessGmMsgId(data);
 
-            if (Client.SendAndReceive(command, ref data))
-                Flags.AddRangeInternal(
-                    flagRex.Match(data[0]).Groups[1].Value.Split(' ').Where(_ => !string.IsNullOrEmpty(_)));
+            if (!_downloadProgress.HasFlag(MessageFetchMode.Size))
+                TryProcessSize(data);
 
-            if (!Client.Capabilities.XGMExt1) return;
+            if (!_downloadProgress.HasFlag(MessageFetchMode.Flags))
+                TryProcessFlags(data);
 
-            command = "UID FETCH " + MessageUid + " (X-GM-LABELS)\r\n";
-            data.Clear();
+            if (!_downloadProgress.HasFlag(MessageFetchMode.GMailLabels))
+                TryProcessGmLabels(data);
 
+            if (!_downloadProgress.HasFlag(MessageFetchMode.InternalDate))
+                TryProcessInternalDate(data);
 
-            if (!Client.SendAndReceive(command, ref data)) return;
+            if (!_downloadProgress.HasFlag(MessageFetchMode.BodyStructure))
+                TryProcessBodyStructure(data);
 
-            var labelSplitRex = new Regex(@"("".*?""|[^""\s]+)+(?=\s*|\s*$)");
-            Match labelsMatch = labelSplitRex.Match(labelsRex.Match(data[0]).Groups[1].Value);
-
-            if (labelsMatch.Groups.Count > 1)
-                Labels.AddRangeInternal(
-                    labelsMatch.Groups.Cast<Group>()
-                        .Skip(1)
-                        .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
+            if (Expressions.HeaderRex.IsMatch(data))
+            {
+                _fetchState = MessageFetchState.Headers;
+                _downloadProgress = _downloadProgress | MessageFetchMode.Headers;
+            }
+            else if (string.IsNullOrEmpty(data))
+                _fetchState = MessageFetchState.None;
+            else if (_fetchState == MessageFetchState.Headers)
+                TryProcessHeader(data);
         }
 
-        public string GetDecodedBody(out bool isHtml)
+        private void TryProcessGmThreadId(string data)
         {
-            string body = "";
-            string transferEncoding = "";
-            string contentType = "";
-            Encoding encoding = Encoding.UTF8;
+            Match threadMatch = Expressions.GMailThreadRex.Match(data);
+            if (!threadMatch.Success) return;
 
-            if (HtmlBody != null && !string.IsNullOrEmpty(HtmlBody.ContentStream))
+            long threadId;
+
+            if (!long.TryParse(threadMatch.Groups[1].Value, out threadId)) return;
+
+            GmailThread = _folder.GMailThreads.FirstOrDefault(_ => _.Id == threadId);
+
+            if (GmailThread == null)
             {
-                body = HtmlBody.ContentStream;
-                encoding = ParseHelper.ParseContentType(HtmlBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrEmpty(HtmlBody.ContentTransferEncoding)
-                    ? ContentTransferEncoding
-                    : HtmlBody.ContentTransferEncoding;
-            }
-            else if (TextBody != null && !string.IsNullOrEmpty(TextBody.ContentStream) &&
-                     !(TextBody.ContentDisposition != null &&
-                       TextBody.ContentDisposition.ToLower().Contains("attachment")))
-            {
-                body = TextBody.ContentStream;
-                encoding = ParseHelper.ParseContentType(TextBody.ContentType, out contentType);
-                transferEncoding = string.IsNullOrEmpty(TextBody.ContentTransferEncoding)
-                    ? ContentTransferEncoding
-                    : TextBody.ContentTransferEncoding;
-            }
-            else if (BodyParts.Count > 0)
-            {
-                MessageContent part =
-                    BodyParts.FirstOrDefault(
-                        _ =>
-                            !(_.ContentDisposition != null && _.ContentDisposition.ToLower().Contains("attachment")));
-                if (part == null)
-                {
-                    isHtml = false;
-                    return string.Empty;
-                }
-                body = part.ContentStream;
-                encoding = ParseHelper.ParseContentType(part.ContentType, out contentType);
-                transferEncoding = string.IsNullOrEmpty(part.ContentTransferEncoding)
-                    ? ContentTransferEncoding
-                    : part.ContentTransferEncoding;
+                GmailThread = new GMailMessageThread(_client, _folder, threadId);
+                _folder.GMailThreads.AddInternal(GmailThread);
             }
 
-            if (encoding == null)
-            {
-                var rex = new Regex("^(.*):\\s(.*)[\r\n]?");
-                string[] tmp = (new Regex("\r\n")).Split(body).ToArray();
-
-                for (int i = 0; i < tmp.Length; i++)
-                {
-                    if (string.IsNullOrEmpty(tmp[i])) continue;
-                    Match m = rex.Match(tmp[i]);
-                    if (!m.Success)
-                    {
-                        //all headers passed
-                        body = string.Join("\r\n", tmp.Skip(i).ToArray());
-                        break;
-                    }
-                    if (m.Groups[1].Value.ToLower().Trim() == "content-transfer-encoding")
-                        transferEncoding = m.Groups[2].Value;
-                    else if (m.Groups[1].Value.ToLower().Trim() == "content-type")
-                        encoding = ParseHelper.ParseContentType(m.Groups[2].Value, out contentType);
-                }
-            }
-
-            transferEncoding = (transferEncoding ?? string.Empty).ToLower().Trim();
-
-            switch (transferEncoding)
-            {
-                case "base64":
-                    body = StringDecoder.DecodeBase64(body, encoding);
-                    break;
-                case "quoted-printable":
-                    body = StringDecoder.DecodeQuotedPrintable(body, encoding);
-                    break;
-            }
-
-
-            isHtml = contentType == "text/html";
-
-            return body;
+            GmailThread.Messages.AddInternal(this);
+            _downloadProgress = _downloadProgress | MessageFetchMode.GMailThreads;
         }
 
-        /// <remarks>
-        ///     [27.07.2012] Fix by Pavel Azanov (coder13)
-        ///     Added automated decoding of mail subject
-        ///     [30.07.2012] Replaced weird if-clauses used for header
-        ///     parsing with an easy to read switch-case
-        /// </remarks>
-        private void GetMessage(string path, bool processBody)
+        private void TryProcessGmMsgId(string data)
         {
-            var arrayList = new List<string>();
-            string command = string.Concat(new object[]
-            {
-                "UID FETCH ", // [21.12.12] Fix by Yaroslav T, added UID command
-                MessageUid,
-                " ",
-                path,
-                "\r\n"
-            });
+            Match msgIdMatch = Expressions.GMailMessageIdRex.Match(data);
+            if (!msgIdMatch.Success) return;
 
-            Client.SendAndReceive(command, ref arrayList);
-            try
-            {
-                _emailParser = new EmailParser.EmailParser(arrayList.ToArray());
-            }
-            catch
-            {
-            }
+            long msgId;
 
-            _emailParser.InitializeIndexes();
-            _emailParser.ParseHeaders();
+            if (!long.TryParse(msgIdMatch.Groups[1].Value, out msgId)) return;
 
+            GMailMessageId = msgId;
 
-            foreach (var current in _emailParser.HeadersCollection)
-            {
-                string key = current.Key.ToLower().Trim();
-
-                switch (key)
-                {
-                    case MessageProperty.TO:
-                        To = HeaderFieldParser.ParseMailAddressCollection(current.Value);
-                        break;
-                    case MessageProperty.FROM:
-                        From = HeaderFieldParser.ParseMailAddress(current.Value);
-                        break;
-                    case MessageProperty.DATE:
-                        DateTime.TryParse((new Regex(@"\(.*\)").Replace(current.Value.Trim(), "").Trim()),
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out _date);
-                        break;
-                    case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                        ContentTransferEncoding = current.Value;
-                        break;
-                    case MessageProperty.CONTENT_TYPE:
-                        ContentType = current.Value;
-                        break;
-                    case MessageProperty.MESSAGE_ID:
-                        MessageId = current.Value;
-                        break;
-                    case MessageProperty.MIME_VERSION:
-                        MimeVersion = current.Value;
-                        break;
-                    case MessageProperty.ORGANIZATION:
-                        Organization = current.Value;
-                        break;
-                    case MessageProperty.PRIORITY:
-                        Priority = current.Value;
-                        break;
-                    case MessageProperty.RECEIVED:
-                        Received = current.Value;
-                        break;
-                    case MessageProperty.REFERENCES:
-                        References = current.Value;
-                        break;
-                    case MessageProperty.REPLY_TO:
-                        ReplyTo = StringDecoder.Decode(current.Value);
-                        break;
-                    case MessageProperty.X_MAILER:
-                        XMailer = current.Value;
-                        break;
-                    case MessageProperty.CC:
-                        Cc = HeaderFieldParser.ParseMailAddressCollection(current.Value);
-                        break;
-                    case MessageProperty.BCC:
-                        Bcc = HeaderFieldParser.ParseMailAddressCollection(current.Value);
-                        break;
-                    case MessageProperty.SUBJECT:
-                        _subject = StringDecoder.Decode(current.Value);
-                        break;
-                }
-            }
-            Headers = _emailParser.HeadersCollection;
-            if (!processBody) return;
-            _emailParser.ParseBody();
-            foreach (BodyPart current2 in _emailParser.Parts)
-            {
-                var messageContent = new MessageContent();
-                foreach (var current3 in current2.Headers)
-                {
-                    if (current3.Key.ToLower().Equals("content-type"))
-                    {
-                        messageContent.ContentType = current3.Value;
-                    }
-                    else
-                    {
-                        if (current3.Key.ToLower().Equals("content-disposition"))
-                        {
-                            messageContent.ContentDisposition = current3.Value;
-                            if (current3.Value.ToLower().Contains("filename="))
-                            {
-                                // Fix provided by Henkes
-                                // For reference see http://imapx.codeplex.com/workitem/1423
-                                string contentFilename = current3.Value.Split(new[]
-                                {
-                                    "filename="
-                                }, StringSplitOptions.None)[1].Split(';')[0].Trim(new[]
-                                {
-                                    '"'
-                                }).Replace("\n", "");
-                                messageContent.ContentFilename = contentFilename;
-                                continue;
-                            }
-                        }
-                        if (current3.Key.ToLower().Equals("content-description"))
-                        {
-                            messageContent.ContentDescription = current3.Value;
-                        }
-                        else
-                        {
-                            if (current3.Key.ToLower().Equals(MessageProperty.CONTENT_TRANSFER_ENCODING))
-                            {
-                                messageContent.ContentTransferEncoding = current3.Value;
-                            }
-                        }
-
-                        // [2013-04-24] naudelb(Len Naude) - Keep the Content-ID as reference to the embedded iamge (Inline Attachment)
-                        if (current3.Key.ToLower().Equals("content-id"))
-                        {
-                            messageContent.ContentId = current3.Value;
-                        }
-                    }
-                }
-                if (current2.Boundary == null)
-                {
-                    messageContent.ContentType = ContentType;
-                }
-                messageContent.ContentStream = _emailParser.GetPart(current2);
-                messageContent.PartHeaders = current2.Headers;
-                messageContent.BoundaryName = current2.Boundary;
-                BodyParts.Add(messageContent);
-            }
+            _downloadProgress = _downloadProgress | MessageFetchMode.GMailMessageId;
         }
 
-        private StringBuilder GetEml()
+        private void TryProcessSize(string data)
         {
-            var stringBuilder = new StringBuilder();
-            if (_emailParser != null && _emailParser.EmailItems != null && _emailParser.EmailItems.Length > 0)
+            Match sizeMatch = Expressions.SizeRex.Match(data);
+            if (!sizeMatch.Success) return;
+            Size = long.Parse(sizeMatch.Groups[1].Value);
+            _downloadProgress = _downloadProgress | MessageFetchMode.Size;
+        }
+
+        private void TryProcessFlags(string data)
+        {
+            Match flagsMatch = Expressions.FlagsRex.Match(data);
+            if (!flagsMatch.Success) return;
+            Flags.AddRangeInternal(flagsMatch.Groups[1].Value.Split(' ').Where(_ => !string.IsNullOrEmpty(_)));
+            _downloadProgress = _downloadProgress | MessageFetchMode.Flags;
+        }
+
+        private void TryProcessGmLabels(string data)
+        {
+            Match labelsMatch =
+                Expressions.GMailLabelSplitRex.Match(Expressions.GMailLabelsRex.Match(data).Groups[1].Value);
+
+            if (!labelsMatch.Success || labelsMatch.Groups.Count <= 1) return;
+            Labels.AddRangeInternal(
+                labelsMatch.Groups.Cast<Group>()
+                    .Skip(1)
+                    .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
+            _downloadProgress = _downloadProgress | MessageFetchMode.GMailLabels;
+        }
+
+        private void TryProcessInternalDate(string data)
+        {
+            Match dateMatch = Expressions.InternalDateRex.Match(data);
+            if (!dateMatch.Success) return;
+
+            InternalDate = HeaderFieldParser.ParseDate(dateMatch.Groups[1].Value);
+
+            _downloadProgress = _downloadProgress | MessageFetchMode.InternalDate;
+        }
+
+        internal void TryProcessHeader(string data)
+        {
+            Match headerMatch = Expressions.HeaderParseRex.Match(data);
+            if (headerMatch.Success && !Headers.ContainsKey(headerMatch.Groups[1].Value.ToLower()))
             {
-                for (int i = 1; i <= _emailParser.EmailItems.Length - 2; i++)
-                {
-                    if (i == _emailParser.EmailItems.Length - 2 && _emailParser.EmailItems[i].Length > 0)
-                    {
-                        stringBuilder.AppendFormat("{0}{1}", _emailParser.EmailItems[i].TrimEnd(new[]
-                        {
-                            ')'
-                        }), "\r\n");
-                    }
-                    else
-                    {
-                        stringBuilder.AppendFormat("{0}{1}", _emailParser.EmailItems[i], "\r\n");
-                    }
-                }
+                _lastAddedHeader = headerMatch.Groups[1].Value.ToLower();
+                Headers.Add(_lastAddedHeader, headerMatch.Groups[2].Value);
+            }
+            else if (headerMatch.Success)
+            {
+                _lastAddedHeader = headerMatch.Groups[1].Value.ToLower();
+                Headers[_lastAddedHeader] = Headers[_lastAddedHeader] +
+                                            Environment.NewLine +
+                                            headerMatch.Groups[2].Value;
             }
             else
             {
-                stringBuilder.Append(MessageBuilder());
+                Headers[_lastAddedHeader] = Headers[_lastAddedHeader] + data;
             }
-            return stringBuilder;
         }
 
-        public string GetAsString()
+        private void BindHeadersToFields()
         {
-            return GetEml().ToString();
+            foreach (var header in Headers)
+            {
+                switch (header.Key)
+                {
+                    case MessageHeader.MimeVersion:
+                        MimeVersion = header.Value;
+                        break;
+                    case MessageHeader.Sender:
+                        Sender = HeaderFieldParser.ParseMailAddress(header.Value);
+                        break;
+                    case MessageHeader.Subject:
+                        Subject = StringDecoder.Decode(header.Value);
+                        break;
+                    case MessageHeader.To:
+                        if (To.Count == 0)
+                            To = HeaderFieldParser.ParseMailAddressCollection(header.Value);
+                        else
+                            foreach (MailAddress addr in HeaderFieldParser.ParseMailAddressCollection(header.Value))
+                                To.Add(addr);
+                        break;
+                    case MessageHeader.DeliveredTo:
+                        To.Add(HeaderFieldParser.ParseMailAddress(header.Value));
+                        break;
+                    case MessageHeader.From:
+                        From = HeaderFieldParser.ParseMailAddress(header.Value);
+                        break;
+                    case MessageHeader.Cc:
+                        Cc = HeaderFieldParser.ParseMailAddressCollection(header.Value);
+                        break;
+                    case MessageHeader.Bcc:
+                        Bcc = HeaderFieldParser.ParseMailAddressCollection(header.Value);
+                        break;
+                    case MessageHeader.Organisation:
+                    case MessageHeader.Organization:
+                        Organization = StringDecoder.Decode(header.Value);
+                        break;
+                    case MessageHeader.Date:
+                        Date = HeaderFieldParser.ParseDate(header.Value);
+                        break;
+                    case MessageHeader.Importance:
+                        Importance = header.Value.ToMessageImportance();
+                        break;
+                    case MessageHeader.ContentType:
+                        ContentType = new ContentType(header.Value);
+                        break;
+                    case MessageHeader.ContentTransferEncoding:
+                        ContentTransferEncoding = header.Value;
+                        break;
+                    case MessageHeader.MessageId:
+                        MessageId = header.Value;
+                        break;
+                    case MessageHeader.Mailer:
+                    case MessageHeader.XMailer:
+                        Mailer = header.Value;
+                        break;
+                    case MessageHeader.ReplyTo:
+                        ReplyTo = HeaderFieldParser.ParseMailAddressCollection(header.Value);
+                        break;
+                    case MessageHeader.Sensitivity:
+                        Sensitivity = header.Value.ToMessageSensitivity();
+                        break;
+                    case MessageHeader.ReturnPath:
+                        ReturnPath =
+                            HeaderFieldParser.ParseMailAddress(
+                                header.Value.Split(new[] {'\r', '\n'}, StringSplitOptions.None)
+                                    .Distinct()
+                                    .FirstOrDefault());
+                        break;
+                    case MessageHeader.ContentLanguage:
+                    case MessageHeader.Language:
+                        Language = header.Value;
+                        break;
+                    case MessageHeader.InReplyTo:
+                        InReplyTo = header.Value;
+                        break;
+                    case MessageHeader.Comments:
+                        Comments = header.Value;
+                        break;
+                }
+            }
         }
 
-        public void SaveAsEmlToFile(string path, string filename)
+        private void TryProcessBodyStructure(string data)
         {
-            if (!Directory.Exists(path))
+            Match bstructMatch = Expressions.BodyStructRex.Match(data);
+            if (!bstructMatch.Success) return;
+
+            using (var parser = new BodyStructureParser(bstructMatch.Groups[1].Value, _client, this))
+                BodyParts = parser.Parse();
+
+            Body = new MessageBody(_client,
+                BodyParts.FirstOrDefault(
+                    _ =>
+                        _.ContentDisposition == null && _.ContentType != null &&
+                        _.ContentType.MediaType.Equals("text/plain", StringComparison.InvariantCultureIgnoreCase)),
+                BodyParts.FirstOrDefault(
+                    _ =>
+                        _.ContentDisposition == null && _.ContentType != null &&
+                        _.ContentType.MediaType.Equals("text/html", StringComparison.InvariantCultureIgnoreCase)));
+
+            Attachments = (from part in BodyParts
+                where
+                    part.ContentDisposition != null &&
+                    part.ContentDisposition.DispositionType == DispositionTypeNames.Attachment
+                select new Attachment(part)).ToArray();
+
+            EmbeddedResources = (from part in BodyParts
+                where
+                    part.ContentDisposition != null &&
+                    (part.ContentDisposition.DispositionType == DispositionTypeNames.Inline ||
+                     !string.IsNullOrEmpty(part.ContentId))
+                select new Attachment(part)).ToArray();
+
+            _downloadProgress = _downloadProgress | MessageFetchMode.BodyStructure;
+        }
+
+        public bool Download(MessageFetchMode mode = MessageFetchMode.ClientDefault)
+        {
+            if (mode == MessageFetchMode.ClientDefault)
+                mode = _client.Behavior.MessageFetchMode;
+
+            if (mode == MessageFetchMode.None)
+                return true;
+
+            var fetchParts = new StringBuilder();
+
+            if (mode.HasFlag(MessageFetchMode.Flags) && !_downloadProgress.HasFlag(MessageFetchMode.Flags))
+                fetchParts.Append("FLAGS ");
+
+            if (mode.HasFlag(MessageFetchMode.InternalDate) && !_downloadProgress.HasFlag(MessageFetchMode.InternalDate))
+                fetchParts.Append("INTERNALDATE ");
+
+            if (mode.HasFlag(MessageFetchMode.Size) && !_downloadProgress.HasFlag(MessageFetchMode.Size))
+                fetchParts.Append("RFC822.SIZE ");
+
+            if (mode.HasFlag(MessageFetchMode.Headers) && !_downloadProgress.HasFlag(MessageFetchMode.Headers))
             {
-                throw new ImapException("Directory not Exists");
+                if (_client.Behavior.RequestedHeaders == null || _client.Behavior.RequestedHeaders.Length == 0)
+                    fetchParts.Append("BODY.PEEK[HEADER] ");
+                else
+                    fetchParts.Append("BODY.PEEK[HEADER.FIELDS (" +
+                                      string.Join(" ",
+                                          _client.Behavior.RequestedHeaders.Where(_ => !string.IsNullOrEmpty(_))
+                                              .Select(_ => _.ToUpper())
+                                              .ToArray()) + ")] ");
             }
-            if (filename == null)
+
+            if (mode.HasFlag(MessageFetchMode.BodyStructure) &&
+                !_downloadProgress.HasFlag(MessageFetchMode.BodyStructure))
+                fetchParts.Append("BODYSTRUCTURE ");
+
+            if (_client.Capabilities.XGMExt1)
             {
-                filename = Guid.NewGuid().ToString();
+                if (mode.HasFlag(MessageFetchMode.GMailMessageId) &&
+                    !_downloadProgress.HasFlag(MessageFetchMode.GMailMessageId))
+                    fetchParts.Append("X-GM-MSGID ");
+
+                if (mode.HasFlag(MessageFetchMode.GMailThreads) &&
+                    !_downloadProgress.HasFlag(MessageFetchMode.GMailThreads))
+                    fetchParts.Append("X-GM-THRID ");
+
+                if (mode.HasFlag(MessageFetchMode.GMailLabels) &&
+                    !_downloadProgress.HasFlag(MessageFetchMode.GMailLabels))
+                    fetchParts.Append("X-GM-LABELS ");
             }
-            StringBuilder eml = GetEml();
-            using (var fileStream = new FileStream(path + filename + ".eml", FileMode.Create, FileAccess.Write))
+
+
+            IList<string> data = new List<string>();
+            if (
+                !_client.SendAndReceive(string.Format(ImapCommands.Fetch, UId, fetchParts.ToString().Trim()), ref data,
+                    this))
+                return false;
+
+            BindHeadersToFields();
+
+            if (!mode.HasFlag(MessageFetchMode.Body))
+                return true;
+
+            foreach (MessageContent bodyPart in BodyParts)
+            {
+                if (mode.HasFlag(MessageFetchMode.Full) ||
+                    (bodyPart.ContentDisposition == null && bodyPart.ContentType != null &&
+                     (bodyPart.ContentType.MediaType == "text/plain" || bodyPart.ContentType.MediaType == "text/html")))
+                {
+                    bodyPart.Download();
+                }
+            }
+
+            return true;
+        }
+
+        public override byte[] AppendCommandData(string serverResponse)
+        {
+            return base.AppendCommandData(serverResponse);
+        }
+
+        /// <summary>
+        ///     Moves the current message to another folder
+        /// </summary>
+        /// <param name="folder">The folder where the current message should be  moved to</param>
+        /// <returns><code>true</code> if the message could be moved</returns>
+        public bool MoveTo(Folder folder)
+        {
+            if (folder == null)
+                throw new ArgumentNullException("folder");
+            return CopyTo(folder) && Remove();
+        }
+
+        /// <summary>
+        ///     Creates a copy of the current message in another folder
+        /// </summary>
+        /// <param name="folder">The folder where the message should be copied to</param>
+        /// <param name="downloadCopy">If <code>true</code>, the copy of the message will be downloaded to target folder</param>
+        /// <returns><code>true</code> if the message could be copied</returns>
+        public bool CopyTo(Folder folder, bool downloadCopy = false)
+        {
+            if (folder == null)
+                throw new ArgumentNullException("folder");
+
+            IList<string> data = new List<string>();
+            if (
+                !_client.SendAndReceive(string.Format(ImapCommands.Copy, UId, folder.Path), ref data,
+                    this))
+                return false;
+
+            
+            var m = Expressions.CopyUIdRex.Match(data.FirstOrDefault() ?? "");
+
+            if (m.Success)
+                folder.Search("UID " + m.Groups[3].Value);
+            
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Removes the current message from server
+        /// </summary>
+        /// <returns><code>true</code> if the message could be removed, otherwise false</returns>
+        public bool Remove()
+        {
+            if (!Flags.Add(MessageFlags.Deleted) || !_folder.Expunge()) return false;
+            _folder.Messages.RemoveInternal(this);
+            return true;
+        }
+
+#if !WINDOWS_PHONE
+
+        ///// <summary>
+        /////     Converts a <code>System.Net.Mail.MailMessage to <code>ImapX.Message</code></code>
+        ///// </summary>
+        ///// <param name="mailMessage">The mail message to be converted</param>
+        //public static Message FromMailMessage(System.Net.Mail.MailMessage mailMessage)
+        //{
+        //    return ImapX.MessageBuilder.FromMailMessage(mailMessage);
+        //}
+#endif
+        
+        /// <summary>
+        ///     Creates a new <code>ImapX.Message</code> from EML
+        /// </summary>
+        /// <param name="eml">The eml data</param>
+        public static Message FromEml(string eml)
+        {
+            return ImapX.MessageBuilder.FromEml(eml);
+        }
+
+        /// <summary>
+        ///     Returns the current message in its eml string representation.
+        /// </summary>
+        public string ToEml()
+        {
+            return ImapX.MessageBuilder.ToEml(this);
+        }
+
+        /// <summary>
+        ///     Saves the current message as eml to file
+        /// </summary>
+        /// <param name="path">The path where the message should be stored</param>
+        /// <param name="fileName">The file name</param>
+        public void Save(string path, string fileName)
+        {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Path cannot be null or empty", "path");
+
+            if (string.IsNullOrEmpty(fileName))
+                throw new ArgumentException("File name cannot be null or empty", "fileName");
+
+            using (var fileStream = new FileStream(Path.Combine(path, fileName), FileMode.Create, FileAccess.Write))
             {
                 using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.UTF8))
-                {
-                    textWriter.Write(eml.ToString());
-                }
+                    textWriter.Write(ToEml());
             }
         }
 
+        #region Obsolete
+
+        [Obsolete("MessageBuilder is obsolete. Please use ToEml instead", true)]
         public string MessageBuilder()
         {
-            var stringBuilder = new StringBuilder();
-            DateTime now = DateTime.Now;
-            stringBuilder.AppendFormat("Date: {0}{1}",
-                now.ToString("dd-MM-yyyy hh:mm:ss", new CultureInfo("en-US")), "\r\n");
-            if (From != null)
-            {
-                stringBuilder.Append("From: ");
-                stringBuilder.AppendFormat("{0}, ", From);
-                stringBuilder.Remove(stringBuilder.Length - 2, 2);
-                stringBuilder.Append("\r\n");
-            }
-            if (To.Count > 0)
-            {
-                stringBuilder.Append("To: ");
-                foreach (MailAddress current2 in To)
-                {
-                    stringBuilder.AppendFormat("{0}, ", current2);
-                }
-                stringBuilder.Remove(stringBuilder.Length - 2, 1);
-                stringBuilder.Append("\r\n");
-            }
-            if (!string.IsNullOrEmpty(_subject))
-            {
-                stringBuilder.AppendFormat("Subject: {0}{1}", _subject, "\r\n");
-            }
-            if (string.IsNullOrEmpty(MessageId))
-            {
-                stringBuilder.AppendFormat("Message-Id: {0}@ImapX{1}", Guid.NewGuid(), "\r\n");
-            }
-            else
-            {
-                stringBuilder.AppendFormat("Message-Id: {0}{1}", MessageId, "\r\n");
-            }
-            if (!string.IsNullOrEmpty(XMailer))
-            {
-                stringBuilder.AppendFormat("X-Mailer: {0}{1}", XMailer, "\r\n");
-            }
-            if (!string.IsNullOrEmpty(ContentTransferEncoding))
-            {
-                stringBuilder.AppendFormat("Content-Transfer-Encoding: {0}{1}", ContentTransferEncoding, "\r\n");
-            }
-            if (string.IsNullOrEmpty(MimeVersion))
-            {
-                stringBuilder.AppendFormat("MIME-Version: 1.0{0}", "\r\n");
-            }
-            else
-            {
-                stringBuilder.AppendFormat("MIME-Version: {0}{1}", MimeVersion, "\r\n");
-            }
-            if (TextBody == null && Attachments.Count <= 0)
-            {
-                stringBuilder.AppendFormat("Content-Type: text/html; charset=utf-8{0}", "\r\n");
-                stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
-                stringBuilder.Append("\r\n");
-                if (HtmlBody != null && HtmlBody.TextData != null)
-                {
-                    stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(HtmlBody.TextData)),
-                        Environment.NewLine);
-                }
-                else
-                {
-                    stringBuilder.AppendFormat(Environment.NewLine, new object[0]);
-                }
-            }
-            else
-            {
-                stringBuilder.Append("Content-Type: multipart/mixed;");
-                stringBuilder.AppendFormat("boundary=\"part000\"{0}", "\r\n");
-                stringBuilder.AppendFormat("--part000{0}", "\r\n");
-                stringBuilder.AppendFormat("Content-Type: text/plain; charset=utf-8{0}", "\r\n");
-                stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
-                stringBuilder.Append("\r\n");
-                if (TextBody != null && TextBody.TextData != null)
-                {
-                    stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(TextBody.TextData)),
-                        Environment.NewLine);
-                }
-                else
-                {
-                    stringBuilder.AppendFormat(Environment.NewLine, new object[0]);
-                }
-                stringBuilder.AppendFormat("--part000{0}", "\r\n");
-                stringBuilder.AppendFormat("Content-Type: text/html; charset=utf-8{0}", "\r\n");
-                stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", "\r\n");
-                stringBuilder.Append("\r\n");
-                if (HtmlBody != null && HtmlBody.TextData != null)
-                {
-                    stringBuilder.AppendFormat("{0}{1}", Base64.ToBase64(Encoding.UTF8.GetBytes(HtmlBody.TextData)),
-                        Environment.NewLine);
-                }
-                else
-                {
-                    stringBuilder.AppendFormat(Environment.NewLine, new object[0]);
-                }
-                foreach (Attachment current3 in Attachments)
-                {
-                    stringBuilder.AppendFormat("--part000{0}", Environment.NewLine);
-                    stringBuilder.AppendFormat("Content-Type: {0}; name=\"{1}\"{2}", current3.FileType,
-                        current3.FileName.Substring(current3.FileName.IndexOf('/')).Trim(new[]
-                        {
-                            '/'
-                        }), Environment.NewLine);
-                    if (string.IsNullOrEmpty(current3.FileEncoding))
-                    {
-                        stringBuilder.AppendFormat("Content-Transfer-Encoding: base64{0}", Environment.NewLine);
-                    }
-                    else
-                    {
-                        stringBuilder.AppendFormat("Content-Transfer-Encoding: {0}{1}", current3.FileEncoding,
-                            Environment.NewLine);
-                    }
-                    stringBuilder.AppendFormat("Content-Disposition: attachment; filename=\"{0}\"{1}",
-                        current3.FileName.Substring(current3.FileName.LastIndexOf('/')).Trim(new[]
-                        {
-                            '/'
-                        }), Environment.NewLine);
-                    stringBuilder.Append(Environment.NewLine);
-                    stringBuilder.Append(current3.GetStream());
-                    stringBuilder.Append(Environment.NewLine);
-                }
-                stringBuilder.AppendFormat("--part000--{0}", Environment.NewLine);
-            }
-            return stringBuilder.ToString();
+            throw new NotImplementedException();
         }
+
+        [Obsolete("SaveAsEmlToFile is obsolete. Please use Save instead", true)]
+        public void SaveAsEmlToFile(string path, string filename)
+        {
+        }
+
+        [Obsolete("GetAsString is obsolete. Please use ToEml instead", true)]
+        public string GetAsString()
+        {
+            return ToEml();
+        }
+
+        [Obsolete("HtmlBody is obsolete. Please use Body.Html instead", true)]
+        public MessageContent HtmlBody { get; set; }
+
+        [Obsolete("TextBody is obsolete. Please use Body.Html instead", true)]
+        public MessageContent TextBody { get; set; }
+
+        [Obsolete("MessageUid is obsolete. Please use UId instead", true)]
+        public int MessageUid { get; set; }
+
+        [Obsolete(
+            "Priority is obsolete. It is being used on the server, not on the client and will be removed in future releases. If you need it, please access it through the headers collection.",
+            true)]
+        public string Priority { get; set; }
+
+        [Obsolete(
+            "References is obsolete. It will be removed in future releases. If you need it, please access it through the headers collection.",
+            true)]
+        public string Received { get; set; }
+
+        [Obsolete(
+            "References is obsolete. It will be removed in future releases. If you need it, please access it through the headers collection.",
+            true)]
+        public string References { get; set; }
+
+        [Obsolete("XMailer is obsolete. Please use Mailer instead", true)]
+        public string XMailer { get; set; }
+
+        [Obsolete("InlineAttachments is obsolete, please use EmbeddedResources instead", true)]
+        public Attachment[] InlineAttachments { get; set; }
+
+        [Obsolete("GetDecodedBody is obsolete. Please use Body.Text and Body.Html instead", true)]
+        public string GetDecodedBody(out bool isHtml)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete("ProcessFlags is obsolete. Please see documentation on how to request flags.", true)]
+        public void ProcessFlags()
+        {
+        }
+
+        [Obsolete("ProcessHeader is obsolete. Please see documentation on how to request header.", true)]
+        public void ProcessHeader()
+        {
+        }
+
+        [Obsolete("Process is obsolete. Please see documentation on how to download the message.", true)]
+        public void Process()
+        {
+        }
+
+        [Obsolete("SendAndReceiveMessage is obsolete", true)]
+        public bool SendAndReceiveMessage(string command, ref List<string> data, Message msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

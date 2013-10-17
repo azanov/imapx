@@ -20,10 +20,21 @@ namespace ImapX.Sample
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Directory.CreateDirectory(Path.Combine(Application.StartupPath, "tmp"));
+            var tmpPath = Path.Combine(Application.StartupPath, "tmp");
+
+            
 
             try
             {
+
+                try
+                {
+                    if (Directory.Exists(tmpPath))
+                        Directory.Delete(tmpPath, true);
+                }
+                catch { }
+
+                Directory.CreateDirectory(tmpPath);
 
                 Application.Run(new FrmMain());
 
@@ -37,8 +48,7 @@ namespace ImapX.Sample
                 }
 
             }
-            Directory.Delete(Path.Combine(Application.StartupPath, "tmp"), true);
-
+            
         }
     }
 }

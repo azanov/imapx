@@ -1,217 +1,259 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
+using System.Net.Mime;
 using System.Text;
 using System.Text.RegularExpressions;
+using ImapX.Constants;
 using ImapX.EncodingHelpers;
+using ImapX.Enums;
+using ImapX.Extensions;
 using ImapX.Parsing;
 
 namespace ImapX
 {
 
-    public class MessageContent
+    public class MessageContent : CommandProcessor, INotifyPropertyChanged
     {
-        public MessageContent()
+        private readonly ImapClient _client;
+        private readonly Message _message;
+        private MessageFetchState _fetchState;
+        private MessageFetchState _fetchProgress;
+        private ContentType _contentType;
+        private ContentTransferEncoding _contentTransferEncoding;
+        private string _contentStream;
+        private string _contentId;
+        private ContentDisposition _contentDisposition;
+
+        private static readonly Regex MimeRex = new Regex(@"BODY\[.+\] \{\d+\}");
+        private static readonly Regex BodyRex = new Regex(@"\*.+FETCH.+\(UID \d+ BODY\[.+\] \{\d+\}");
+
+        internal MessageContent(){}
+
+        public MessageContent(ImapClient client, Message message)
         {
-            ContentStream = string.Empty;
+            _client = client;
+            _message = message;
+            Parameters = new Dictionary<string, string>();
         }
 
-        public string BoundaryName { get; set; }
+        public string ContentId
+        {
+            get { return _contentId; }
+            set
+            {
+                _contentId = value;
+                OnPropertyChanged("ContentId");
+            }
+        }
 
-        public Dictionary<string, string> PartHeaders { get; set; }
+        public string ContentNumber { get; set; }
 
-        public string ContentStream { get; set; }
+        public ContentType ContentType
+        {
+            get { return _contentType; }
+            set
+            {
+                _contentType = value;
+                OnPropertyChanged("ContentType");
+            }
+        }
 
-        public string ContentDescription { get; set; }
+        public ContentTransferEncoding ContentTransferEncoding
+        {
+            get { return _contentTransferEncoding; }
+            set
+            {
+                _contentTransferEncoding = value;
+                OnPropertyChanged("ContentTransferEncoding");
+            }
+        }
 
-        public string MIMEVersion { get; set; }
+        public ContentDisposition ContentDisposition
+        {
+            get { return _contentDisposition; }
+            set
+            {
+                _contentDisposition = value;
+                OnPropertyChanged("ContentDisposition");
+            }
+        }
 
-        public string ContentFilename { get; set; }
+        public string Description { get; set; }
 
-        public string ContentDisposition { get; set; }
-
-        public string ContentId { get; set; }
-
-        public string PartID { get; set; }
-
-        public string TextData { get; set; }
-
-        public byte[] BinaryData { get; set; }
-
-        public string ContentType { get; set; }
-
-        public string ContentTransferEncoding { get; set; }
-
-        public int ContentSize { get; set; }
+        public Dictionary<string, string> Parameters { get; set; }
 
         /// <summary>
-        ///     Some messages contain attachments that are not described in the ContentDisposition,
-        ///     but in the ContentStream directly. This method is used to convert a body part to
-        ///     an attachment
+        /// The size of the message part
         /// </summary>
-        /// <remarks>
-        ///     [27.07.2012] Fix by Pavel Azanov (coder13)
-        /// </remarks>
-        internal Attachment ToAttachment()
-        {
-            var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
-            string[] tmp = ContentStream.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            var attachment = new Attachment();
-            string bodyPart = string.Empty;
+        public long Size { get; set; }
 
-            try
+        public string Md5 { get; set; }
+        public string Language { get; set; }
+
+        public string ContentStream
+        {
+            get { return _contentStream; }
+            set
             {
-                if (ContentType != null && ContentType.ToLower().Contains("message/rfc822"))
-                    // [2013-04-24] naudelb(Len Naude) - Added
-                {
-                    // This part is an email attachment in mime(text) format that will be atached as an "eml" file
-                    // The name of the file will be derived from the attachment's "Subject" line
-                    // Remove leading blank line
-                    ContentStream = ContentStream.TrimStart("\r\n".ToCharArray());
-                    attachment.FileName = ParseHelper.GetRFC822FileName(ContentStream);
-                    attachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
-                }
-                else if (ContentType != null && ContentType.ToLower().Contains("message/delivery-status"))
-                    // [2013-04-24] naudelb(Len Naude) - Added
-                {
-                    // Delivery failed notice atachment in mime(text) format
-                    // Name will be hardcoded as "details.txt" as this is what outlook does
-                    attachment.FileName = "details.txt";
-                    attachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
-                }
+                _contentStream = value;
+                OnPropertyChanged("ContentStream");
+            }
+        }
+
+        public bool Downloaded
+        {
+            get { return _fetchProgress.HasFlag(MessageFetchState.Headers | MessageFetchState.Body); }
+        }
+
+        public override void ProcessCommandResult(string data)
+        {
+
+
+            if (BodyRex.IsMatch(data))
+            {
+                _fetchState = MessageFetchState.Body;
+                _fetchProgress = _fetchProgress | MessageFetchState.Body;
+                return;
+            }
+
+            if (MimeRex.IsMatch(data))
+            {
+                data = MimeRex.Replace(data, "").Trim();
+                //_writer.Write(data);
+
+                ContentStream += ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
+                    ? data.TrimEnd(new[] {' ', '='})
+                    : data;
+                _fetchState = MessageFetchState.Headers;
+                _fetchProgress = _fetchProgress | MessageFetchState.Headers;
+                return;
+            }
+
+
+            if (_fetchState == MessageFetchState.Headers)
+            {
+
+                Match headerMatch = Expressions.HeaderParseRex.Match(data);
+                if (!headerMatch.Success) return;
+
+                string key = headerMatch.Groups[1].Value.ToLower();
+                string value = headerMatch.Groups[2].Value;
+
+                if (Parameters.ContainsKey(key))
+                    Parameters[key] = value;
                 else
+                    Parameters.Add(key, value);
+
+                switch (key)
                 {
-                    for (int i = 0; i < tmp.Length && string.IsNullOrEmpty(bodyPart); i++)
-                    {
-                        if (tmp[i].StartsWith("--"))
-                            continue;
+                    case "content-type":
+                        if (ContentType == null)
+                            ContentType = new ContentType(value);
+                        break;
+                    case "charset":
+                        if (ContentType == null)
+                            ContentType = new ContentType();
+                        ContentType.CharSet = value;
+                        break;
+                    case "filename":
+                    case "name":
 
-                        string line = tmp[i].Trim('\t').Trim('\"').Trim().TrimEnd(';'); // [05/28/13] Fix by Woozer 
+                        value = StringDecoder.Decode(value);
 
-                        string[] parts = line.Contains(';') ? line.Split(';') : new[] {line};
+                        if (ContentType == null)
+                            ContentType = new ContentType();
 
-                        foreach (Match match in parts.Select(part => rex.Match(part)))
-                        {
-                            if (!match.Success && parts.Length == 1)
-                            {
-                                bodyPart = string.Join("\r\n", tmp.Skip(i).ToArray());
-                                break;
-                            }
-                            if (!match.Success)
-                                continue;
+                        if (ContentDisposition == null)
+                            ContentDisposition = new ContentDisposition();
 
+                        ContentDisposition.FileName = value;
 
-                            string field = match.Groups[1].Value.ToLower().Trim();
-                            string value = match.Groups[2].Value.Trim().Trim('"').TrimEnd(';');
+                        if (string.IsNullOrEmpty(ContentDisposition.DispositionType) && string.IsNullOrEmpty(ContentId))
+                            ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
 
-                            switch (field)
-                            {
-                                case MessageProperty.CONTENT_TYPE:
-                                    attachment.FileType = ParseHelper.ExtractFileType(value.ToLower());
-                                    break;
-                                case "name":
-                                case "filename":
-                                    attachment.FileName = StringDecoder.Decode(value.Trim('"').Trim('\''));
-                                    break;
-                                case MessageProperty.CONTENT_TRANSFER_ENCODING:
-                                    attachment.FileEncoding = value.ToLower();
-                                    break;
-                            }
-                        }
-                    }
+                        ContentType.Name = value;
+                        break;
+                    case "content-id":
+                        if (ContentDisposition == null)
+                            ContentDisposition = new ContentDisposition();
 
+                        ContentDisposition.DispositionType = DispositionTypeNames.Inline;
 
-                    // [2013-04-24] naudelb(Len Naude) - The value might be mixed case
-                    //switch (attachment.FileEncoding)
-                    switch (
-                        string.IsNullOrEmpty(attachment.FileEncoding) ? "7bit" : attachment.FileEncoding.ToLower())
-                    {
-                        case "base64":
-                            attachment.FileData = Base64.FromBase64(bodyPart);
-                            break;
-                        case "7bit":
-                            attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
-                            break;
-                        case "quoted-printable":
-                            attachment.FileData =
-                                Encoding.UTF8.GetBytes(StringDecoder.DecodeQuotedPrintable(bodyPart, Encoding.UTF8));
-                            break;
-                        default:
-                            attachment.FileData = Encoding.UTF8.GetBytes(bodyPart);
-                            break;
-                    }
+                        ContentId = value.Trim(' ', '<', '>');
+                        break;
+                    case "content-disposition":
+                        if (ContentDisposition == null)
+                            ContentDisposition = new ContentDisposition(value);
+
+                        if (!string.IsNullOrEmpty(ContentId))
+                            ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+
+                        break;
+                    case "content-transfer-encoding":
+                        ContentTransferEncoding = value.ToContentTransferEncoding();
+                        break;
                 }
-
-
-                return attachment;
             }
-            catch (FormatException ex)
+            else
             {
-                var str = new StringBuilder();
-                str.Append("Error parsing attachment");
-                str.Append(Environment.NewLine);
-                str.AppendFormat("Attachment filename: \"{0}\"", attachment.FileName);
-                str.Append(Environment.NewLine);
-                str.AppendFormat("Part body: \"{0}\"", bodyPart);
-                throw new Exception(str.ToString(), ex);
+                data = ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
+                    ? data.TrimEnd(new[] { ' ', '=' })
+                    : data;
+                ContentStream += data.Length == 0 ? Environment.NewLine : data;
             }
         }
 
-        internal InlineAttachment ToInlineAttachment()
+        public bool Download()
         {
-            var rex = new Regex(@"([^:|^=]*)[:|=][\s]?(.*)[;]?");
-            var inlineAttachment = new InlineAttachment();
+            //ContentStream = new MemoryStream();
+            // _writer = new StreamWriter(ContentStream);
 
-            // [2013-04-24] naudelb(Len Naude) - Catch Exceptions
+            Encoding encoding = null;
             try
             {
-                inlineAttachment.FileEncoding = ContentTransferEncoding;
-                inlineAttachment.FileType = ParseHelper.ExtractFileType(ContentType);
-                inlineAttachment.FileName =
-                    PartHeaders.FirstOrDefault(
-                        _ => _.Key.ToLower() == "content-id" || _.Key.ToLower() == "x-attachment-id")
-                        .Value.Replace("<", "")
-                        .Replace(">", "");
-
-                // [2013-04-24] naudelb(Len Naude) - Cater for mixed case and different encodings
-                //switch (ContentTransferEncoding)
-                //{
-                //    case "base64":
-                //        inlineAttachment.FileData = Base64.FromBase64(ContentStream);
-                //        break;
-                //}
-                switch (
-                    string.IsNullOrEmpty(inlineAttachment.FileEncoding)
-                        ? "7bit"
-                        : inlineAttachment.FileEncoding.ToLower())
-                {
-                    case "base64":
-                        inlineAttachment.FileData = Base64.FromBase64(ContentStream);
-                        break;
-                    case "7bit":
-                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
-                        break;
-                    case "quoted-printable":
-                        inlineAttachment.FileData =
-                            Encoding.UTF8.GetBytes(StringDecoder.DecodeQuotedPrintable(ContentStream, Encoding.UTF8));
-                        break;
-                    default:
-                        inlineAttachment.FileData = Encoding.UTF8.GetBytes(ContentStream);
-                        break;
-                }
+                encoding = Encoding.GetEncoding(ContentType.CharSet);
             }
-            catch (Exception ex)
+            catch
             {
-                var str = new StringBuilder();
-                str.Append("Error parsing inlineAttachment");
-                str.Append(Environment.NewLine);
-                str.AppendFormat("inlineAttachment filename: \"{0}\"", inlineAttachment.FileName);
-                str.Append(Environment.NewLine);
-                str.AppendFormat("Part body: \"{0}\"", ContentStream);
-                throw new Exception(str.ToString(), ex);
             }
 
-            return inlineAttachment;
+            IList<string> data = new List<string>();
+            bool result =
+                _client.SendAndReceive(
+                    string.Format(ImapCommands.Fetch, _message.UId,
+                        string.Format("BODY.PEEK[{0}.MIME] BODY.PEEK[{0}]", ContentNumber)), ref data,
+                    this, encoding);
+
+            //_writer.Flush();
+
+
+            return result;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string name)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(name));
+        }
+
+        internal void AppendEml(ref StringBuilder sb, bool addHeaders)
+        {
+            if (addHeaders)
+            {
+                foreach (var header in Parameters)
+                    sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value.Break(70)));
+            }
+
+            sb.AppendLine();
+
+            ContentStream.Break(ref sb, 70);
+
+            sb.AppendLine();
+        }
+
     }
 }

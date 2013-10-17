@@ -1,16 +1,23 @@
-﻿using ImapX.Enums;
+﻿using System;
+using ImapX.Constants;
+using ImapX.Enums;
 
 namespace ImapX
 {
     public class ClientBehavior
     {
+        private MessageFetchMode _messageFetchMode;
+
         public ClientBehavior()
         {
             FolderTreeBrowseMode = FolderTreeBrowseMode.Lazy;
-            MessageFetchMode = MessageFetchMode.HeadersOnly;
+            MessageFetchMode = MessageFetchMode.Basic;
             ExamineFolders = true;
+            AutoPopulateFolderMessages = false;
             FolderDelimeter = '\0';
             SpecialUseMetadataPath = "/private/specialuse";
+            AutoDownloadBodyOnAccess = true;
+            RequestedHeaders = MessageHeaderSets.Minimal;
         }
 
         /// <summary>
@@ -21,7 +28,33 @@ namespace ImapX
         /// <summary>
         ///     Gets or sets the mode how messages should be downloaded when fetched automatically
         /// </summary>
-        public MessageFetchMode MessageFetchMode { get; set; }
+        public MessageFetchMode MessageFetchMode
+        {
+            get { return _messageFetchMode; }
+            set
+            {
+                if (value == MessageFetchMode.ClientDefault)
+                    throw new ArgumentException("The default fetch mode cannot be set to ClientDefault!");
+                _messageFetchMode = value;
+            }
+        }
+
+        /// <summary>
+        ///     A list of message headers that will be requested. Set it to <code>null</code> to request all headers
+        /// </summary>
+        public string[] RequestedHeaders { get; set; }
+
+        /// <summary>
+        ///     Gets or sets whether the client should automatically populate Folder.Messages or it is done manually by calling
+        ///     Folder.Messages.Download
+        /// </summary>
+        public bool AutoPopulateFolderMessages { get; set; }
+
+        /// <summary>
+        ///     Gets or sets whether the client should automatically download the message body (text & html) when the
+        ///     Message.Body.Html/Text properties are accessed or it is done manually by calling Folder.Messages.Download
+        /// </summary>
+        public bool AutoDownloadBodyOnAccess { get; set; }
 
         /// <summary>
         ///     Gets or sets whether the folders should be examined when requested first
