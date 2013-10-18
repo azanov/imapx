@@ -15,7 +15,15 @@ namespace ImapX.Collections
         protected bool IsUTF7 = false;
         protected bool AddQuotes = false;
 
-        internal MessageFlagCollection(){}
+        public MessageFlagCollection()
+        {
+            
+        }
+
+        public MessageFlagCollection(Message message)
+        {
+            _message = message;
+        }
 
         public MessageFlagCollection(ImapClient client, Message message)
             : base(client)
@@ -44,6 +52,12 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be added</returns>
         public bool AddRange(IEnumerable<string> flags)
         {
+            if (Client == null)
+            {
+                base.AddRangeInternal(flags);
+                return true;
+            }
+
             IList<string> data = new List<string>();
             if (!Client.SendAndReceive(string.Format(ImapCommands.Store,
                 _message.UId, AddType,
@@ -91,6 +105,13 @@ namespace ImapX.Collections
         /// <returns><code>true</code> if the flags could be removed</returns>
         public bool RemoveRange(IEnumerable<string> flags)
         {
+            if (Client == null)
+            {
+                foreach (string flag in flags)
+                    RemoveInternal(flag);
+                return true;
+            }
+
             IList<string> data = new List<string>();
             if (!Client.SendAndReceive(
                 string.Format(ImapCommands.Store, _message.UId, RemoveType,

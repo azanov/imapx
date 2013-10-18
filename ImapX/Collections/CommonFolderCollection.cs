@@ -120,6 +120,7 @@ namespace ImapX.Collections
                     case "verzonden":
                     case "wysłane":
                     case "sent":
+                    case "sent items":
                     case "sent messages":
                     case "éléments envoyés":
                     case "απεσταλμένα":
@@ -150,6 +151,8 @@ namespace ImapX.Collections
                     case "휴지통":
                     case "trash":
                     case "deleted messages":
+                    case "deleted":
+                    case "deleted items":
                         Trash = folder;
                         break;
                 }
