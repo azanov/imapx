@@ -25,8 +25,9 @@ namespace ImapX
         private string _contentId;
         private ContentDisposition _contentDisposition;
 
-        private static readonly Regex MimeRex = new Regex(@"BODY\[.+\] \{\d+\}");
-        private static readonly Regex BodyRex = new Regex(@"\*.+FETCH.+\(UID \d+ BODY\[.+\] \{\d+\}");
+        private static readonly Regex MimeRex = new Regex(@".*BODY\[[\d\.]+MIME\] \{\d+\}");
+        private static readonly Regex BodyRex = new Regex(@".*BODY\[[\d\.]+\] \{\d+\}");
+        private static readonly Regex CommandEndRex = new Regex(@"IMAPX\d+ OK");
 
         internal MessageContent(){}
 
@@ -110,12 +111,6 @@ namespace ImapX
         {
 
 
-            if (BodyRex.IsMatch(data))
-            {
-                _fetchState = MessageFetchState.Body;
-                _fetchProgress = _fetchProgress | MessageFetchState.Body;
-                return;
-            }
 
             if (MimeRex.IsMatch(data))
             {
@@ -123,12 +118,27 @@ namespace ImapX
                 //_writer.Write(data);
 
                 ContentStream += ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
-                    ? data.TrimEnd(new[] {' ', '='})
+                    ? data.TrimEnd(new[] { ' ', '=' })
                     : data;
                 _fetchState = MessageFetchState.Headers;
                 _fetchProgress = _fetchProgress | MessageFetchState.Headers;
                 return;
             }
+
+            if (BodyRex.IsMatch(data))
+            {
+                data = BodyRex.Replace(data, "").Trim();
+
+                ContentStream += ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
+                    ? data.TrimEnd(new[] { ' ', '=' })
+                    : data;
+
+                _fetchState = MessageFetchState.Body;
+                _fetchProgress = _fetchProgress | MessageFetchState.Body;
+                return;
+            }
+
+            
 
 
             if (_fetchState == MessageFetchState.Headers)
@@ -194,6 +204,11 @@ namespace ImapX
                         ContentTransferEncoding = value.ToContentTransferEncoding();
                         break;
                 }
+            }
+            else if (CommandEndRex.IsMatch(data))
+            {
+                if(ContentStream.EndsWith(")"))
+                    ContentStream = ContentStream.Substring(0, ContentStream.Length - 1);
             }
             else
             {

@@ -8,7 +8,12 @@ namespace ImapX.Collections
     public class GMailMessageLabelCollection : MessageFlagCollection
     {
 
-        internal GMailMessageLabelCollection() { }
+        public GMailMessageLabelCollection() {}
+
+        public GMailMessageLabelCollection(Message message) : base(message)
+        {
+            
+        }
 
         public GMailMessageLabelCollection(ImapClient client, Message message)
             : base(client, message)

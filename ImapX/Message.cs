@@ -18,7 +18,7 @@ namespace ImapX
     public class Message : CommandProcessor
     {
         private readonly ImapClient _client;
-        private Folder _folder;
+        private readonly Folder _folder;
 
         private MessageFetchMode _downloadProgress;
         private MessageFetchState _fetchState;
@@ -571,13 +571,11 @@ namespace ImapX
                     this))
                 return false;
 
-            
             var m = Expressions.CopyUIdRex.Match(data.FirstOrDefault() ?? "");
 
             if (m.Success)
                 folder.Search("UID " + m.Groups[3].Value);
             
-
             return true;
         }
 

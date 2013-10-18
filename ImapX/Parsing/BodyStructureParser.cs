@@ -338,8 +338,11 @@ namespace ImapX.Parsing
             char currentChar;
             var chars = new List<char>();
 
-            while (char.IsDigit(currentChar = (char)_reader.Read()))
+            while (char.IsDigit(currentChar = (char) _reader.Peek()))
+            {
+                _reader.Read();
                 chars.Add(currentChar);
+            }
 
             long result;
 

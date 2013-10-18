@@ -13,8 +13,9 @@ namespace ImapX
     {
         private readonly MessageContent _content;
 
-        internal Attachment()
+        public Attachment()
         {
+
         }
 
         internal Attachment(MessageContent content)

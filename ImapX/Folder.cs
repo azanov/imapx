@@ -466,10 +466,17 @@ namespace ImapX
             throw new NotImplementedException();
         }
 
-         [Obsolete("AppendMessage is obsolete", true)]
-        public bool AppendMessage(Message msg, string flag)
+        public bool AppendMessage(Message msg, IEnumerable<string> flags = null, DateTime? date = null)
         {
-            throw new NotImplementedException();
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(
+                string.Format(ImapCommands.Append,
+                    _path, flags == null ? "" : string.Join(" ", flags.ToArray()),
+                    date.HasValue ? date.Value.ToString() : ""),
+                ref data, msg))
+                return false;
+
+            return true;
         }
 
         /// <summary>
