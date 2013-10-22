@@ -92,7 +92,6 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.addSubfolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
-            this.createNewMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             this.emptyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -816,67 +815,59 @@
             this.toolStripMenuItem1,
             this.addSubfolderToolStripMenuItem,
             this.toolStripMenuItem2,
-            this.createNewMessageToolStripMenuItem,
             this.importMessageToolStripMenuItem,
             this.toolStripMenuItem5,
             this.emptyToolStripMenuItem});
             this.mnuFolder.Name = "mnuFolder";
-            this.mnuFolder.Size = new System.Drawing.Size(183, 154);
+            this.mnuFolder.Size = new System.Drawing.Size(160, 132);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.renameToolStripMenuItem.Text = "&Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.deleteToolStripMenuItem.Text = "&Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(179, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(156, 6);
             // 
             // addSubfolderToolStripMenuItem
             // 
             this.addSubfolderToolStripMenuItem.Name = "addSubfolderToolStripMenuItem";
-            this.addSubfolderToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.addSubfolderToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.addSubfolderToolStripMenuItem.Text = "&Add subfolder";
             this.addSubfolderToolStripMenuItem.Click += new System.EventHandler(this.addSubfolderToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(179, 6);
-            // 
-            // createNewMessageToolStripMenuItem
-            // 
-            this.createNewMessageToolStripMenuItem.Name = "createNewMessageToolStripMenuItem";
-            this.createNewMessageToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
-            this.createNewMessageToolStripMenuItem.Text = "&Create new message";
-            this.createNewMessageToolStripMenuItem.Click += new System.EventHandler(this.createNewMessageToolStripMenuItem_Click);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
             // 
             // importMessageToolStripMenuItem
             // 
             this.importMessageToolStripMenuItem.Name = "importMessageToolStripMenuItem";
-            this.importMessageToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.importMessageToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.importMessageToolStripMenuItem.Text = "&Import message";
             this.importMessageToolStripMenuItem.Click += new System.EventHandler(this.importMessageToolStripMenuItem_Click);
             // 
             // toolStripMenuItem5
             // 
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(179, 6);
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(156, 6);
             // 
             // emptyToolStripMenuItem
             // 
             this.emptyToolStripMenuItem.Name = "emptyToolStripMenuItem";
-            this.emptyToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.emptyToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.emptyToolStripMenuItem.Text = "&Empty folder";
             this.emptyToolStripMenuItem.Click += new System.EventHandler(this.emptyToolStripMenuItem_Click);
             // 
@@ -989,7 +980,6 @@
         private System.Windows.Forms.ToolStripMenuItem moveToToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem createNewMessageToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem emptyToolStripMenuItem;
         private System.Windows.Forms.Panel pnlAttachments;

@@ -493,6 +493,25 @@ namespace ImapX
                 ref data, msgUploader);
         }
 
+#if !WINDOWS_PHONE
+
+        public bool AppendMessage(System.Net.Mail.MailMessage mailMessage)
+        {
+            if (mailMessage == null)
+                throw new ArgumentNullException("mailMessage", "mailMessage cannot be null");
+
+            try
+            {
+                return AppendMessage(mailMessage.ToEml());
+            }
+            catch {
+                return false;
+            }
+
+        }
+
+#endif
+
         [Obsolete("AppendMessage(Message) is obsolete", true)]
         public bool AppendMessage(Message msg)
         {
