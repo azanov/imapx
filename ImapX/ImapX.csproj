@@ -98,6 +98,7 @@
     <Compile Include="MessageBody.cs" />
     <Compile Include="MessageBuilder.cs" />
     <Compile Include="MessageContent.cs" />
+    <Compile Include="MessageUploader.cs" />
     <Compile Include="Parsing\BodyStructureParser.cs" />
     <Compile Include="Parsing\CommandProcessor.cs" />
     <Compile Include="Parsing\Expressions.cs" />

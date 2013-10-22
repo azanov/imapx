@@ -76,155 +76,169 @@ namespace ImapX.Parsing
             }
             SkipOver('(');
             SkipUntil('(');
-            return parts.ToArray();
+            return parts.Where(_ => _ != null).ToArray();
         }
 
         public MessageContent ParsePart(string partNumber)
         {
-            var part = new MessageContent(_client, _message);
-
-            string contentType = ReadString().ToLower();
-            string contentSubType = ReadString().ToLower();
-
-            part.ContentNumber = partNumber;
-            part.ContentType = string.IsNullOrEmpty(contentType) || string.IsNullOrEmpty(contentSubType)
-                ? null
-                : new ContentType(contentType.ToLower() + "/" + contentSubType.ToLower());
-
-            part.Parameters = ReadParameterList();
-
-            if (part.Parameters.ContainsKey("content-type"))
+            try
             {
-                if (part.ContentType == null)
-                {
-                    part.ContentType = new ContentType(part.Parameters["content-type"]);
+                var part = new MessageContent(_client, _message);
 
-                    if (!string.IsNullOrEmpty(part.ContentType.Name))
-                        part.ContentType.Name = StringDecoder.Decode(part.ContentType.Name);
+                string contentType = ReadString().ToLower();
+                string contentSubType = ReadString().ToLower();
+
+                if (contentType == "boundary")
+                    return null;
+
+                part.ContentNumber = partNumber;
+
+                part.ContentType = string.IsNullOrEmpty(contentType) || string.IsNullOrEmpty(contentSubType)
+                    ? null
+                    : new ContentType(contentType.ToLower() + "/" + contentSubType.ToLower());
+
+                part.Parameters = ReadParameterList();
+
+                if (part.Parameters.ContainsKey("content-type"))
+                {
+                    if (part.ContentType == null)
+                    {
+                        part.ContentType = new ContentType(part.Parameters["content-type"]);
+
+                        if (!string.IsNullOrEmpty(part.ContentType.Name))
+                            part.ContentType.Name = StringDecoder.Decode(part.ContentType.Name);
+                    }
+
                 }
 
-            }
-
-            if (part.Parameters.ContainsKey("charset"))
-            {
-                if (part.ContentType == null)
-                    part.ContentType = new ContentType();
-                part.ContentType.CharSet = part.Parameters["charset"];
-            }
-
-            if (part.Parameters.ContainsKey("name") || part.Parameters.ContainsKey("filename"))
-            {
-                var value = StringDecoder.Decode(part.Parameters.ContainsKey("name") ? part.Parameters["name"] : part.Parameters["filename"]);
-
-                if (part.ContentType == null)
-                    part.ContentType = new ContentType();
-
-                if (part.ContentDisposition == null)
-                    part.ContentDisposition = new ContentDisposition();
-
-                part.ContentDisposition.FileName = value;
-
-                if (string.IsNullOrEmpty(part.ContentDisposition.DispositionType))
-                    part.ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
-
-                part.ContentType.Name = value;
-            }
-
-            if (part.Parameters.ContainsKey("content-id"))
-            {
-
-                if (part.ContentDisposition == null)
-                    part.ContentDisposition = new ContentDisposition();
-
-                part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
-
-                part.ContentId = part.Parameters["content-id"].Trim(' ','<', '>');
-            }
-
-            part.ContentId = ReadString().Trim(' ', '<', '>');
-
-            if (!string.IsNullOrEmpty(part.ContentId))
-            {
-                if (part.ContentDisposition == null)
-                    part.ContentDisposition = new ContentDisposition();
-                part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
-            }
-
-            part.Description = ReadString();
-            part.ContentTransferEncoding = ReadString().ToContentTransferEncoding();
-            part.Size = ReadLong();
-
-            switch (contentType)
-            {
-                
-                case "message":
-
-                    // When a message is being attached (e.g) through outlook
-                    // it won't have a filename
-
-                    if(part.ContentType == null)
+                if (part.Parameters.ContainsKey("charset"))
+                {
+                    if (part.ContentType == null)
                         part.ContentType = new ContentType();
-                    part.ContentType.Name = "unnamed.eml";
-                    if(part.ContentDisposition == null)
+                    part.ContentType.CharSet = part.Parameters["charset"];
+                }
+
+                if (part.Parameters.ContainsKey("name") || part.Parameters.ContainsKey("filename"))
+                {
+                    var value =
+                        StringDecoder.Decode(part.Parameters.ContainsKey("name")
+                            ? part.Parameters["name"]
+                            : part.Parameters["filename"]);
+
+                    if (part.ContentType == null)
+                        part.ContentType = new ContentType();
+
+                    if (part.ContentDisposition == null)
                         part.ContentDisposition = new ContentDisposition();
-                    part.ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
-                    part.ContentDisposition.Size = part.Size;
-                    part.ContentDisposition.FileName = "unnamed.eml";
+
+                    part.ContentDisposition.FileName = value;
+
+                    if (string.IsNullOrEmpty(part.ContentDisposition.DispositionType))
+                        part.ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
+
+                    part.ContentType.Name = value;
+                }
+
+                if (part.Parameters.ContainsKey("content-id"))
+                {
+
+                    if (part.ContentDisposition == null)
+                        part.ContentDisposition = new ContentDisposition();
+
+                    part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+
+                    part.ContentId = part.Parameters["content-id"].Trim(' ', '<', '>');
+                }
+
+                part.ContentId = ReadString().Trim(' ', '<', '>');
+
+                if (!string.IsNullOrEmpty(part.ContentId))
+                {
+                    if (part.ContentDisposition == null)
+                        part.ContentDisposition = new ContentDisposition();
+                    part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+                }
+
+                part.Description = ReadString();
+                part.ContentTransferEncoding = ReadString().ToContentTransferEncoding();
+                part.Size = ReadLong();
+
+                switch (contentType)
+                {
+
+                    case "message":
+
+                        // When a message is being attached (e.g) through outlook
+                        // it won't have a filename
+
+                        if (part.ContentType == null)
+                            part.ContentType = new ContentType();
+                        part.ContentType.Name = "unnamed.eml";
+                        if (part.ContentDisposition == null)
+                            part.ContentDisposition = new ContentDisposition();
+                        part.ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
+                        part.ContentDisposition.Size = part.Size;
+                        part.ContentDisposition.FileName = "unnamed.eml";
+                        return part;
+                    case "text":
+                        ReadLong(); // lines
+                        break;
+                }
+
+                Skip(_spaces);
+                if (_reader.Peek() == ')')
+                {
+                    _reader.Read();
                     return part;
-                case "text":
-                    ReadLong(); // lines
-                    break;
-            }
+                }
+                part.Md5 = ReadString();
 
-            Skip(_spaces);
-            if (_reader.Peek() == ')')
-            {
-                _reader.Read();
-                return part;
-            }
-            part.Md5 = ReadString();
+                Skip(_spaces);
+                if (_reader.Peek() == ')')
+                {
+                    SkipOver(')');
+                    Skip(_spaces);
+                    return part;
+                }
+                var disposition = ReadDisposition();
 
-            Skip(_spaces);
-            if (_reader.Peek() == ')')
-            {
+                part.ContentDisposition = disposition;
+
+                //if (!string.IsNullOrEmpty(part.ContentId))
+                //{
+                //    if (part.ContentDisposition == null)
+                //        part.ContentDisposition = new ContentDisposition();
+                //    part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+                //}
+
+                Skip(_spaces);
+                if (_reader.Peek() == ')')
+                {
+                    SkipOver(')');
+                    Skip(_spaces);
+                    return part;
+                }
+                part.Language = ReadString();
+
+                Skip(_spaces);
+                if (_reader.Peek() == ')')
+                {
+                    SkipOver(')');
+                    Skip(_spaces);
+                    return part;
+                }
+                string uri = ReadString();
+
                 SkipOver(')');
                 Skip(_spaces);
+
+
                 return part;
             }
-            var disposition = ReadDisposition();
-
-            part.ContentDisposition = disposition;
-
-            if (!string.IsNullOrEmpty(part.ContentId))
+            catch
             {
-                if (part.ContentDisposition == null)
-                    part.ContentDisposition = new ContentDisposition();
-                part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+                return null;
             }
-
-            Skip(_spaces);
-            if (_reader.Peek() == ')')
-            {
-                SkipOver(')');
-                Skip(_spaces);
-                return part;
-            }
-            part.Language = ReadString();
-
-            Skip(_spaces);
-            if (_reader.Peek() == ')')
-            {
-                SkipOver(')');
-                Skip(_spaces);
-                return part;
-            }
-            string uri = ReadString();
-
-            SkipOver(')');
-            Skip(_spaces);
-
-
-            return part;
         }
 
         public ContentDisposition ReadDisposition()

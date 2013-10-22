@@ -260,12 +260,12 @@ namespace ImapX
             if (addHeaders)
             {
                 foreach (var header in Parameters)
-                    sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value.Break(70)));
+                    sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value));
             }
 
             sb.AppendLine();
 
-            ContentStream.Break(ref sb, 70);
+            sb.Append(ContentStream);
 
             sb.AppendLine();
         }

@@ -57,6 +57,8 @@
             this.moveToToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.deleteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
+            this.exportMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.istPlaceHolder = new System.Windows.Forms.ImageList(this.components);
             this.panel5 = new System.Windows.Forms.Panel();
             this.lblFolder = new System.Windows.Forms.Label();
@@ -67,6 +69,12 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pnlView = new System.Windows.Forms.Panel();
             this.wbrMain = new System.Windows.Forms.WebBrowser();
+            this.pnlAttachments = new System.Windows.Forms.Panel();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.lsvAttachments = new System.Windows.Forms.ListView();
+            this.istAttachments = new System.Windows.Forms.ImageList(this.components);
+            this.label3 = new System.Windows.Forms.Label();
+            this.panel8 = new System.Windows.Forms.Panel();
             this.pnlDownloadingBody = new System.Windows.Forms.Panel();
             this.lblFailedDownloadBody = new System.Windows.Forms.Label();
             this.lblDownloadingBody = new System.Windows.Forms.Label();
@@ -88,14 +96,8 @@
             this.importMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             this.emptyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pnlAttachments = new System.Windows.Forms.Panel();
-            this.lsvAttachments = new System.Windows.Forms.ListView();
-            this.label3 = new System.Windows.Forms.Label();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.panel8 = new System.Windows.Forms.Panel();
-            this.istAttachments = new System.Windows.Forms.ImageList(this.components);
-            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
-            this.exportMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
+            this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.pnlWrap.SuspendLayout();
@@ -108,12 +110,12 @@
             this.pnlSelectFolder.SuspendLayout();
             this.pnlLoading.SuspendLayout();
             this.pnlView.SuspendLayout();
+            this.pnlAttachments.SuspendLayout();
+            this.panel4.SuspendLayout();
             this.pnlDownloadingBody.SuspendLayout();
             this.pnlInfo.SuspendLayout();
             this.pnlEmbeddedResources.SuspendLayout();
             this.mnuFolder.SuspendLayout();
-            this.pnlAttachments.SuspendLayout();
-            this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlFolders
@@ -457,40 +459,52 @@
             // seenToolStripMenuItem
             // 
             this.seenToolStripMenuItem.Name = "seenToolStripMenuItem";
-            this.seenToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.seenToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.seenToolStripMenuItem.Text = "&Seen";
             this.seenToolStripMenuItem.Click += new System.EventHandler(this.seenToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(124, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
             // 
             // copyToToolStripMenuItem
             // 
             this.copyToToolStripMenuItem.Name = "copyToToolStripMenuItem";
-            this.copyToToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.copyToToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.copyToToolStripMenuItem.Text = "&Copy to...";
             this.copyToToolStripMenuItem.Click += new System.EventHandler(this.copyToToolStripMenuItem_Click);
             // 
             // moveToToolStripMenuItem
             // 
             this.moveToToolStripMenuItem.Name = "moveToToolStripMenuItem";
-            this.moveToToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.moveToToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.moveToToolStripMenuItem.Text = "&Move to...";
             this.moveToToolStripMenuItem.Click += new System.EventHandler(this.moveToToolStripMenuItem_Click);
             // 
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(124, 6);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(162, 6);
             // 
             // deleteToolStripMenuItem1
             // 
             this.deleteToolStripMenuItem1.Name = "deleteToolStripMenuItem1";
-            this.deleteToolStripMenuItem1.Size = new System.Drawing.Size(127, 22);
+            this.deleteToolStripMenuItem1.Size = new System.Drawing.Size(165, 22);
             this.deleteToolStripMenuItem1.Text = "&Delete";
             this.deleteToolStripMenuItem1.Click += new System.EventHandler(this.deleteToolStripMenuItem1_Click);
+            // 
+            // toolStripMenuItem6
+            // 
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(162, 6);
+            // 
+            // exportMessageToolStripMenuItem
+            // 
+            this.exportMessageToolStripMenuItem.Name = "exportMessageToolStripMenuItem";
+            this.exportMessageToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.exportMessageToolStripMenuItem.Text = "&Export message...";
+            this.exportMessageToolStripMenuItem.Click += new System.EventHandler(this.exportMessageToolStripMenuItem_Click);
             // 
             // istPlaceHolder
             // 
@@ -595,6 +609,70 @@
             this.wbrMain.ScriptErrorsSuppressed = true;
             this.wbrMain.Size = new System.Drawing.Size(413, 238);
             this.wbrMain.TabIndex = 0;
+            // 
+            // pnlAttachments
+            // 
+            this.pnlAttachments.BackColor = System.Drawing.Color.White;
+            this.pnlAttachments.Controls.Add(this.panel4);
+            this.pnlAttachments.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlAttachments.Location = new System.Drawing.Point(0, 248);
+            this.pnlAttachments.Name = "pnlAttachments";
+            this.pnlAttachments.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
+            this.pnlAttachments.Size = new System.Drawing.Size(413, 108);
+            this.pnlAttachments.TabIndex = 1;
+            this.pnlAttachments.Visible = false;
+            // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.White;
+            this.panel4.Controls.Add(this.lsvAttachments);
+            this.panel4.Controls.Add(this.label3);
+            this.panel4.Controls.Add(this.panel8);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel4.Location = new System.Drawing.Point(0, 5);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(413, 103);
+            this.panel4.TabIndex = 2;
+            // 
+            // lsvAttachments
+            // 
+            this.lsvAttachments.BackColor = System.Drawing.Color.White;
+            this.lsvAttachments.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lsvAttachments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lsvAttachments.Location = new System.Drawing.Point(0, 28);
+            this.lsvAttachments.MultiSelect = false;
+            this.lsvAttachments.Name = "lsvAttachments";
+            this.lsvAttachments.Size = new System.Drawing.Size(413, 75);
+            this.lsvAttachments.SmallImageList = this.istAttachments;
+            this.lsvAttachments.TabIndex = 0;
+            this.lsvAttachments.UseCompatibleStateImageBehavior = false;
+            this.lsvAttachments.View = System.Windows.Forms.View.List;
+            // 
+            // istAttachments
+            // 
+            this.istAttachments.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
+            this.istAttachments.ImageSize = new System.Drawing.Size(16, 16);
+            this.istAttachments.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // label3
+            // 
+            this.label3.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label3.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(0, 1);
+            this.label3.Name = "label3";
+            this.label3.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
+            this.label3.Size = new System.Drawing.Size(413, 27);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "Attachments";
+            // 
+            // panel8
+            // 
+            this.panel8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(171)))), ((int)(((byte)(171)))), ((int)(((byte)(171)))));
+            this.panel8.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel8.Location = new System.Drawing.Point(0, 0);
+            this.panel8.Name = "panel8";
+            this.panel8.Size = new System.Drawing.Size(413, 1);
+            this.panel8.TabIndex = 17;
             // 
             // pnlDownloadingBody
             // 
@@ -802,80 +880,15 @@
             this.emptyToolStripMenuItem.Text = "&Empty folder";
             this.emptyToolStripMenuItem.Click += new System.EventHandler(this.emptyToolStripMenuItem_Click);
             // 
-            // pnlAttachments
+            // ofdImportMessage
             // 
-            this.pnlAttachments.BackColor = System.Drawing.Color.White;
-            this.pnlAttachments.Controls.Add(this.panel4);
-            this.pnlAttachments.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlAttachments.Location = new System.Drawing.Point(0, 248);
-            this.pnlAttachments.Name = "pnlAttachments";
-            this.pnlAttachments.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-            this.pnlAttachments.Size = new System.Drawing.Size(413, 108);
-            this.pnlAttachments.TabIndex = 1;
-            this.pnlAttachments.Visible = false;
+            this.ofdImportMessage.Filter = "Message files|*.eml,*.msg|All files|*.*";
+            this.ofdImportMessage.Title = "Import message";
             // 
-            // lsvAttachments
+            // sfdExportMessage
             // 
-            this.lsvAttachments.BackColor = System.Drawing.Color.White;
-            this.lsvAttachments.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.lsvAttachments.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lsvAttachments.Location = new System.Drawing.Point(0, 28);
-            this.lsvAttachments.MultiSelect = false;
-            this.lsvAttachments.Name = "lsvAttachments";
-            this.lsvAttachments.Size = new System.Drawing.Size(413, 75);
-            this.lsvAttachments.SmallImageList = this.istAttachments;
-            this.lsvAttachments.TabIndex = 0;
-            this.lsvAttachments.UseCompatibleStateImageBehavior = false;
-            this.lsvAttachments.View = System.Windows.Forms.View.List;
-            // 
-            // label3
-            // 
-            this.label3.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label3.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(0, 1);
-            this.label3.Name = "label3";
-            this.label3.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
-            this.label3.Size = new System.Drawing.Size(413, 27);
-            this.label3.TabIndex = 1;
-            this.label3.Text = "Attachments";
-            // 
-            // panel4
-            // 
-            this.panel4.BackColor = System.Drawing.Color.White;
-            this.panel4.Controls.Add(this.lsvAttachments);
-            this.panel4.Controls.Add(this.label3);
-            this.panel4.Controls.Add(this.panel8);
-            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel4.Location = new System.Drawing.Point(0, 5);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(413, 103);
-            this.panel4.TabIndex = 2;
-            // 
-            // panel8
-            // 
-            this.panel8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(171)))), ((int)(((byte)(171)))), ((int)(((byte)(171)))));
-            this.panel8.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel8.Location = new System.Drawing.Point(0, 0);
-            this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(413, 1);
-            this.panel8.TabIndex = 17;
-            // 
-            // istAttachments
-            // 
-            this.istAttachments.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
-            this.istAttachments.ImageSize = new System.Drawing.Size(16, 16);
-            this.istAttachments.TransparentColor = System.Drawing.Color.Transparent;
-            // 
-            // toolStripMenuItem6
-            // 
-            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(162, 6);
-            // 
-            // exportMessageToolStripMenuItem
-            // 
-            this.exportMessageToolStripMenuItem.Name = "exportMessageToolStripMenuItem";
-            this.exportMessageToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            this.exportMessageToolStripMenuItem.Text = "&Export message...";
+            this.sfdExportMessage.Filter = "Eml file|*.eml|All files|*.*";
+            this.sfdExportMessage.Title = "Export message";
             // 
             // FrmMain
             // 
@@ -906,14 +919,14 @@
             this.pnlSelectFolder.ResumeLayout(false);
             this.pnlLoading.ResumeLayout(false);
             this.pnlView.ResumeLayout(false);
+            this.pnlAttachments.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
             this.pnlDownloadingBody.ResumeLayout(false);
             this.pnlInfo.ResumeLayout(false);
             this.pnlInfo.PerformLayout();
             this.pnlEmbeddedResources.ResumeLayout(false);
             this.pnlEmbeddedResources.PerformLayout();
             this.mnuFolder.ResumeLayout(false);
-            this.pnlAttachments.ResumeLayout(false);
-            this.panel4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -987,5 +1000,7 @@
         private System.Windows.Forms.ImageList istAttachments;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
         private System.Windows.Forms.ToolStripMenuItem exportMessageToolStripMenuItem;
+        private System.Windows.Forms.OpenFileDialog ofdImportMessage;
+        private System.Windows.Forms.SaveFileDialog sfdExportMessage;
     }
 }
