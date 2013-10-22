@@ -29,8 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmConnect));
             this.pnlTop = new System.Windows.Forms.Panel();
             this.btnDefaultAuth = new System.Windows.Forms.Button();
+            this.picGMailLogin = new System.Windows.Forms.PictureBox();
+            this.picLogo = new System.Windows.Forms.PictureBox();
             this.pnlLogin = new System.Windows.Forms.Panel();
             this.chkValidateCertificate = new System.Windows.Forms.CheckBox();
             this.btnSignIn = new System.Windows.Forms.Button();
@@ -47,12 +50,10 @@
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.lblTitle = new System.Windows.Forms.Label();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
-            this.picGMailLogin = new System.Windows.Forms.PictureBox();
-            this.picLogo = new System.Windows.Forms.PictureBox();
             this.pnlTop.SuspendLayout();
-            this.pnlLogin.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
+            this.pnlLogin.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlTop
@@ -82,6 +83,31 @@
             this.btnDefaultAuth.UseVisualStyleBackColor = false;
             this.btnDefaultAuth.Visible = false;
             this.btnDefaultAuth.Click += new System.EventHandler(this.btnDefaultAuth_Click);
+            // 
+            // picGMailLogin
+            // 
+            this.picGMailLogin.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picGMailLogin.Image = global::ImapX.Sample.Properties.Resources.sign_in_with_google;
+            this.picGMailLogin.Location = new System.Drawing.Point(337, 22);
+            this.picGMailLogin.Name = "picGMailLogin";
+            this.picGMailLogin.Size = new System.Drawing.Size(182, 40);
+            this.picGMailLogin.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picGMailLogin.TabIndex = 1;
+            this.picGMailLogin.TabStop = false;
+            this.picGMailLogin.Click += new System.EventHandler(this.picGMailLogin_Click);
+            // 
+            // picLogo
+            // 
+            this.picLogo.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picLogo.Dock = System.Windows.Forms.DockStyle.Left;
+            this.picLogo.Image = global::ImapX.Sample.Properties.Resources.logo;
+            this.picLogo.Location = new System.Drawing.Point(24, 12);
+            this.picLogo.Name = "picLogo";
+            this.picLogo.Size = new System.Drawing.Size(180, 60);
+            this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picLogo.TabIndex = 0;
+            this.picLogo.TabStop = false;
+            this.picLogo.Click += new System.EventHandler(this.picLogo_Click);
             // 
             // pnlLogin
             // 
@@ -251,31 +277,6 @@
             this.lblTitle.TabIndex = 3;
             this.lblTitle.Text = "Sign in";
             // 
-            // picGMailLogin
-            // 
-            this.picGMailLogin.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.picGMailLogin.Image = global::ImapX.Sample.Properties.Resources.sign_in_with_google;
-            this.picGMailLogin.Location = new System.Drawing.Point(337, 22);
-            this.picGMailLogin.Name = "picGMailLogin";
-            this.picGMailLogin.Size = new System.Drawing.Size(182, 40);
-            this.picGMailLogin.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.picGMailLogin.TabIndex = 1;
-            this.picGMailLogin.TabStop = false;
-            this.picGMailLogin.Click += new System.EventHandler(this.picGMailLogin_Click);
-            // 
-            // picLogo
-            // 
-            this.picLogo.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.picLogo.Dock = System.Windows.Forms.DockStyle.Left;
-            this.picLogo.Image = global::ImapX.Sample.Properties.Resources.logo;
-            this.picLogo.Location = new System.Drawing.Point(24, 12);
-            this.picLogo.Name = "picLogo";
-            this.picLogo.Size = new System.Drawing.Size(150, 60);
-            this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.picLogo.TabIndex = 0;
-            this.picLogo.TabStop = false;
-            this.picLogo.Click += new System.EventHandler(this.picLogo_Click);
-            // 
             // FrmConnect
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -289,6 +290,7 @@
             this.Controls.Add(this.wbrMain);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
             this.Name = "FrmConnect";
@@ -296,10 +298,10 @@
             this.Text = "ImapX";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
-            this.pnlLogin.ResumeLayout(false);
-            this.pnlLogin.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
+            this.pnlLogin.ResumeLayout(false);
+            this.pnlLogin.PerformLayout();
             this.ResumeLayout(false);
 
         }

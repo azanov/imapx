@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ImapX")]
-[assembly: AssemblyDescription("ImapX is free to use for all types of project IMAP library for .NET. Developed by Andriy Mykhaylyuk, extended and recompiled by Pavel Azanov")]
+[assembly: AssemblyDescription("Crossplatform IMAP library for .NET")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Andriy Mykhaylyuk, Pavel Azanov")]
+[assembly: AssemblyCompany("Pavel Azanov")]
 [assembly: AssemblyProduct("ImapX")]
-[assembly: AssemblyCopyright("Copyright ©  Andriy Mykhaylyuk, Pavel Azanov")]
+[assembly: AssemblyCopyright("Copyright ©  Pavel Azanov")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.9")]
-[assembly: AssemblyFileVersion("2.0.0.9")]
+[assembly: AssemblyVersion("2.0.0.10")]
+[assembly: AssemblyFileVersion("2.0.0.10")]
