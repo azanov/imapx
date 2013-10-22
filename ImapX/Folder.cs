@@ -466,17 +466,37 @@ namespace ImapX
             throw new NotImplementedException();
         }
 
-        public bool AppendMessage(Message msg, IEnumerable<string> flags = null, DateTime? date = null)
+        /// <summary>
+        /// Appends a new message to the end of specified folder
+        /// </summary>
+        /// <param name="eml">The eml data of the message to append</param>
+        /// <param name="flags">The flags to be set for the message. If empty, the server will add the \Recent flag automatically</param>
+        /// <param name="date">The internal date of the message to be set</param>
+        /// <returns><code>true</code> if the message was appended, otherwise <code>false</code></returns>
+        public bool AppendMessage(string eml, IEnumerable<string> flags = null, DateTime? date = null)
         {
-            IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(
-                string.Format(ImapCommands.Append,
-                    _path, flags == null ? "" : string.Join(" ", flags.ToArray()),
-                    date.HasValue ? date.Value.ToString() : ""),
-                ref data, msg))
-                return false;
+            if(string.IsNullOrEmpty(eml))
+                throw new ArgumentException("eml cannot be empty");
 
-            return true;
+            IList<string> data = new List<string>();
+
+            var msgUploader = new MessageUploader(eml);
+
+            var dateStr = date.HasValue ? date.Value.ToString("dd-MM-yyyy") : "";
+
+            if (dateStr.StartsWith("0"))
+                dateStr = " " + dateStr.Substring(1, dateStr.Length - 1);
+
+            return _client.SendAndReceive(
+                string.Format(ImapCommands.Append,
+                _path) + " {" + eml.Length + "}",
+                ref data, msgUploader);
+        }
+
+        [Obsolete("AppendMessage(Message) is obsolete", true)]
+        public bool AppendMessage(Message msg)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

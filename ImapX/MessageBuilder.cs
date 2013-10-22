@@ -100,7 +100,7 @@ namespace ImapX
             var sb = new StringBuilder();
 
             foreach (var header in message.Headers)
-                sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value.Break(70)));
+                sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value));
 
             sb.AppendLine(); // separate header from body through an empty line
 
@@ -115,6 +115,9 @@ namespace ImapX
                 message.BodyParts.First().AppendEml(ref sb, false);
                 return sb.ToString();
             }
+
+            sb.AppendLine("This is a multipart message in MIME format");
+            sb.AppendLine();
 
             foreach (var part in message.BodyParts)
             {

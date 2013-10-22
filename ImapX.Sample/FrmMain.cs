@@ -713,6 +713,43 @@ namespace ImapX.Sample
 
         private void importMessageToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            var folder = _lastClickedNode.Tag as Folder;
+
+            if (folder == null)
+                return;
+            if (ofdImportMessage.ShowDialog() != DialogResult.OK) return;
+
+            var eml = File.ReadAllText(ofdImportMessage.FileName);
+
+            trwFolders.Enabled = false;
+
+            (new Thread(_ => ImportMessage(folder, eml))).Start();
+        }
+
+        private void ImportMessage(Folder folder, string eml)
+        {
+            try
+            {
+                var args = new ServerCallCompletedEventArgs { Arg = folder, Result = folder.AppendMessage(eml) };
+
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ImportMessageCompleted), Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ImportMessageCompleted), Program.ImapClient, args);
+            }
+        }
+
+        private void ImportMessageCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            trwFolders.Enabled = true;
+            if (e.Result)
+            {
+                MessageBox.Show("Message imported!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            else
+                MessageBox.Show("Failed to import message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         #endregion
@@ -945,6 +982,50 @@ namespace ImapX.Sample
         }
 
         #endregion
+
+        private void exportMessageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sfdExportMessage.ShowDialog(this) != DialogResult.OK) return;
+
+            trwFolders.Enabled = false;
+
+            (new Thread(_ => ExportMessage(sfdExportMessage.FileName))).Start();
+        }
+
+        private void ExportMessage(string path)
+        {
+            var headers = Program.ImapClient.Behavior.RequestedHeaders;
+            try
+            {
+                var args = new ServerCallCompletedEventArgs();
+                Program.ImapClient.Behavior.RequestedHeaders = null;
+
+                _selectedMessage.Download(MessageFetchMode.Full, true);
+                _selectedMessage.Save(path);
+
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ExportMessageCompleted), Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ExportMessageCompleted), Program.ImapClient, args);
+            }
+            finally
+            {
+                Program.ImapClient.Behavior.RequestedHeaders = headers;
+            }
+        }
+
+        private void ExportMessageCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            trwFolders.Enabled = true;
+            if (e.Result)
+            {
+                MessageBox.Show("Message exported!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            else
+                MessageBox.Show("Failed to export message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
 
     }
 }

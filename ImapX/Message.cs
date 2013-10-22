@@ -455,14 +455,13 @@ namespace ImapX
             EmbeddedResources = (from part in BodyParts
                 where
                     part.ContentDisposition != null &&
-                    (part.ContentDisposition.DispositionType == DispositionTypeNames.Inline ||
-                     !string.IsNullOrEmpty(part.ContentId))
+                    (part.ContentDisposition.DispositionType == DispositionTypeNames.Inline || !string.IsNullOrEmpty(part.ContentId))
                 select new Attachment(part)).ToArray();
 
             _downloadProgress = _downloadProgress | MessageFetchMode.BodyStructure;
         }
 
-        public bool Download(MessageFetchMode mode = MessageFetchMode.ClientDefault)
+        public bool Download(MessageFetchMode mode = MessageFetchMode.ClientDefault, bool reloadHeaders = false)
         {
             if (mode == MessageFetchMode.ClientDefault)
                 mode = _client.Behavior.MessageFetchMode;
@@ -481,8 +480,9 @@ namespace ImapX
             if (mode.HasFlag(MessageFetchMode.Size) && !_downloadProgress.HasFlag(MessageFetchMode.Size))
                 fetchParts.Append("RFC822.SIZE ");
 
-            if (mode.HasFlag(MessageFetchMode.Headers) && !_downloadProgress.HasFlag(MessageFetchMode.Headers))
+            if (mode.HasFlag(MessageFetchMode.Headers) && (!_downloadProgress.HasFlag(MessageFetchMode.Headers) || reloadHeaders))
             {
+                Headers.Clear();
                 if (_client.Behavior.RequestedHeaders == null || _client.Behavior.RequestedHeaders.Length == 0)
                     fetchParts.Append("BODY.PEEK[HEADER] ");
                 else
@@ -622,17 +622,29 @@ namespace ImapX
         /// <summary>
         ///     Saves the current message as eml to file
         /// </summary>
-        /// <param name="path">The path where the message should be stored</param>
+        /// <param name="folderPath">The folder path where the message should be stored</param>
         /// <param name="fileName">The file name</param>
-        public void Save(string path, string fileName)
+        public void SaveTo(string folderPath, string fileName)
         {
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(folderPath))
                 throw new ArgumentException("Path cannot be null or empty", "path");
 
             if (string.IsNullOrEmpty(fileName))
                 throw new ArgumentException("File name cannot be null or empty", "fileName");
 
-            using (var fileStream = new FileStream(Path.Combine(path, fileName), FileMode.Create, FileAccess.Write))
+            Save(Path.Combine(folderPath, fileName));
+        }
+
+        /// <summary>
+        ///     Saves the current message as eml to file
+        /// </summary>
+        /// <param name="filePath">The file path where to save the message</param>
+        public void Save(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentException("File path cannot be null or empty", "path");
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
                 using (TextWriter textWriter = new StreamWriter(fileStream, Encoding.UTF8))
                     textWriter.Write(ToEml());
@@ -647,7 +659,7 @@ namespace ImapX
             throw new NotImplementedException();
         }
 
-        [Obsolete("SaveAsEmlToFile is obsolete. Please use Save instead", true)]
+        [Obsolete("SaveAsEmlToFile is obsolete. Please use Save or SaveTo instead", true)]
         public void SaveAsEmlToFile(string path, string filename)
         {
         }

@@ -20,10 +20,10 @@ namespace ImapX.Extensions
         {
 
             if (string.IsNullOrEmpty(value))
-                throw new ArgumentException("value cannot be empty", "value");
+                return;
 
             if (chunkSize < 1)
-                throw new ArgumentException("chunkSize cannot be less than 1", "chunkSize");
+                return;
 
             if (value.Length <= chunkSize)
             {
