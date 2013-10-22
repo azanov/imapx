@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.pnlFolders = new System.Windows.Forms.Panel();
             this.trwFolders = new System.Windows.Forms.TreeView();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -72,6 +73,10 @@
             this.pnlAttachments = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.lsvAttachments = new System.Windows.Forms.ListView();
+            this.mnuAttachment = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.downloadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.istAttachments = new System.Windows.Forms.ImageList(this.components);
             this.label3 = new System.Windows.Forms.Label();
             this.panel8 = new System.Windows.Forms.Panel();
@@ -97,6 +102,7 @@
             this.emptyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
+            this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.pnlWrap.SuspendLayout();
@@ -111,6 +117,7 @@
             this.pnlView.SuspendLayout();
             this.pnlAttachments.SuspendLayout();
             this.panel4.SuspendLayout();
+            this.mnuAttachment.SuspendLayout();
             this.pnlDownloadingBody.SuspendLayout();
             this.pnlInfo.SuspendLayout();
             this.pnlEmbeddedResources.SuspendLayout();
@@ -420,7 +427,6 @@
             this.lsvMessages.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lsvMessages.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lsvMessages.FullRowSelect = true;
-            this.lsvMessages.GridLines = true;
             this.lsvMessages.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             this.lsvMessages.HideSelection = false;
             this.lsvMessages.Location = new System.Drawing.Point(10, 51);
@@ -507,9 +513,9 @@
             // 
             // istPlaceHolder
             // 
-            this.istPlaceHolder.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-            this.istPlaceHolder.ImageSize = new System.Drawing.Size(1, 32);
+            this.istPlaceHolder.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("istPlaceHolder.ImageStream")));
             this.istPlaceHolder.TransparentColor = System.Drawing.Color.Transparent;
+            this.istPlaceHolder.Images.SetKeyName(0, "attach.png");
             // 
             // panel5
             // 
@@ -637,6 +643,7 @@
             // 
             this.lsvAttachments.BackColor = System.Drawing.Color.White;
             this.lsvAttachments.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lsvAttachments.ContextMenuStrip = this.mnuAttachment;
             this.lsvAttachments.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lsvAttachments.Location = new System.Drawing.Point(0, 28);
             this.lsvAttachments.MultiSelect = false;
@@ -646,6 +653,37 @@
             this.lsvAttachments.TabIndex = 0;
             this.lsvAttachments.UseCompatibleStateImageBehavior = false;
             this.lsvAttachments.View = System.Windows.Forms.View.List;
+            // 
+            // mnuAttachment
+            // 
+            this.mnuAttachment.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.downloadToolStripMenuItem,
+            this.openToolStripMenuItem,
+            this.saveAsToolStripMenuItem});
+            this.mnuAttachment.Name = "mnuAttachment";
+            this.mnuAttachment.Size = new System.Drawing.Size(153, 92);
+            this.mnuAttachment.Opening += new System.ComponentModel.CancelEventHandler(this.mnuAttachment_Opening);
+            // 
+            // downloadToolStripMenuItem
+            // 
+            this.downloadToolStripMenuItem.Name = "downloadToolStripMenuItem";
+            this.downloadToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.downloadToolStripMenuItem.Text = "&Download";
+            this.downloadToolStripMenuItem.Click += new System.EventHandler(this.downloadToolStripMenuItem_Click);
+            // 
+            // openToolStripMenuItem
+            // 
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Text = "&Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // saveAsToolStripMenuItem
+            // 
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveAsToolStripMenuItem.Text = "&Save as...";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // istAttachments
             // 
@@ -873,13 +911,18 @@
             // 
             // ofdImportMessage
             // 
-            this.ofdImportMessage.Filter = "Message files|*.eml,*.msg|All files|*.*";
+            this.ofdImportMessage.Filter = "Message files|*.eml|All files|*.*";
             this.ofdImportMessage.Title = "Import message";
             // 
             // sfdExportMessage
             // 
             this.sfdExportMessage.Filter = "Eml file|*.eml|All files|*.*";
             this.sfdExportMessage.Title = "Export message";
+            // 
+            // sfdSaveAttachment
+            // 
+            this.sfdSaveAttachment.Filter = "All files|*.*";
+            this.sfdSaveAttachment.Title = "Save attachment";
             // 
             // FrmMain
             // 
@@ -890,6 +933,7 @@
             this.Controls.Add(this.pnlWrap);
             this.Controls.Add(this.pnlFolders);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -912,6 +956,7 @@
             this.pnlView.ResumeLayout(false);
             this.pnlAttachments.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
+            this.mnuAttachment.ResumeLayout(false);
             this.pnlDownloadingBody.ResumeLayout(false);
             this.pnlInfo.ResumeLayout(false);
             this.pnlInfo.PerformLayout();
@@ -992,5 +1037,10 @@
         private System.Windows.Forms.ToolStripMenuItem exportMessageToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog ofdImportMessage;
         private System.Windows.Forms.SaveFileDialog sfdExportMessage;
+        private System.Windows.Forms.ContextMenuStrip mnuAttachment;
+        private System.Windows.Forms.ToolStripMenuItem downloadToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
+        private System.Windows.Forms.SaveFileDialog sfdSaveAttachment;
     }
 }

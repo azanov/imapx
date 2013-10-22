@@ -38,7 +38,7 @@ namespace ImapX.Parsing
 
             string address = value.Substring(num).Trim().TrimStart('<').TrimEnd('>');
 
-            if (string.IsNullOrWhiteSpace(address)) return null;
+            if (string.IsNullOrEmpty(address)) return null;
 
             string displayName = "";
             if (num >= 1)

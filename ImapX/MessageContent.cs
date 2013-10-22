@@ -242,6 +242,7 @@ namespace ImapX
 
             //_writer.Flush();
 
+            OnPropertyChanged("all");
 
             return result;
         }

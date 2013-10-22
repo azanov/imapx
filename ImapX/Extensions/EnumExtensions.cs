@@ -82,7 +82,7 @@ namespace ImapX.Extensions
             }
         }
 
-#if WINDOWS_PHONE
+
 
         public static bool HasFlag(this Enum value, Enum flag)
         {
@@ -93,7 +93,7 @@ namespace ImapX.Extensions
 
         }
 
-#endif
+
 
     }
 }

@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using ImapX.Constants;
 using ImapX.Enums;
 using ImapX.Sample.Native;
+using System.Diagnostics;
 
 namespace ImapX.Sample
 {
@@ -49,6 +50,25 @@ namespace ImapX.Sample
             {
                 mnuFolder.Show(trwFolders, e.Location);
             }
+        }
+
+        private void mnuMessage_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = lsvMessages.SelectedIndices.Count == 0;
+
+            if (e.Cancel) return;
+
+            seenToolStripMenuItem.Checked = _selectedMessage.Seen;
+        }
+
+        private void mnuAttachment_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = lsvAttachments.SelectedIndices.Count == 0;
+
+            if (e.Cancel) return;
+
+            downloadToolStripMenuItem.Visible = !_selectedMessage.Attachments[lsvAttachments.SelectedIndices[0]].Downloaded;
+            openToolStripMenuItem.Visible = saveAsToolStripMenuItem.Visible = _selectedMessage.Attachments[lsvAttachments.SelectedIndices[0]].Downloaded;
         }
 
         #region basic configuration
@@ -347,7 +367,8 @@ namespace ImapX.Sample
                     ? "( No subject )"
                     : msg.Subject.Replace("\n", "").Replace("\t", ""))
                 {
-                    ForeColor = color
+                    ForeColor = color,
+                    ImageIndex = msg.Attachments.Any() ? 0 : -1
                 };
                 item.Font = new Font(item.Font, msg.Seen ? FontStyle.Regular : FontStyle.Bold);
                 _messageItems.Add(msg.UId, item);
@@ -400,8 +421,8 @@ namespace ImapX.Sample
                 UpdateAttachmentIcons(files);
 
                 lsvAttachments.Items.AddRange(_selectedMessage.Attachments.Select(file =>
-                    new ListViewItem(string.Format("{0}, ({1}/{2})", file.FileName,
-                        file.Downloaded ? file.FileSize : 0, file.FileSize))
+                    new ListViewItem(string.Format("{0} ({1})", file.FileName,
+                        file.Downloaded ? FormatFileSize(file.FileSize) : "..."))
                     {
                         ImageKey = file.FileName.Split('.').Last()
                     }).ToArray());
@@ -430,7 +451,7 @@ namespace ImapX.Sample
         {
             try
             {
-                _selectedMessage.Body.Download(_selectedMessage.Body.HasHtml ? BodyType.Html : BodyType.Text);
+                _selectedMessage.Body.Download();
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(DownloadBodyCompleted), Program.ImapClient, args);
             }
@@ -808,15 +829,6 @@ namespace ImapX.Sample
 
         #endregion
 
-        private void mnuMessage_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            e.Cancel = lsvMessages.SelectedIndices.Count == 0;
-
-            if (e.Cancel) return;
-
-            seenToolStripMenuItem.Checked = _selectedMessage.Seen;
-        }
-
         #region toggle seen
 
         private void seenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -983,6 +995,8 @@ namespace ImapX.Sample
 
         #endregion
 
+        #region export message
+
         private void exportMessageToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (sfdExportMessage.ShowDialog(this) != DialogResult.OK) return;
@@ -1026,6 +1040,96 @@ namespace ImapX.Sample
             else
                 MessageBox.Show("Failed to export message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+
+        #endregion
+
+        private void downloadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            lsvAttachments.Enabled = lsvMessages.Enabled = trwFolders.Enabled = false;
+            var index = lsvAttachments.SelectedItems[0].Index;
+            var item = _selectedMessage.Attachments[index];
+            if(!item.Downloaded)
+                (new Thread(_ => DownloadAttachment(index))).Start();
+        }
+
+        private void DownloadAttachment(int index)
+        {
+            try
+            {
+                var args = new ServerCallCompletedEventArgs() { Arg = index };
+                
+                _selectedMessage.Attachments[index].Download();
+
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(DownloadAttachmentCompleted), Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(DownloadAttachmentCompleted), Program.ImapClient, args);
+            }
+        }
+
+        private void DownloadAttachmentCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            lsvAttachments.Enabled = lsvMessages.Enabled = trwFolders.Enabled = true;
+            if (e.Result)
+            {
+                var index = (int)e.Arg;
+                var file = _selectedMessage.Attachments[index];
+                lsvAttachments.Items[index].Text = file.FileName + " (" + FormatFileSize(file.FileSize) + ")";
+            }
+            else
+                MessageBox.Show("Failed to export message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private string FormatFileSize(long bytes)
+        {
+            if (bytes < 1024)
+                return bytes + " B";
+
+            bytes = bytes / 1024;
+
+            if (bytes < 1024)
+                return bytes + " KB";
+
+            bytes = bytes / 1024;
+
+            
+            return bytes + " MB";
+
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var index = lsvAttachments.SelectedItems[0].Index;
+            var item = _selectedMessage.Attachments[index];
+
+            var path = Path.Combine(Path.GetTempPath(), item.FileName);
+
+            if (!File.Exists(path))
+                System.IO.File.WriteAllBytes(path, item.FileData);
+
+            Process.Start(path);
+
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sfdSaveAttachment.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            var index = lsvAttachments.SelectedItems[0].Index;
+            var item = _selectedMessage.Attachments[index];
+
+            var path = Path.Combine(Path.GetTempPath(), item.FileName);
+
+            if (!File.Exists(path))
+                File.WriteAllBytes(sfdSaveAttachment.FileName, item.FileData);
+            else
+                File.Copy(path, sfdSaveAttachment.FileName);
+
+            MessageBox.Show("File saved!", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+
+        }
+
 
     }
 }

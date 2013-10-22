@@ -25,13 +25,11 @@ namespace ImapX.Extensions
                 {
                     watcher.EnableRaisingEvents = true;
 
-                    using (var client = new SmtpClient("imapx"))
-                    {
-                        client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
-                        client.PickupDirectoryLocation = System.IO.Path.GetTempPath();
-                        client.Send(mailMessage);
-                    }
-
+                    var client = new SmtpClient("imapx");
+                    client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
+                    client.PickupDirectoryLocation = System.IO.Path.GetTempPath();
+                    client.Send(mailMessage);
+                    
                     watcher.EnableRaisingEvents = false;
 
                     if (string.IsNullOrEmpty(tmpPath))
