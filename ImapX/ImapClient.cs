@@ -165,22 +165,21 @@ namespace ImapX
             var result = new FolderCollection(this, parent);
             var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
             IList<string> data = new List<string>();
-            if (SendAndReceive(cmd, ref data))
+            if (!SendAndReceive(cmd, ref data)) return result;
+
+            for (var i = 0; i < data.Count - 1; i++)
             {
-                for (var i = 0; i < data.Count - 1; i++)
-                {
-                    var folder = Folder.Parse(data[i], ref parent, this);
-                    commonFolders.TryBind(ref folder);
+                var folder = Folder.Parse(data[i], ref parent, this);
+                commonFolders.TryBind(ref folder);
 
-                    if (Behavior.ExamineFolders)
-                        folder.Examine();
+                if (Behavior.ExamineFolders)
+                    folder.Examine();
 
-                    if (folder.HasChildren && (isFirstLevel || Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full))
-                        folder.SubFolders = GetFolders(folder.Path + Behavior.FolderDelimeter, commonFolders, folder);
+                if (folder.HasChildren && (isFirstLevel || Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full))
+                    folder.SubFolders = GetFolders(folder.Path + Behavior.FolderDelimeter, commonFolders, folder);
 
-                    result.AddInternal(folder);
+                result.AddInternal(folder);
 
-                }
             }
 
             return result;

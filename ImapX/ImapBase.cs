@@ -227,6 +227,8 @@ namespace ImapX
 #else
                 //TODO: Add support for Tls
                 _client = _sslProtocol == SslProtocols.None ? new TcpClient(_host, _port) : new SecureTcpClient(_host, _port);
+                _ioStream = _client.GetStream();
+                _streamReader = new StreamReader(_ioStream);
 #endif
 
                 string result = _streamReader.ReadLine();
@@ -247,7 +249,7 @@ namespace ImapX
                 else
                     return false;
             }
-            catch
+            catch(Exception ex)
             {
                 return false;
             }
