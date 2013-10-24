@@ -36,8 +36,16 @@ namespace ImapX
             if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentTransferEncoding")
                 ContentTransferEncoding = _content.ContentTransferEncoding;
 
-            if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentDisposition")
-                FileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName) ? "unnamed" : StringDecoder.Decode(_content.ContentDisposition.FileName);
+            try
+            {
+                if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentDisposition")
+                    FileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName)
+                        ? "unnamed"
+                        : StringDecoder.Decode(_content.ContentDisposition.FileName);
+            }
+            catch
+            {
+            }
 
             if (args == null || args.PropertyName == "ContentTransferEncoding" || args.PropertyName == "all") 
                 ContentTransferEncoding = _content.ContentTransferEncoding;
