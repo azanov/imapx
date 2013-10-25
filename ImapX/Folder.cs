@@ -526,13 +526,17 @@ namespace ImapX
         {
             IEnumerable<string> ids = SearchMessageIds().GroupUIdSequences();
 
+            if (!ids.Any())
+                return true;
+
             foreach (string group in ids)
             {
                 IList<string> data = new List<string>();
                 if (
                     !_client.SendAndReceive(
-                        string.Format(ImapCommands.Store, group.First() + ":" + group.Last(), "+FLAGS",
-                            MessageFlags.Deleted), ref data)) return false;
+                        string.Format(ImapCommands.Store, group, "+FLAGS",
+                            MessageFlags.Deleted), ref data)) 
+                    return false;
             }
 
             if (!Expunge())
