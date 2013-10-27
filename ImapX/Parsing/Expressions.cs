@@ -49,5 +49,7 @@ namespace ImapX.Parsing
         public static readonly Regex GMailMessageIdRex = new Regex(@"X-GM-MSGID (\d+)");
 
         #endregion
+
+        public static readonly Regex ServerAlertRex = new Regex(@"\[ALERT\]\s(.*)$", RegexOptions.CultureInvariant);
     }
 }
