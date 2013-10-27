@@ -401,8 +401,8 @@ namespace ImapX
                 return new long[0];
 
             return count < 0
-                ? result.Groups[1].Value.Split(' ').Select(long.Parse).ToArray()
-                : result.Groups[1].Value.Split(' ').OrderBy(_ => _).Take(count).Select(long.Parse).ToArray();
+                ? result.Groups[1].Value.Trim().Split(' ').Select(long.Parse).ToArray()
+                : result.Groups[1].Value.Trim().Split(' ').OrderBy(_ => _).Take(count).Select(long.Parse).ToArray();
         }
 
         /// <summary>
