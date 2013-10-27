@@ -376,7 +376,12 @@ namespace ImapX
 
                 if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
                     tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
+                {
+                    var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
+                    if(serverAlertMatch.Success)
+                        throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
                     return false;
+                }
             }
         }
 
