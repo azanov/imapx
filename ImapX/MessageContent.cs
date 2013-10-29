@@ -221,6 +221,9 @@ namespace ImapX
 
         public bool Download()
         {
+            if (Downloaded) 
+                return true;
+
             //ContentStream = new MemoryStream();
             // _writer = new StreamWriter(ContentStream);
 
