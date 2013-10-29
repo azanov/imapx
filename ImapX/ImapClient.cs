@@ -122,6 +122,9 @@ namespace ImapX
             else
                 Capabilities.Update(capabilities);
 
+            if (IsAuthenticated && Host.ToLower() == "imap.qq.com")
+                Behavior.SearchAllNotSupported = true;
+
             return IsAuthenticated;
         }
 
@@ -231,7 +234,6 @@ namespace ImapX
 
 
         #endregion
-
 
     }
 }

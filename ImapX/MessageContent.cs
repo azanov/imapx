@@ -160,6 +160,19 @@ namespace ImapX
                     case "content-type":
                         if (ContentType == null)
                             ContentType = new ContentType(value);
+
+                        if (!string.IsNullOrEmpty(ContentType.Name))
+                        {
+                            ContentType.Name = StringDecoder.Decode(ContentType.Name);
+                            if (ContentDisposition == null)
+                                ContentDisposition = new ContentDisposition()
+                                {
+                                    DispositionType = DispositionTypeNames.Attachment
+                                };
+                            ContentDisposition.FileName = ContentType.Name;
+
+                        }
+
                         break;
                     case "charset":
                         if (ContentType == null)
@@ -246,6 +259,8 @@ namespace ImapX
             //_writer.Flush();
 
             OnPropertyChanged("all");
+
+            _fetchProgress = _fetchProgress | MessageFetchState.Body | MessageFetchState.Headers;
 
             return result;
         }
