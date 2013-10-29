@@ -4,6 +4,9 @@ using ImapX.Enums;
 
 namespace ImapX
 {
+    /// <summary>
+    /// Defines basic client behavior for browsing folders, downloading messages and other
+    /// </summary>
     public class ClientBehavior
     {
         private MessageFetchMode _messageFetchMode;
@@ -18,6 +21,7 @@ namespace ImapX
             SpecialUseMetadataPath = "/private/specialuse";
             AutoDownloadBodyOnAccess = true;
             RequestedHeaders = MessageHeaderSets.Minimal;
+            AutoGenerateMissingBody = false;
         }
 
         /// <summary>
@@ -70,5 +74,10 @@ namespace ImapX
         ///     The path where the special use metadata information for folders is stored
         /// </summary>
         public string SpecialUseMetadataPath { get; set; }
+
+        /// <summary>
+        ///     In case a message has only plain text or only html body available, the other view will be generated automatically if this property is set to <code>true</code>, 
+        /// </summary>
+        public bool AutoGenerateMissingBody { get; set; }
     }
 }

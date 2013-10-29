@@ -5,6 +5,7 @@ using System.Text;
 using ImapX.EncodingHelpers;
 using ImapX.Enums;
 using ImapX.Extensions;
+using ImapX.Parsing;
 
 namespace ImapX
 {
@@ -53,7 +54,14 @@ namespace ImapX
         {
             get
             {
-                if (_htmlContent == null)
+                if (_htmlContent == null && _textContent == null)
+                    return string.Empty;
+
+                if (_client.Behavior.AutoGenerateMissingBody && HasText)
+                {
+                    _decodedHtml = Text.Replace(Environment.NewLine, "<br />");
+                }
+                else
                     return string.Empty;
 
                 if (!_htmlContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)
@@ -69,7 +77,16 @@ namespace ImapX
         {
             get
             {
-                if (_textContent == null)
+                if (_textContent == null && _htmlContent == null)
+                    return string.Empty;
+
+                if (_client.Behavior.AutoGenerateMissingBody && HasHtml)
+                {
+                    _decodedText =
+                        Expressions.HtmlTagFilterRex.Replace(
+                            Expressions.BrTagFilterRex.Replace(Html, Environment.NewLine), string.Empty);
+                }
+                else
                     return string.Empty;
 
                 if (!_textContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)

@@ -51,5 +51,8 @@ namespace ImapX.Parsing
         #endregion
 
         public static readonly Regex ServerAlertRex = new Regex(@"\[ALERT\]\s(.*)$", RegexOptions.CultureInvariant);
+
+        public static readonly Regex HtmlTagFilterRex = new Regex("<.*?>", RegexOptions.CultureInvariant | RegexOptions.Multiline);
+        public static readonly Regex BrTagFilterRex = new Regex("<br.*?>", RegexOptions.CultureInvariant | RegexOptions.Multiline);
     }
 }
