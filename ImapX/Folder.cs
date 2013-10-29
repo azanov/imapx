@@ -379,8 +379,7 @@ namespace ImapX
                 if (!Messages.Contains(msg))
                     Messages.AddInternal(msg);
 
-                if (!result.Contains(msg))
-                    result.Add(msg);
+                result.Add(msg);
             }
             return result.ToArray();
         }
