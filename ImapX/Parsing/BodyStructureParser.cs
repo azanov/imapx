@@ -104,9 +104,6 @@ namespace ImapX.Parsing
                     if (part.ContentType == null)
                     {
                         part.ContentType = new ContentType(part.Parameters["content-type"]);
-
-                        if (!string.IsNullOrEmpty(part.ContentType.Name))
-                            part.ContentType.Name = StringDecoder.Decode(part.ContentType.Name);
                     }
 
                 }
@@ -210,6 +207,16 @@ namespace ImapX.Parsing
                 //        part.ContentDisposition = new ContentDisposition();
                 //    part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
                 //}
+
+                if (part.ContentType != null && !string.IsNullOrEmpty(part.ContentType.Name))
+                {
+                    part.ContentType.Name = StringDecoder.Decode(part.ContentType.Name);
+                    part.ContentDisposition = new ContentDisposition
+                    {
+                        FileName = part.ContentType.Name,
+                        DispositionType = DispositionTypeNames.Attachment
+                    };
+                }
 
                 Skip(_spaces);
                 if (_reader.Peek() == ')')

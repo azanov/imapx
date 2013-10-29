@@ -389,6 +389,9 @@ namespace ImapX
             if (_client.SelectedFolder != this && !Select())
                 throw new OperationFailedException("The folder couldn't be selected for search.");
 
+            if (query.ToUpper() == "ALL" && _client.Behavior.SearchAllNotSupported)
+                query = "SINCE 0000-00-00";
+
             IList<string> data = new List<string>();
             if (!_client.SendAndReceive(string.Format(ImapCommands.Search, query), ref data))
                 throw new ArgumentException("The search query couldn't be processed");

@@ -22,6 +22,7 @@ namespace ImapX
             AutoDownloadBodyOnAccess = true;
             RequestedHeaders = MessageHeaderSets.Minimal;
             AutoGenerateMissingBody = false;
+            SearchAllNotSupported = false;
         }
 
         /// <summary>
@@ -79,5 +80,10 @@ namespace ImapX
         ///     In case a message has only plain text or only html body available, the other view will be generated automatically if this property is set to <code>true</code>, 
         /// </summary>
         public bool AutoGenerateMissingBody { get; set; }
+
+        /// <summary>
+        ///     Some servers (e.g) imap.qq.com seem not give any response on SEARCH ALL, set this property to true to automatically replace this call by SEARCH SINCE 0000-00-00 in order to fix the issue
+        /// </summary>
+        public bool SearchAllNotSupported { get; set; }
     }
 }

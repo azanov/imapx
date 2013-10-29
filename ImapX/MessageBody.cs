@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ImapX.EncodingHelpers;
 using ImapX.Enums;
-using ImapX.Extensions;
 using ImapX.Parsing;
 
 namespace ImapX
@@ -18,7 +14,9 @@ namespace ImapX
         private string _decodedHtml;
         private string _decodedText;
 
-        internal MessageBody() { }
+        internal MessageBody()
+        {
+        }
 
         internal MessageBody(ImapClient client, MessageContent textContent, MessageContent htmlContent)
         {
@@ -32,7 +30,7 @@ namespace ImapX
             get
             {
                 var r = BodyType.None;
-                if(HasHtml && _htmlContent.Downloaded)
+                if (HasHtml && _htmlContent.Downloaded)
                     r |= BodyType.Html;
                 if (HasText && _textContent.Downloaded)
                     r |= BodyType.Html;
@@ -60,8 +58,10 @@ namespace ImapX
                 if (_client.Behavior.AutoGenerateMissingBody && HasText)
                 {
                     _decodedHtml = Text.Replace(Environment.NewLine, "<br />");
+                    return _decodedHtml;
                 }
-                else
+
+                if (_htmlContent == null)
                     return string.Empty;
 
                 if (!_htmlContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)
@@ -85,8 +85,10 @@ namespace ImapX
                     _decodedText =
                         Expressions.HtmlTagFilterRex.Replace(
                             Expressions.BrTagFilterRex.Replace(Html, Environment.NewLine), string.Empty);
+                    return _decodedText;
                 }
-                else
+                
+                if (_textContent == null)
                     return string.Empty;
 
                 if (!_textContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)
