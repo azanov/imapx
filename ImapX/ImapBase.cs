@@ -378,7 +378,7 @@ namespace ImapX
                     tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
                 {
                     var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
-                    if(serverAlertMatch.Success)
+                    if(serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
                         throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
                     return false;
                 }

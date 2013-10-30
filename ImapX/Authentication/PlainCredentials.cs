@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using ImapX.Constants;
 
 namespace ImapX.Authentication
@@ -7,7 +8,7 @@ namespace ImapX.Authentication
     /// <summary>
     /// Credentials used for PLAIN authentication or the LOGIN command
     /// </summary>
-    public class PlainCredentials : IImapCredentials
+    public class PlainCredentials : ImapCredentials
     {
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace ImapX.Authentication
             Password = password;
         }
 
-        public string ToCommand(Capability capabilities)
+        public override string ToCommand(Capability capabilities)
         {
             if (!IsSupported(capabilities))
                 throw new NotSupportedException("The selected authentication mechanism is not supported");
@@ -37,19 +38,19 @@ namespace ImapX.Authentication
             return capabilities.LoginDisabled ? string.Format(ImapCommands.Authenticate + " \"{1}\" \"{2}\"", "PLAIN", Login, Password) : string.Format(ImapCommands.Login, Login, Password);
         }
 
-        public bool IsSupported(Capability capabilities)
+        public override bool IsSupported(Capability capabilities)
         {
             return capabilities != null && (!capabilities.LoginDisabled || capabilities.AuthenticationMechanisms.Contains("PLAIN"));
         }
 
-        public bool ProcessAnswers()
+        public override void ProcessCommandResult(string data)
         {
-            return true;
+            
         }
 
-        public bool IsMultiCommand()
+        public override byte[] AppendCommandData(string serverResponse)
         {
-            return false;
+            return Encoding.UTF8.GetBytes(Environment.NewLine);
         }
     }
 }

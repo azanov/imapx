@@ -1,24 +1,21 @@
-﻿namespace ImapX.Authentication
+﻿using ImapX.Parsing;
+namespace ImapX.Authentication
 {
-    public interface IImapCredentials
+    public abstract  class ImapCredentials : CommandProcessor
     {
 
         /// <summary>
         /// Provides the authentication command to be send to the server
         /// </summary>
         /// <returns></returns>
-        string ToCommand(Capability capabilities);
-
-        bool IsMultiCommand();
-
-        bool ProcessAnswers();
+        public abstract string ToCommand(Capability capabilities);
 
         /// <summary>
         /// Checks whether the authntication mechanism used is supported by the server
         /// </summary>
         /// <param name="capabilities"></param>
         /// <returns></returns>
-        bool IsSupported(Capability capabilities);
+        public abstract bool IsSupported(Capability capabilities);
 
     }
 }

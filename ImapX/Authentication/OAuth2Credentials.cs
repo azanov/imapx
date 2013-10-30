@@ -2,18 +2,21 @@
 using System.IO;
 using System.Text;
 using ImapX.Constants;
+using ImapX.Parsing;
 
 namespace ImapX.Authentication
 {
     /// <summary>
     /// Credentials used for OAuth2 authentication
     /// </summary>
-    public class OAuth2Credentials : IImapCredentials
+    public class OAuth2Credentials : ImapCredentials
     {
         public OAuth2Credentials(string login, string authToken)
         {
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(authToken))
                 throw new ArgumentException("Login and auth token cannot be empty");
+
+            TwoWayProcessing = true;
 
             Login = login;
             AuthToken = authToken;
@@ -29,26 +32,16 @@ namespace ImapX.Authentication
         /// </summary>
         public string AuthToken { get; set; }
 
-        public string ToCommand(Capability capabilities)
+        public override string ToCommand(Capability capabilities)
         {
             if (!IsSupported(capabilities))
                 throw new NotSupportedException("The selected authentication mechanism is not supported");
 
-            return string.Format(ImapCommands.Authenticate + " \"{1}\"", "XOAUTH2",
+            return string.Format(ImapCommands.Authenticate + " {1}", "XOAUTH2",
                 PrepareOAuthCredentials(Login, AuthToken));
         }
 
-        public bool IsMultiCommand()
-        {
-            return false;
-        }
-
-        public bool ProcessAnswers()
-        {
-            return true;
-        }
-
-        public bool IsSupported(Capability capabilities)
+        public override bool IsSupported(Capability capabilities)
         {
             return capabilities.XoAuth2;
         }
@@ -69,6 +62,16 @@ namespace ImapX.Authentication
                 stream.WriteByte(1);
                 return Convert.ToBase64String(stream.ToArray());
             }
+        }
+
+
+        public override void ProcessCommandResult(string data)
+        {
+        }
+
+        public override byte[] AppendCommandData(string serverResponse)
+        {
+            return Encoding.UTF8.GetBytes(Environment.NewLine);
         }
     }
 
