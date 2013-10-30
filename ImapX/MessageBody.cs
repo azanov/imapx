@@ -2,6 +2,7 @@
 using ImapX.EncodingHelpers;
 using ImapX.Enums;
 using ImapX.Parsing;
+using ImapX.Extensions;
 
 namespace ImapX
 {

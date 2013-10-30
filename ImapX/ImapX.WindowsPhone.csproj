@@ -60,7 +60,7 @@
     <Reference Include="mscorlib.extensions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Authentication\IImapCredentials.cs" />
+    <Compile Include="Authentication\ImapCredentials.cs" />
     <Compile Include="Authentication\OAuth2Credentials.cs" />
     <Compile Include="Authentication\PlainCredentials.cs" />
     <Compile Include="Capability.cs" />

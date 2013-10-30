@@ -35,7 +35,7 @@ namespace ImapX
         /// <summary>
         /// Get or set the credentials used to authenticate
         /// </summary>
-        public IImapCredentials Credentials { get; set; }
+        public ImapCredentials Credentials { get; set; }
 
         internal Folder SelectedFolder { get; set; }
 
@@ -109,11 +109,11 @@ namespace ImapX
         /// Authenticate using given credentials
         /// </summary>
         /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login(IImapCredentials credentials)
+        public bool Login(ImapCredentials credentials)
         {
             Credentials = credentials;
             IList<string> data = new List<string>();
-            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data);
+            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data, credentials);
 
             var capabilities = data.FirstOrDefault(_ => _.StartsWith("* CAPABILITY"));
 
