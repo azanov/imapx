@@ -15,7 +15,7 @@ namespace ImapX.Sample
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -36,8 +36,11 @@ namespace ImapX.Sample
 
                 Directory.CreateDirectory(tmpPath);
 
-                Application.Run(new FrmMain());
-
+                if(args.Any() && args[0].ToLower() == "cmd")
+                    Application.Run(new FrmConsole());
+                else
+                    Application.Run(new FrmMain());
+                
             }
             catch(Exception ex)
             {

@@ -340,7 +340,12 @@ namespace ImapX
 
             while (true)
             {
-                string tmp = reader.ReadLine() ?? "";
+                string tmp = reader.ReadLine();
+
+                if (tmp == null)
+                {
+                    return false;
+                }
 
                 if (IsDebug)
                     Debug.WriteLine(tmp);
