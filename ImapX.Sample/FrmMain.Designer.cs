@@ -661,7 +661,7 @@
             this.openToolStripMenuItem,
             this.saveAsToolStripMenuItem});
             this.mnuAttachment.Name = "mnuAttachment";
-            this.mnuAttachment.Size = new System.Drawing.Size(153, 92);
+            this.mnuAttachment.Size = new System.Drawing.Size(129, 70);
             this.mnuAttachment.Opening += new System.ComponentModel.CancelEventHandler(this.mnuAttachment_Opening);
             // 
             // downloadToolStripMenuItem
@@ -674,14 +674,14 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.saveAsToolStripMenuItem.Text = "&Save as...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
