@@ -1104,7 +1104,10 @@ namespace ImapX.Sample
             var index = lsvAttachments.SelectedItems[0].Index;
             var item = _selectedMessage.Attachments[index];
 
-            var path = Path.Combine(Path.GetTempPath(), item.FileName);
+            string tmpDir = Path.Combine(Application.StartupPath, "tmp");
+            string msgTmpDir = Path.Combine(tmpDir, _selectedMessage.UId.ToString(CultureInfo.InvariantCulture));
+
+            var path = Path.Combine(msgTmpDir, item.FileName);
 
             if (!File.Exists(path))
                 System.IO.File.WriteAllBytes(path, item.FileData);

@@ -52,7 +52,8 @@ namespace ImapX.Parsing
             "ddd, dd MMM yyyy HH:mm:ss",
             "dd MMM yyyy HH:mm:ss",
             "ddd, dd MMM yyyy HH:mm",
-            "dd MMM yyyy HH:mm"
+            "dd MMM yyyy HH:mm",
+            "ddd, d MMM yyyy HH:mm:ss"
         };
 
         public static DateTime? ParseDate(string value)
@@ -81,5 +82,7 @@ namespace ImapX.Parsing
 
             return dateTime;
         }
+
+
     }
 }
