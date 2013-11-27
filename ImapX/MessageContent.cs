@@ -13,7 +13,7 @@ using ImapX.Parsing;
 namespace ImapX
 {
 
-    public class MessageContent : CommandProcessor, INotifyPropertyChanged
+    public class MessageContent : CommandProcessor
     {
         private readonly ImapClient _client;
         private readonly Message _message;
@@ -44,7 +44,6 @@ namespace ImapX
             set
             {
                 _contentId = value;
-                OnPropertyChanged("ContentId");
             }
         }
 
@@ -56,7 +55,6 @@ namespace ImapX
             set
             {
                 _contentType = value;
-                OnPropertyChanged("ContentType");
             }
         }
 
@@ -66,7 +64,6 @@ namespace ImapX
             set
             {
                 _contentTransferEncoding = value;
-                OnPropertyChanged("ContentTransferEncoding");
             }
         }
 
@@ -76,7 +73,6 @@ namespace ImapX
             set
             {
                 _contentDisposition = value;
-                OnPropertyChanged("ContentDisposition");
             }
         }
 
@@ -98,13 +94,27 @@ namespace ImapX
             set
             {
                 _contentStream = value;
-                OnPropertyChanged("ContentStream");
             }
         }
 
         public bool Downloaded
         {
             get { return _fetchProgress.HasFlag(MessageFetchState.Headers | MessageFetchState.Body); }
+        }
+
+        private void AppendDataToContentStream(string data) {
+            switch (ContentTransferEncoding) {
+                case ContentTransferEncoding.QuotedPrintable:
+                    ContentStream += data.TrimEnd(new[] { ' ', '=' });
+                    break;
+                case ContentTransferEncoding.EightBit:
+                case ContentTransferEncoding.SevenBit:
+                    ContentStream += (data + Environment.NewLine);
+                    break;
+                default:
+                    ContentStream += data;
+                    break;
+            }
         }
 
         public override void ProcessCommandResult(string data)
@@ -115,11 +125,8 @@ namespace ImapX
             if (MimeRex.IsMatch(data))
             {
                 data = MimeRex.Replace(data, "").Trim();
-                //_writer.Write(data);
-
-                ContentStream += ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
-                    ? data.TrimEnd(new[] { ' ', '=' })
-                    : data;
+                if (!string.IsNullOrEmpty(data))
+                    AppendDataToContentStream(data);
                 _fetchState = MessageFetchState.Headers;
                 _fetchProgress = _fetchProgress | MessageFetchState.Headers;
                 return;
@@ -128,10 +135,8 @@ namespace ImapX
             if (BodyRex.IsMatch(data))
             {
                 data = BodyRex.Replace(data, "").Trim();
-
-                ContentStream += ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
-                    ? data.TrimEnd(new[] { ' ', '=' })
-                    : data;
+                if (!string.IsNullOrEmpty(data))
+                    AppendDataToContentStream(data);
 
                 _fetchState = MessageFetchState.Body;
                 _fetchProgress = _fetchProgress | MessageFetchState.Body;
@@ -224,12 +229,7 @@ namespace ImapX
                     ContentStream = ContentStream.Substring(0, ContentStream.Length - 1);
             }
             else
-            {
-                data = ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable
-                    ? data.TrimEnd(new[] { ' ', '=' })
-                    : data;
-                ContentStream += data.Length == 0 ? Environment.NewLine : data;
-            }
+                AppendDataToContentStream(data);
         }
 
         public bool Download()
@@ -258,22 +258,14 @@ namespace ImapX
 
             //_writer.Flush();
 
-            OnPropertyChanged("all");
-
             _fetchProgress = _fetchProgress | MessageFetchState.Body | MessageFetchState.Headers;
+
+            if (ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable && !string.IsNullOrEmpty(ContentStream))
+                ContentStream = StringDecoder.DecodeQuotedPrintable(ContentStream, encoding);
 
             return result;
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string name)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new PropertyChangedEventArgs(name));
-        }
-
+        
         internal void AppendEml(ref StringBuilder sb, bool addHeaders)
         {
             if (addHeaders)

@@ -12,6 +12,8 @@ namespace ImapX
     public class Attachment
     {
         private readonly MessageContent _content;
+        private string _fileName = null;
+        private byte[] _fileData = null;
 
         public Attachment()
         {
@@ -21,65 +23,59 @@ namespace ImapX
         internal Attachment(MessageContent content)
         {
             _content = content;
-            _content.PropertyChanged += ContentOnPropertyChanged;
-            ContentOnPropertyChanged(null, null);
         }
 
-        private void ContentOnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        public string ContentId
         {
-            if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentId")
-                ContentId = _content.ContentId;
-
-            if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentType")
-                ContentType = _content.ContentType;
-
-            if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentTransferEncoding")
-                ContentTransferEncoding = _content.ContentTransferEncoding;
-
-            try
+            get
             {
-                if (args == null || args.PropertyName == "all" || args.PropertyName == "ContentDisposition")
-                    FileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName)
+                return _content.ContentId;
+            }
+        }
+
+        public byte[] FileData
+        {
+            get
+            {
+                if (_fileData == null)
+                {
+                    if (_content.Downloaded && _content.ContentStream != null)
+                    {
+                        switch (ContentTransferEncoding)
+                        {
+                            case ContentTransferEncoding.Base64:
+                                _fileData = Base64.FromBase64(_content.ContentStream);
+                                break;
+                            default:
+                                Encoding encoding = Encoding.UTF8;
+                                try
+                                {
+                                    encoding = Encoding.GetEncoding(ContentType.CharSet);
+                                }
+                                catch
+                                {
+                                }
+
+                                _fileData = encoding.GetBytes(_content.ContentStream);
+                                break;
+                        }
+                    }
+                }
+                return _fileData;
+            }
+        }
+
+        public string FileName
+        {
+            get
+            {
+                if (_fileName == null)
+                    _fileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName)
                         ? "unnamed"
                         : StringDecoder.Decode(_content.ContentDisposition.FileName);
-            }
-            catch
-            {
-            }
-
-            if (args == null || args.PropertyName == "ContentTransferEncoding" || args.PropertyName == "all") 
-                ContentTransferEncoding = _content.ContentTransferEncoding;
-
-            if (args == null || args.PropertyName == "ContentStream" || args.PropertyName == "all")
-            {
-                if (!_content.Downloaded || _content.ContentStream == null)
-                    FileData = new byte[0];
-                else
-                    switch (ContentTransferEncoding)
-                    {
-                        case ContentTransferEncoding.Base64:
-                            FileData = Base64.FromBase64(_content.ContentStream);
-                            break;
-                        default:
-                            Encoding encoding = Encoding.UTF8;
-                            try
-                            {
-                                encoding = Encoding.GetEncoding(ContentType.CharSet);
-                            }
-                            catch
-                            {
-                            }
-                            FileData = encoding.GetBytes(_content.ContentStream);
-                            break;
-                    }
+                return _fileName;
             }
         }
-
-        public string ContentId { set; get; }
-
-        public byte[] FileData { get; set; }
-
-        public string FileName { get; set; }
 
         public bool Downloaded
         {
@@ -95,9 +91,21 @@ namespace ImapX
                 _content.Download();
         }
 
-        public ContentType ContentType { get; set; }
+        public ContentType ContentType
+        {
+            get
+            {
+                return _content.ContentType;
+            }
+        }
 
-        public ContentTransferEncoding ContentTransferEncoding { get; set; }
+        public ContentTransferEncoding ContentTransferEncoding
+        {
+            get
+            {
+                return _content.ContentTransferEncoding;
+            }
+        }
 
         public void Save(string folder, string fileName = null)
         {
@@ -120,9 +128,14 @@ namespace ImapX
             }
         }
 
+        public string GetTextData()
+        {
+            return _content.ContentStream;
+        }
+
         #region Obsolete
 
-        [Obsolete("GetStream might be removed in future releases")]
+        [Obsolete("GetStream is obsolete, please use GetTextData instead", true)]
         public string GetStream()
         {
             return _content.ContentStream;

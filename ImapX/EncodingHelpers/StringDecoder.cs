@@ -31,46 +31,44 @@ namespace ImapX.EncodingHelpers
             return encoding.GetString(bytes, 0, bytes.Length);
         }
 
-        internal static string DecodeQuotedPrintable(string value, Encoding encoding)
+        static readonly Regex hexRex = new Regex(@"^[0-9A-F\r\n]+$");
+
+        internal static bool IsHex(string value)
         {
-            if (string.IsNullOrEmpty(value))
+            return hexRex.Match(value).Success;
+        }
+
+        internal static string DecodeQuotedPrintable(string input, Encoding encoding)
+        {
+            if (string.IsNullOrEmpty(input))
                 return string.Empty;
             if (encoding == null)
                 encoding = Encoding.UTF8;
 
-            if (value.IndexOf('_') > -1 && value.IndexOf(' ') == -1)
-                value = value.Replace('_', ' ');
-            byte[] data = Encoding.UTF8.GetBytes(value);
-            byte eq = Convert.ToByte('=');
-            int n = 0;
-            for (int i = 0; i < data.Length; i++)
-            {
-                byte b = data[i];
+            var occurences = new Regex(@"(=[0-9A-F]{2}){1,}", RegexOptions.Multiline);
+            var matches = occurences.Matches(input);
 
-                if ((b == eq) && ((i + 1) < data.Length))
+            foreach (Match match in matches)
+            {
+                try
                 {
-                    byte b1 = data[i + 1], b2 = data[i + 2];
-                    if (b1 == 10 || b1 == 13)
+                    byte[] b = new byte[match.Groups[0].Value.Length / 3];
+                    for (int i = 0; i < match.Groups[0].Value.Length / 3; i++)
                     {
-                        i++;
-                        if (b2 == 10 || b2 == 13)
-                        {
-                            i++;
-                        }
-                        continue;
+                        b[i] = byte.Parse(match.Groups[0].Value.Substring(i * 3 + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
                     }
-                    data[n] = (byte)int.Parse(value.Substring(i + 1, 2), NumberStyles.HexNumber);
-                    n++;
-                    i += 2;
+                    char[] hexChar = encoding.GetChars(b);
+                    input = input.Replace(match.Groups[0].Value, new String(hexChar));
                 }
-                else
+                catch
                 {
-                    data[n] = b;
-                    n++;
+                    
                 }
             }
-            value = encoding.GetString(data, 0, n);
-            return value;
+            input = input.Replace("?=", "").Replace("\r\n", "");
+
+            return input;
+
 
         }
 
