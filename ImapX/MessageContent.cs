@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Net.Mime;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,11 +18,6 @@ namespace ImapX
         private readonly Message _message;
         private MessageFetchState _fetchState;
         private MessageFetchState _fetchProgress;
-        private ContentType _contentType;
-        private ContentTransferEncoding _contentTransferEncoding;
-        private string _contentStream;
-        private string _contentId;
-        private ContentDisposition _contentDisposition;
 
         private static readonly Regex MimeRex = new Regex(@".*BODY\[[\d\.]+MIME\] \{\d+\}");
         private static readonly Regex BodyRex = new Regex(@".*BODY\[[\d\.]+\] \{\d+\}");
@@ -38,43 +32,15 @@ namespace ImapX
             Parameters = new Dictionary<string, string>();
         }
 
-        public string ContentId
-        {
-            get { return _contentId; }
-            set
-            {
-                _contentId = value;
-            }
-        }
+        public string ContentId { get; set; }
 
         public string ContentNumber { get; set; }
 
-        public ContentType ContentType
-        {
-            get { return _contentType; }
-            set
-            {
-                _contentType = value;
-            }
-        }
+        public ContentType ContentType { get; set; }
 
-        public ContentTransferEncoding ContentTransferEncoding
-        {
-            get { return _contentTransferEncoding; }
-            set
-            {
-                _contentTransferEncoding = value;
-            }
-        }
+        public ContentTransferEncoding ContentTransferEncoding { get; set; }
 
-        public ContentDisposition ContentDisposition
-        {
-            get { return _contentDisposition; }
-            set
-            {
-                _contentDisposition = value;
-            }
-        }
+        public ContentDisposition ContentDisposition { get; set; }
 
         public string Description { get; set; }
 
@@ -88,14 +54,9 @@ namespace ImapX
         public string Md5 { get; set; }
         public string Language { get; set; }
 
-        public string ContentStream
-        {
-            get { return _contentStream; }
-            set
-            {
-                _contentStream = value;
-            }
-        }
+        public string ContentStream { get; set; }
+
+        private StringBuilder _contentBuilder;
 
         public bool Downloaded
         {
@@ -105,14 +66,14 @@ namespace ImapX
         private void AppendDataToContentStream(string data) {
             switch (ContentTransferEncoding) {
                 case ContentTransferEncoding.QuotedPrintable:
-                    ContentStream += data.TrimEnd(new[] { ' ', '=' });
+                    _contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
                     break;
                 case ContentTransferEncoding.EightBit:
                 case ContentTransferEncoding.SevenBit:
-                    ContentStream += (data + Environment.NewLine);
+                    _contentBuilder.AppendLine(data);
                     break;
                 default:
-                    ContentStream += data;
+                    _contentBuilder.Append(data);
                     break;
             }
         }
@@ -170,7 +131,7 @@ namespace ImapX
                         {
                             ContentType.Name = StringDecoder.Decode(ContentType.Name);
                             if (ContentDisposition == null)
-                                ContentDisposition = new ContentDisposition()
+                                ContentDisposition = new ContentDisposition
                                 {
                                     DispositionType = DispositionTypeNames.Attachment
                                 };
@@ -225,8 +186,8 @@ namespace ImapX
             }
             else if (CommandEndRex.IsMatch(data))
             {
-                if(ContentStream.EndsWith(")"))
-                    ContentStream = ContentStream.Substring(0, ContentStream.Length - 1);
+                if (_contentBuilder.Length > 0 && _contentBuilder[_contentBuilder.Length - 1] == ')')
+                    _contentBuilder.Remove(_contentBuilder.Length - 1, 1);
             }
             else
                 AppendDataToContentStream(data);
@@ -250,6 +211,9 @@ namespace ImapX
             }
 
             IList<string> data = new List<string>();
+
+            _contentBuilder = new StringBuilder();
+
             bool result =
                 _client.SendAndReceive(
                     string.Format(ImapCommands.Fetch, _message.UId,
@@ -259,6 +223,8 @@ namespace ImapX
             //_writer.Flush();
 
             _fetchProgress = _fetchProgress | MessageFetchState.Body | MessageFetchState.Headers;
+
+            ContentStream = _contentBuilder.ToString();
 
             if (ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable && !string.IsNullOrEmpty(ContentStream))
                 ContentStream = StringDecoder.DecodeQuotedPrintable(ContentStream, encoding);
