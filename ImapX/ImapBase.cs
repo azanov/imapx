@@ -350,7 +350,8 @@ namespace ImapX
                 if (IsDebug)
                     Debug.WriteLine(tmp);
 
-                data.Add(tmp);
+                if (processor == null)
+                    data.Add(tmp);
 
                 if (processor != null)
                     processor.ProcessCommandResult(tmp);
