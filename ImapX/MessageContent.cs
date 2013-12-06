@@ -19,9 +19,8 @@ namespace ImapX
         private MessageFetchState _fetchState;
         private MessageFetchState _fetchProgress;
 
-        private static readonly Regex MimeRex = new Regex(@".*BODY\[[\d\.]+MIME\] \{\d+\}");
-        private static readonly Regex BodyRex = new Regex(@".*BODY\[[\d\.]+\] \{\d+\}");
         private static readonly Regex CommandEndRex = new Regex(@"IMAPX\d+ OK");
+        private static readonly Regex CommandStartRex = new Regex(@"^\* \d+ FETCH \(UID \d+");
 
         internal MessageContent(){}
 
@@ -78,14 +77,25 @@ namespace ImapX
             }
         }
 
+        private static string CleanData(string value, int startIndex)
+        {
+            var endIndex = value.IndexOf('}', startIndex);
+            
+            return endIndex == -1 ? value : value.Remove(startIndex, endIndex - startIndex + 1);
+        }
+
         public override void ProcessCommandResult(string data)
         {
 
+            int index;
 
-
-            if (MimeRex.IsMatch(data))
+            if ((index = data.IndexOf("BODY[" + ContentNumber + ".MIME]", StringComparison.Ordinal)) != -1)
             {
-                data = MimeRex.Replace(data, "").Trim();
+                data = CleanData(data, index).Trim();
+
+                if (data.StartsWith("*") && data.Contains("UID"))
+                    data = CommandStartRex.Replace(data, "");
+
                 if (!string.IsNullOrEmpty(data))
                     AppendDataToContentStream(data);
                 _fetchState = MessageFetchState.Headers;
@@ -93,9 +103,14 @@ namespace ImapX
                 return;
             }
 
-            if (BodyRex.IsMatch(data))
+            if ((index = data.IndexOf("BODY[" + ContentNumber + "]", StringComparison.Ordinal)) != -1)
             {
-                data = BodyRex.Replace(data, "").Trim();
+
+                data = CleanData(data, index).Trim();
+
+                if (data.StartsWith("*") && data.Contains("UID"))
+                    data = CommandStartRex.Replace(data, "");
+
                 if (!string.IsNullOrEmpty(data))
                     AppendDataToContentStream(data);
 

@@ -1109,7 +1109,7 @@ namespace ImapX.Sample
 
             var path = Path.Combine(msgTmpDir, item.FileName);
 
-            if (!File.Exists(path))
+            if (!File.Exists(path) || (new FileInfo(path)).Length == 0)
                 System.IO.File.WriteAllBytes(path, item.FileData);
 
             Process.Start(path);
