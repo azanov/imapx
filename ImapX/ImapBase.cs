@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -11,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Constants;
 using ImapX.Exceptions;
-using System.Collections;
 using ImapX.Parsing;
 #if WINDOWS_PHONE
 using SocketEx;
@@ -249,7 +246,7 @@ namespace ImapX
                 else
                     return false;
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 return false;
             }
@@ -318,75 +315,78 @@ namespace ImapX
         public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
             Encoding encoding = null)
         {
-            if (_client == null || !_client.Connected)
-                throw new SocketException((int)SocketError.NotConnected);
-
-            const string tmpl = "IMAPX{0} {1}";
-            _counter++;
-
-            StreamReader reader = encoding == null || Equals(encoding, Encoding.UTF8)
-                ? _streamReader
-                : new StreamReader(_ioStream, encoding);
-
-            var parts = new Queue<string>(NewLineRex.Split(command));
-
-            string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
-            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-
-            if (IsDebug)
-                Debug.WriteLine(text);
-
-            _ioStream.Write(bytes, 0, bytes.Length);
-
-            while (true)
+            lock (_ioStream)
             {
-                string tmp = reader.ReadLine();
+                if (_client == null || !_client.Connected)
+                    throw new SocketException((int) SocketError.NotConnected);
 
-                if (tmp == null)
-                {
-                    return false;
-                }
+                const string tmpl = "IMAPX{0} {1}";
+                _counter++;
+
+                StreamReader reader = encoding == null || Equals(encoding, Encoding.UTF8)
+                    ? _streamReader
+                    : new StreamReader(_ioStream, encoding);
+
+                var parts = new Queue<string>(NewLineRex.Split(command));
+
+                string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
+                byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
 
                 if (IsDebug)
-                    Debug.WriteLine(tmp);
+                    Debug.WriteLine(text);
 
-                if (processor == null)
-                    data.Add(tmp);
+                _ioStream.Write(bytes, 0, bytes.Length);
 
-                if (processor != null)
-                    processor.ProcessCommandResult(tmp);
-
-                if (tmp.StartsWith("+ ") && (parts.Count > 0 || (processor != null && processor.TwoWayProcessing)))
+                while (true)
                 {
-                    if (parts.Count > 0)
+                    string tmp = reader.ReadLine();
+
+                    if (tmp == null)
                     {
-                        text = parts.Dequeue().Trim() + "\r\n";
-
-                        if (IsDebug)
-                            Debug.WriteLine(text);
-
-                        bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+                        return false;
                     }
-                    else if (processor != null)
-                        bytes = processor.AppendCommandData(tmp);
 
-                    _ioStream.Write(bytes, 0, bytes.Length);
-                    continue;
-                }
+                    if (IsDebug)
+                        Debug.WriteLine(tmp);
 
-                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
-                    return true;
+                    if (processor == null)
+                        data.Add(tmp);
 
-                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
-                    return true;
+                    if (processor != null)
+                        processor.ProcessCommandResult(tmp);
 
-                if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
-                    tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
-                {
-                    var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
-                    if(serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
-                        throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
-                    return false;
+                    if (tmp.StartsWith("+ ") && (parts.Count > 0 || (processor != null && processor.TwoWayProcessing)))
+                    {
+                        if (parts.Count > 0)
+                        {
+                            text = parts.Dequeue().Trim() + "\r\n";
+
+                            if (IsDebug)
+                                Debug.WriteLine(text);
+
+                            bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+                        }
+                        else if (processor != null)
+                            bytes = processor.AppendCommandData(tmp);
+
+                        _ioStream.Write(bytes, 0, bytes.Length);
+                        continue;
+                    }
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
+                        return true;
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
+                        return true;
+
+                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
+                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
+                    {
+                        var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
+                        if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
+                            throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
+                        return false;
+                    }
                 }
             }
         }
