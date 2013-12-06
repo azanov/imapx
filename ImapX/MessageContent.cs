@@ -57,6 +57,8 @@ namespace ImapX
 
         private StringBuilder _contentBuilder;
 
+        public Envelope Envelope { get; set; }
+
         public bool Downloaded
         {
             get { return _fetchProgress.HasFlag(MessageFetchState.Headers | MessageFetchState.Body); }
