@@ -87,7 +87,7 @@ namespace ImapX.EncodingHelpers
 #else
             byte[] bytes;
 
-            s = Regex.Replace(Regex.Replace(s, @"\r\n?|\n", string.Empty), @"--.*", string.Empty);
+            //s = Regex.Replace(Regex.Replace(s, @"\r\n?|\n", string.Empty), @"--.*", string.Empty);
             using (var writer = new MemoryStream())
             {
                 byte[] inputBytes = Encoding.UTF8.GetBytes(s);

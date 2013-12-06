@@ -82,6 +82,7 @@
     <Compile Include="Enums\MessageImportance.cs" />
     <Compile Include="Enums\MessageParseState.cs" />
     <Compile Include="Enums\MessageSensitivity.cs" />
+    <Compile Include="Envelope.cs" />
     <Compile Include="Exceptions\InvalidStateException.cs" />
     <Compile Include="Exceptions\OperationFailedException.cs" />
     <Compile Include="Exceptions\ServerAlertException.cs" />
