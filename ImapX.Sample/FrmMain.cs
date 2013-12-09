@@ -140,10 +140,16 @@ namespace ImapX.Sample
             string msgTmpDir = Path.Combine(tmpDir, _selectedMessage.UId.ToString(CultureInfo.InvariantCulture));
 
             string path = Path.Combine(msgTmpDir, item.FileName);
-
-            if (!File.Exists(path) || (new FileInfo(path)).Length == 0)
-                File.WriteAllBytes(path, item.FileData);
-
+            try
+            {
+                if (!File.Exists(path) || (new FileInfo(path)).Length == 0)
+                    File.WriteAllBytes(path, item.FileData);
+            }
+            catch
+            {
+                MessageBox.Show("Failed to write data, file might be in use", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
             Process.Start(path);
         }
 

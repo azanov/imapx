@@ -50,8 +50,10 @@ namespace ImapX
         /// </summary>
         public long Size { get; set; }
 
+        public long Lines { get; set; }
+
         public string Md5 { get; set; }
-        public string Language { get; set; }
+        public string[] Language { get; set; }
 
         public string ContentStream { get; set; }
 
@@ -132,6 +134,9 @@ namespace ImapX
 
                 string key = headerMatch.Groups[1].Value.ToLower();
                 string value = headerMatch.Groups[2].Value;
+
+                if(this.ContentType != null && this.ContentType.MediaType == "message/rfc822")
+                    _contentBuilder.AppendLine(data);
 
                 if (Parameters.ContainsKey(key))
                     Parameters[key] = value;
