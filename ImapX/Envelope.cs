@@ -5,6 +5,8 @@ namespace ImapX
 {
     public class Envelope
     {
+        public string MessageId { get; set; }
+    
         public MailAddress From { get; set; }
         public MailAddress Sender { get; set; }
         public List<MailAddress> To { get; set; }
