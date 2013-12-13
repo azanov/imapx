@@ -264,7 +264,7 @@ namespace ImapX.Parsing
 
             _reader.Read();
 
-            sb.Clear();
+            sb = new StringBuilder();
 
             for (var i = 0; i < charCount; i++)
                 sb.Append((char)_reader.Read());
