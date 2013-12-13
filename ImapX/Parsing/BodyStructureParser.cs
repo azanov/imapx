@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
-using System.Text.RegularExpressions;
 using ImapX.EncodingHelpers;
 using ImapX.Extensions;
 
@@ -73,10 +71,11 @@ namespace ImapX.Parsing
 
             if (part.Parameters.ContainsKey("content-type"))
             {
-                if (part.ContentType == null)
+                try
                 {
-                    part.ContentType = new ContentType(part.Parameters["content-type"]);
-                }
+                    if (part.ContentType == null)
+                        part.ContentType = new ContentType(part.Parameters["content-type"]);
+                } catch{}
 
             }
 

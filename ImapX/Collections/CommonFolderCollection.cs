@@ -103,6 +103,7 @@ namespace ImapX.Collections
                     case "черновики":
                     case "下書き":
                     case "drafts":
+                    case "draft":
                     case "草稿":
                     case "임시보관함":
                         Drafts = folder;
