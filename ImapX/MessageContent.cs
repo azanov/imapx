@@ -129,81 +129,88 @@ namespace ImapX
             if (_fetchState == MessageFetchState.Headers)
             {
 
-                Match headerMatch = Expressions.HeaderParseRex.Match(data);
-                if (!headerMatch.Success) return;
-
-                string key = headerMatch.Groups[1].Value.ToLower();
-                string value = headerMatch.Groups[2].Value;
-
-                if(this.ContentType != null && this.ContentType.MediaType == "message/rfc822")
-                    _contentBuilder.AppendLine(data);
-
-                if (Parameters.ContainsKey(key))
-                    Parameters[key] = value;
-                else
-                    Parameters.Add(key, value);
-
-                switch (key)
+                try
                 {
-                    case "content-type":
-                        if (ContentType == null)
-                            ContentType = new ContentType(value);
+                    Match headerMatch = Expressions.HeaderParseRex.Match(data);
+                    if (!headerMatch.Success) return;
 
-                        if (!string.IsNullOrEmpty(ContentType.Name))
-                        {
-                            ContentType.Name = StringDecoder.Decode(ContentType.Name);
+                    string key = headerMatch.Groups[1].Value.ToLower();
+                    string value = headerMatch.Groups[2].Value;
+
+                    if(this.ContentType != null && this.ContentType.MediaType == "message/rfc822")
+                        _contentBuilder.AppendLine(data);
+
+                    if (Parameters.ContainsKey(key))
+                        Parameters[key] = value;
+                    else
+                        Parameters.Add(key, value);
+
+                    switch (key)
+                    {
+                        case "content-type":
+                            if (ContentType == null)
+                                ContentType = new ContentType(value);
+
+                            if (!string.IsNullOrEmpty(ContentType.Name))
+                            {
+                                ContentType.Name = StringDecoder.Decode(ContentType.Name);
+                                if (ContentDisposition == null)
+                                    ContentDisposition = new ContentDisposition
+                                    {
+                                        DispositionType = DispositionTypeNames.Attachment
+                                    };
+                                ContentDisposition.FileName = ContentType.Name;
+
+                            }
+
+                            break;
+                        case "charset":
+                            if (ContentType == null)
+                                ContentType = new ContentType();
+                            ContentType.CharSet = value;
+                            break;
+                        case "filename":
+                        case "name":
+
+                            value = StringDecoder.Decode(value);
+
+                            if (ContentType == null)
+                                ContentType = new ContentType();
+
                             if (ContentDisposition == null)
-                                ContentDisposition = new ContentDisposition
-                                {
-                                    DispositionType = DispositionTypeNames.Attachment
-                                };
-                            ContentDisposition.FileName = ContentType.Name;
+                                ContentDisposition = new ContentDisposition();
 
-                        }
+                            ContentDisposition.FileName = value;
 
-                        break;
-                    case "charset":
-                        if (ContentType == null)
-                            ContentType = new ContentType();
-                        ContentType.CharSet = value;
-                        break;
-                    case "filename":
-                    case "name":
+                            if (string.IsNullOrEmpty(ContentDisposition.DispositionType) && string.IsNullOrEmpty(ContentId))
+                                ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
 
-                        value = StringDecoder.Decode(value);
+                            ContentType.Name = value;
+                            break;
+                        case "content-id":
+                            if (ContentDisposition == null)
+                                ContentDisposition = new ContentDisposition();
 
-                        if (ContentType == null)
-                            ContentType = new ContentType();
-
-                        if (ContentDisposition == null)
-                            ContentDisposition = new ContentDisposition();
-
-                        ContentDisposition.FileName = value;
-
-                        if (string.IsNullOrEmpty(ContentDisposition.DispositionType) && string.IsNullOrEmpty(ContentId))
-                            ContentDisposition.DispositionType = DispositionTypeNames.Attachment;
-
-                        ContentType.Name = value;
-                        break;
-                    case "content-id":
-                        if (ContentDisposition == null)
-                            ContentDisposition = new ContentDisposition();
-
-                        ContentDisposition.DispositionType = DispositionTypeNames.Inline;
-
-                        ContentId = value.Trim(' ', '<', '>');
-                        break;
-                    case "content-disposition":
-                        if (ContentDisposition == null)
-                            ContentDisposition = new ContentDisposition(value);
-
-                        if (!string.IsNullOrEmpty(ContentId))
                             ContentDisposition.DispositionType = DispositionTypeNames.Inline;
 
-                        break;
-                    case "content-transfer-encoding":
-                        ContentTransferEncoding = value.ToContentTransferEncoding();
-                        break;
+                            ContentId = value.Trim(' ', '<', '>');
+                            break;
+                        case "content-disposition":
+                            if (ContentDisposition == null)
+                                ContentDisposition = new ContentDisposition(value);
+
+                            if (!string.IsNullOrEmpty(ContentId))
+                                ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+
+                            break;
+                        case "content-transfer-encoding":
+                            ContentTransferEncoding = value.ToContentTransferEncoding();
+                            break;
+                    }
+                }
+                catch
+                {
+                    
                 }
             }
             else if (CommandEndRex.IsMatch(data))

@@ -563,7 +563,7 @@ namespace ImapX.Sample
             {
                 string body = _selectedMessage.Body.HasHtml ? _selectedMessage.Body.Html : _selectedMessage.Body.Text;
                 wbrMain.Document.OpenNew(true);
-                wbrMain.Document.Write(_selectedMessage.Body.HasHtml ? body : body.Replace("\n", "<br />"));
+                wbrMain.Document.Write(_selectedMessage.Body.HasHtml ? body : body.Replace(Environment.NewLine, "<br />"));
                 wbrMain.Document.Body.SetAttribute("scroll", "auto");
                 pnlDownloadingBody.Hide();
                 pnlView.Show();
