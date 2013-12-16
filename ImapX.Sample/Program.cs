@@ -34,7 +34,7 @@ namespace ImapX.Sample
 
                 Directory.CreateDirectory(tmpPath);
 
-                if(args.Any() && args[0].ToLower() == "cmd")
+                if (args.Any() && args[0].ToLower() == "cmd")
                     Application.Run(new FrmConsole());
                 else
                     Application.Run(new FrmMain());

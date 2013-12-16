@@ -41,7 +41,7 @@ namespace ImapX.Parsing
                 else
                     parts.Add(ParsePart(partNumber, level));
 
-                
+                SkipSpaces();
 
                 partNumber++;
             }
@@ -53,7 +53,11 @@ namespace ImapX.Parsing
             
             var part = new MessageContent(_client, _message);
 
-            part.ContentNumber = level < 2 ? number.ToString() : level - 1 + "." + number;
+            var block = level > 2 ? level - 1 : 0;
+
+            if (block != 0) level = level - (level - 2);
+
+            part.ContentNumber = level < 2 ? number.ToString() : level - 1 + "." + (block == 0 ? "" : block + ".") + number;
 
             var contentType = ReadString().ToLower();
             var contentSubType = ReadString().ToLower();
@@ -75,7 +79,9 @@ namespace ImapX.Parsing
                 {
                     if (part.ContentType == null)
                         part.ContentType = HeaderFieldParser.ParseContentType(part.Parameters["content-type"]);
-                } catch{}
+                } catch(Exception ex){
+                    ex.ToString();
+                }
 
             }
 
@@ -189,6 +195,12 @@ namespace ImapX.Parsing
 
             part.Language = ReadLanguage();
 
+            if (_reader.Peek() == ')')
+            {
+                _reader.Read();
+                return part;
+            }
+
             DropExtensionData();
 
             return part;
@@ -206,7 +218,7 @@ namespace ImapX.Parsing
                 else if (tmp == ')')
                 {
                     braces--;
-                    if (braces <= 0)
+                    if (braces < 0)
                         break;
                     
                 }
