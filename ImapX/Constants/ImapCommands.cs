@@ -45,5 +45,7 @@ namespace ImapX.Constants
         public const string GetQuotaRoot = "GETQUOTAROOT {0}";
 
         public const string Append = "APPEND \"{0}\"";
+
+        public const string Compress = "COMPRESS \"{0}\"";
     }
 }
