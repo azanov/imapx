@@ -30,5 +30,15 @@ namespace ImapX.Collections
         {
             _folder.Search(query, mode, count);
         }
+
+        /// <summary>
+        ///     Downloads messages by their UIds from server using default or given mode.
+        /// </summary>
+        /// <param name="uIds">The uIds of the messages to download.</param>
+        /// <param name="mode">The message fetch mode, allows to select which parts of the message will be requested.</param>
+        public void Download(long[] uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
+        {
+            _folder.Search(uIds, mode);
+        }
     }
 }
