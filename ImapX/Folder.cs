@@ -422,6 +422,16 @@ namespace ImapX
             return Fetch(SearchMessageIds(query, count), mode);
         }
 
+        /// <summary>
+        ///     Downloads messages by their UIds from server using default or given mode.
+        /// </summary>
+        /// <param name="uIds">The uIds of the messages to download.</param>
+        /// <param name="mode">The message fetch mode, allows to select which parts of the message will be requested.</param>
+        public Message[] Search(long[] uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
+        {
+            return Fetch(uIds, mode);
+        }
+
          [Obsolete("This Search overload is obsolete, please use another instead", true)]
         public MessageCollection Search(string path, bool makeProcess)
         {
