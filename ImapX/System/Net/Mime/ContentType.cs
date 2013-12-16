@@ -100,7 +100,7 @@ namespace System.Net.Mime
                 Encoding encoding = MimeBasePart.DecodeEncoding(text);
                 if (encoding != null)
                 {
-                    text = StringDecoder.Decode(text);
+                    text = StringDecoder.Decode(text, true);
                 }
                 return text;
             }
