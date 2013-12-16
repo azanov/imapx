@@ -11,11 +11,8 @@ namespace ImapX.Parsing
         public static List<MailAddress> ParseMailAddressCollection(string value)
         {
             var list = new List<MailAddress>();
-            string[] array = value.Trim().Split(new[]
-            {
-                ">,",
-                "> ,"
-            }, StringSplitOptions.None);
+            string[] array = value.Trim().Split(
+                value.IndexOf('>') != -1 ? new[] { ">,", "> ," } : new[] { "," }, StringSplitOptions.None);
 
             foreach (string line in array)
             {
@@ -65,7 +62,7 @@ namespace ImapX.Parsing
 
             if (num != -1)
             {
-                var num2 = value.IndexOfAny(new[] {' ', '\t'}, num);
+                var num2 = value.IndexOfAny(new[] { ' ', '\t' }, num);
                 if (num2 == -1)
                     return null;
                 value = value.Substring(0, num2);
@@ -79,7 +76,7 @@ namespace ImapX.Parsing
                     DateTimeStyles.AllowWhiteSpaces, out dateTime))
                 return null;
 
-            
+
 
             return dateTime;
         }
