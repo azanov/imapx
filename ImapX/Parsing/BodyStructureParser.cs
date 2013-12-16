@@ -171,7 +171,8 @@ namespace ImapX.Parsing
                 return part;
             }
 
-            part.ContentDisposition = ReadDisposition();
+
+            part.ContentDisposition = ReadDisposition() ?? part.ContentDisposition;
 
             if (!string.IsNullOrEmpty(part.ContentId) && part.ContentDisposition != null)
                 part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
