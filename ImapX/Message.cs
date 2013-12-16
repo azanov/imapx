@@ -389,7 +389,7 @@ namespace ImapX
                         Importance = header.Value.ToMessageImportance();
                         break;
                     case MessageHeader.ContentType:
-                        ContentType = new ContentType(header.Value);
+                        ContentType = HeaderFieldParser.ParseContentType(header.Value);
                         break;
                     case MessageHeader.ContentTransferEncoding:
                         ContentTransferEncoding = header.Value;

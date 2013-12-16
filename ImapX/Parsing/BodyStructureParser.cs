@@ -65,7 +65,7 @@ namespace ImapX.Parsing
                 contentSubType = "octet-stream";
             }
 
-            part.ContentType = new ContentType(contentType + "/" + contentSubType);
+            part.ContentType = HeaderFieldParser.ParseContentType(contentType + "/" + contentSubType);
 
             part.Parameters = ReadParameterList();
 
@@ -74,7 +74,7 @@ namespace ImapX.Parsing
                 try
                 {
                     if (part.ContentType == null)
-                        part.ContentType = new ContentType(part.Parameters["content-type"]);
+                        part.ContentType = HeaderFieldParser.ParseContentType(part.Parameters["content-type"]);
                 } catch{}
 
             }

@@ -149,7 +149,7 @@ namespace ImapX
                     {
                         case "content-type":
                             if (ContentType == null)
-                                ContentType = new ContentType(value);
+                                ContentType = HeaderFieldParser.ParseContentType(value);
 
                             if (!string.IsNullOrEmpty(ContentType.Name))
                             {
