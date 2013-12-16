@@ -22,7 +22,7 @@ namespace ImapX.Sample
 
             var tmpPath = Path.Combine(Application.StartupPath, "tmp");
 
-            
+            ImapX.Parsing.HeaderFieldParser.ParseContentType("multipart/mixed;boundary=\"part000\"; text/plain; charset=utf-8");
 
             try
             {

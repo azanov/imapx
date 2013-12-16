@@ -335,7 +335,7 @@ namespace ImapX
             {
                 _lastAddedHeader = headerMatch.Groups[1].Value.ToLower();
                 Headers[_lastAddedHeader] = Headers[_lastAddedHeader] +
-                                            Environment.NewLine +
+                    _lastAddedHeader == MessageHeader.ContentType ? "; " : Environment.NewLine +
                                             headerMatch.Groups[2].Value;
             }
             else
