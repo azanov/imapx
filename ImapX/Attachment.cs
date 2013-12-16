@@ -72,7 +72,7 @@ namespace ImapX
                 if (_fileName == null)
                     _fileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName)
                         ? "unnamed"
-                        : StringDecoder.Decode(_content.ContentDisposition.FileName);
+                        : StringDecoder.Decode(_content.ContentDisposition.FileName, true);
                 return _fileName;
             }
         }

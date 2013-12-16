@@ -9,7 +9,7 @@ using ImapX.Extensions;
 
 namespace ImapX.Parsing
 {
-    internal class BodyStructureParser : IDisposable
+    public class BodyStructureParser : IDisposable
     {
 
         private readonly ImapClient _client;
@@ -91,7 +91,7 @@ namespace ImapX.Parsing
                 var value =
                     StringDecoder.Decode(part.Parameters.ContainsKey("name")
                         ? part.Parameters["name"]
-                        : part.Parameters["filename"]);
+                        : part.Parameters["filename"], true);
 
                 if (part.ContentType == null)
                     part.ContentType = new ContentType();
@@ -374,7 +374,7 @@ namespace ImapX.Parsing
                 {
                     case "filename":
                     case "name":
-                        disposition.FileName = StringDecoder.Decode(paramater.Value);
+                        disposition.FileName = StringDecoder.Decode(paramater.Value, true);
                         break;
                 }
             }
@@ -404,11 +404,11 @@ namespace ImapX.Parsing
                 Cc = cc,
                 Date = HeaderFieldParser.ParseDate(date),
                 From = from.FirstOrDefault(),
-                InReplyTo = inReplyTo,
+                InReplyTo =StringDecoder.Decode( inReplyTo, true),
                 MessageId = messageId,
                 ReplyTo = replyTo,
                 Sender = sender.FirstOrDefault(),
-                Subject = subject,
+                Subject = StringDecoder.Decode(subject, true),
                 To = to
             };
 

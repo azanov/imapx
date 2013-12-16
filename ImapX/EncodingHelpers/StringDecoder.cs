@@ -7,7 +7,7 @@ using ImapX.Parsing;
 
 namespace ImapX.EncodingHelpers
 {
-    internal class StringDecoder
+    public class StringDecoder
     {
         private static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
         {
@@ -73,12 +73,15 @@ namespace ImapX.EncodingHelpers
         }
 
 
-        public static string Decode(string text)
+        public static string Decode(string text, bool dropLines)
         {
             text = (text ?? "").Trim();
 
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
+
+            if (dropLines)
+                text = text.Replace(Environment.NewLine, "");
 
             if (text.IndexOf("=?", StringComparison.Ordinal) == -1)
                 return text;
@@ -104,7 +107,7 @@ namespace ImapX.EncodingHelpers
                         }
                         else if (encoding.Equals("Q"))
                         {
-                            decodedString += DecodeQuotedPrintable(value, TryGetEncoding(charset, Encoding.UTF8));
+                            decodedString += DecodeQuotedPrintable(value, TryGetEncoding(charset, Encoding.UTF8)).Replace("_", " ");
                         }
                         else
                         {

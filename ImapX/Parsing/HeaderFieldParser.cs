@@ -43,7 +43,7 @@ namespace ImapX.Parsing
             if (num >= 1)
                 displayName = value.Substring(0, num - 1).Trim();
 
-            return new MailAddress(StringDecoder.Decode(displayName).Trim().Trim(new[] { ' ', '<', '>', '\r', '\n' }), address);
+            return new MailAddress(StringDecoder.Decode(displayName, true).Trim().Trim(new[] { ' ', '<', '>', '\r', '\n' }), address);
         }
 
         internal static readonly string[] ValidDateTimeFormats =

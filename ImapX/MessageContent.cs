@@ -153,7 +153,7 @@ namespace ImapX
 
                             if (!string.IsNullOrEmpty(ContentType.Name))
                             {
-                                ContentType.Name = StringDecoder.Decode(ContentType.Name);
+                                ContentType.Name = StringDecoder.Decode(ContentType.Name, true);
                                 if (ContentDisposition == null)
                                     ContentDisposition = new ContentDisposition
                                     {
@@ -172,7 +172,7 @@ namespace ImapX
                         case "filename":
                         case "name":
 
-                            value = StringDecoder.Decode(value);
+                            value = StringDecoder.Decode(value, true);
 
                             if (ContentType == null)
                                 ContentType = new ContentType();

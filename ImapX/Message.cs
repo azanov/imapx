@@ -357,7 +357,7 @@ namespace ImapX
                         Sender = HeaderFieldParser.ParseMailAddress(header.Value);
                         break;
                     case MessageHeader.Subject:
-                        Subject = StringDecoder.Decode(header.Value);
+                        Subject = StringDecoder.Decode(header.Value, true);
                         break;
                     case MessageHeader.To:
                         if (To.Count == 0)
@@ -380,7 +380,7 @@ namespace ImapX
                         break;
                     case MessageHeader.Organisation:
                     case MessageHeader.Organization:
-                        Organization = StringDecoder.Decode(header.Value);
+                        Organization = StringDecoder.Decode(header.Value, true);
                         break;
                     case MessageHeader.Date:
                         Date = HeaderFieldParser.ParseDate(header.Value);

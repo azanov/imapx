@@ -460,7 +460,7 @@ namespace ImapX.Sample
             {
                 var item = new ListViewItem(string.IsNullOrEmpty(msg.Subject)
                     ? "( No subject )"
-                    : msg.Subject.Replace("\n", "").Replace("\t", ""))
+                    : msg.Subject)
                 {
                     ForeColor = color,
                     ImageIndex = msg.Attachments.Any() ? 0 : -1
@@ -487,7 +487,7 @@ namespace ImapX.Sample
 
             lblSubject.Text = string.IsNullOrEmpty(_selectedMessage.Subject)
                 ? "( No subject )"
-                : _selectedMessage.Subject.Replace("\n", "").Replace("\t", "");
+                : _selectedMessage.Subject;
 
             pnlInfo.Show();
             lsvAttachments.Items.Clear();

@@ -36,7 +36,7 @@ namespace ImapX.Parsing
 
         public static readonly Regex UTF7EncodeRex = new Regex("[^ -~]*");
         public static readonly Regex UTF7DecodeRex = new Regex(@"&[\w|,|\+]*-");
-        public static readonly Regex StringEncodingRex = new Regex(@"[=]?\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=");
+        public static readonly Regex StringEncodingRex = new Regex(@"[=]?\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=\s?");
 
 
         #endregion
