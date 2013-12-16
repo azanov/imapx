@@ -220,7 +220,6 @@ namespace ImapX
                     (_ioStream as SslStream).AuthenticateAsClient(_host, null, _sslProtocol, false);
                     _streamReader = new StreamReader(_ioStream);
                 }
-
 #else
                 //TODO: Add support for Tls
                 _client = _sslProtocol == SslProtocols.None ? new TcpClient(_host, _port) : new SecureTcpClient(_host, _port);
