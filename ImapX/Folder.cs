@@ -261,13 +261,13 @@ namespace ImapX
         {
             Folder selectedFolder = _client.SelectedFolder;
 
-            if (!Equals(selectedFolder))
+            if (selectedFolder != null && !Equals(selectedFolder))
                 Select();
 
             IList<string> data = new List<string>();
             bool result = _client.SendAndReceive(ImapCommands.Expunge, ref data);
 
-            if (!Equals(selectedFolder))
+            if (selectedFolder != null && !Equals(selectedFolder))
                 selectedFolder.Select();
 
             return result;
