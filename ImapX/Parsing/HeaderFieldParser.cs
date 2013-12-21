@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net.Mail;
 using ImapX.EncodingHelpers;
 using System.Net.Mime;
 using System.Text;
@@ -94,16 +93,17 @@ namespace ImapX.Parsing
 
                 if (v.StartsWith("multipart"))
                     continue;
-                else if (v.IndexOf("/") != -1)
+
+                if (v.IndexOf('/') != -1 && v.IndexOf('=') == -1)
                     type = v;
                 else if (v.IndexOf('=') != -1)
                     sb.Append(v + (i < tmp.Length - 1 ? "; " : ""));
-                else if (tmp[i].Trim().ToLower().StartsWith("iso-"))
-                    sb.Append("charset=" + tmp[i].Trim().ToLower() + (i < tmp.Length - 1 ? "; " : ""));
+                else if (v.StartsWith("iso-"))
+                    sb.Append("charset=" + v + (i < tmp.Length - 1 ? "; " : ""));
             }
             try
             {
-                return new ContentType(type + (sb.Length == 0 ? "" : "; " + sb.ToString()));
+                return new ContentType(type + (sb.Length == 0 ? "" : "; " + sb));
             }
             catch
             {
