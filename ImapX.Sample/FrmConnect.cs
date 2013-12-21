@@ -45,7 +45,7 @@ namespace ImapX.Sample
                 lblWait.Show();
                 btnDefaultAuth.Hide();
 
-                InitClient();
+                InitClient(true);
 
                 (new Thread(Connect)).Start(true);
             }
@@ -89,20 +89,32 @@ namespace ImapX.Sample
             }
         }
 
-        private void InitClient()
+        private void InitClient(bool isGMail = false)
         {
             if (Program.ImapClient == null)
                 Program.ImapClient = new ImapClient();
 
-            SslProtocols ssl = cmbEncryption.SelectedIndex == 0
-                ? SslProtocols.None
-                : (cmbEncryption.SelectedIndex == 1 ? SslProtocols.Default : SslProtocols.Tls);
+            if (isGMail)
+            {
+               
+                Program.ImapClient.Host = "imap.gmail.com";
+                Program.ImapClient.Port = 993;
+                Program.ImapClient.SslProtocol = SslProtocols.Default;
+                Program.ImapClient.ValidateServerCertificate = true;
+            }
+            else
+            {
+                SslProtocols ssl = cmbEncryption.SelectedIndex == 0
+                    ? SslProtocols.None
+                    : (cmbEncryption.SelectedIndex == 1 ? SslProtocols.Default : SslProtocols.Tls);
 
-            Program.ImapClient.Host = txtServer.Text;
-            Program.ImapClient.Port = int.Parse(cmbPort.Text);
-            Program.ImapClient.SslProtocol = ssl;
-            Program.ImapClient.ValidateServerCertificate = !chkValidateCertificate.Enabled ||
-                                                           chkValidateCertificate.Checked;
+                Program.ImapClient.Host = txtServer.Text;
+                Program.ImapClient.Port = int.Parse(cmbPort.Text);
+                Program.ImapClient.SslProtocol = ssl;
+                Program.ImapClient.ValidateServerCertificate = !chkValidateCertificate.Enabled ||
+                                                               chkValidateCertificate.Checked;
+            }
+            Program.ImapClient.IsDebug = true;
         }
 
         private void Connect(object arg)
@@ -157,6 +169,7 @@ namespace ImapX.Sample
 
             lblWait.Hide();
 
+            Program.ImapClient.Disconnect();
 
             if (isOAuth2)
             {
