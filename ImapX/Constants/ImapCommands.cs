@@ -28,6 +28,8 @@ namespace ImapX.Constants
 
         public const string Examine = "EXAMINE \"{0}\"";
 
+        public const string Status = "STATUS \"{0}\"";
+
         public const string Expunge = "EXPUNGE";
 
         public const string Create = "CREATE \"{0}\"";
