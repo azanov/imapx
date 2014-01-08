@@ -9,6 +9,7 @@ using ImapX.Collections;
 using ImapX.Constants;
 using ImapX.EncodingHelpers;
 using ImapX.Enums;
+using ImapX.Exceptions;
 using ImapX.Extensions;
 using ImapX.Flags;
 using ImapX.Parsing;
@@ -459,6 +460,26 @@ namespace ImapX
                 select new Attachment(part)).ToArray();
 
             _downloadProgress = _downloadProgress | MessageFetchMode.BodyStructure;
+        }
+
+        /// <summary>
+        /// Downloads the raw message (EML) returned by the server. It's not recommended to use this method unless you don't need to parse the message and only want to save it completely.
+        /// </summary>
+        /// <returns></returns>
+        public string DownloadRawMessage()
+        {
+            IList<string> data = new List<string>();
+            if(!_client.SendAndReceive(string.Format(ImapCommands.Fetch, UId, "BODY.PEEK[]"), ref data))            
+                throw new OperationFailedException("The raw message could not be downloaded");
+
+            var sb = new StringBuilder();
+            for (var i = 1; i < data.Count; i++)
+            {
+                if (data[i].StartsWith(")") && (i == data.Count - 1 || i == data.Count - 2))
+                    break;
+                sb.AppendLine(data[i]);
+            }
+            return sb.ToString();
         }
 
         public bool Download(MessageFetchMode mode = MessageFetchMode.ClientDefault, bool reloadHeaders = false)
