@@ -183,6 +183,9 @@ namespace ImapX.Parsing
             if (!string.IsNullOrEmpty(part.ContentId) && part.ContentDisposition != null)
                 part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
 
+            if (part.ContentDisposition != null && string.IsNullOrEmpty(part.ContentDisposition.FileName) && part.ContentDisposition.DispositionType == DispositionTypeNames.Inline)
+                part.ContentDisposition = null;
+
             if (part.ContentDisposition != null && string.IsNullOrEmpty(part.ContentDisposition.FileName))
                 part.ContentDisposition.FileName = string.Format("unnamed-{0}.{1}", part.ContentNumber,
                     contentType == "message" ? "eml" : "dat");
@@ -302,6 +305,8 @@ namespace ImapX.Parsing
                 sb.Append(currentChar);
                 if (sb.ToString() == "NIL")
                     return string.Empty;
+                if (currentChar == Convert.ToChar(65535)) return string.Empty;
+
             }
 
             while ((currentChar = (char)_reader.Read()) != '"' || prevChar == '\\')
@@ -375,6 +380,8 @@ namespace ImapX.Parsing
                 sb.Append(currentChar);
                 if (sb.ToString() == "NIL")
                     return null;
+                if (currentChar == Convert.ToChar(65535)) return null;
+
             }
             var type = ReadString().ToLower();
             var paramaters = ReadParameterList();

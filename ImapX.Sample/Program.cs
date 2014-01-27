@@ -1,7 +1,9 @@
-﻿using System;
+﻿using ImapX.Parsing;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace ImapX.Sample
@@ -21,7 +23,7 @@ namespace ImapX.Sample
             Application.SetCompatibleTextRenderingDefault(false);
 
             var tmpPath = Path.Combine(Application.StartupPath, "tmp");
-
+            
             try
             {
 

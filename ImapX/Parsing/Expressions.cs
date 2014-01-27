@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ImapX.Parsing
 {
-    internal sealed class Expressions
+    public static class Expressions
     {
 
         /// <summary>
