@@ -367,6 +367,10 @@ namespace ImapX
 
         internal Message[] Fetch(IEnumerable<long> uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
         {
+
+            if (_client.SelectedFolder != this && !Select())
+                throw new OperationFailedException("The folder couldn't be selected for search.");
+
             var result = new List<Message>();
 
             foreach (
