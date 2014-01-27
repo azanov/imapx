@@ -536,15 +536,17 @@ namespace ImapX
 
             IList<string> data = new List<string>();
             if (
-                !_client.SendAndReceive(string.Format(ImapCommands.Fetch, UId, fetchParts.ToString().Trim()), ref data,
-                    this))
+                !_client.SendAndReceive(string.Format(ImapCommands.Fetch, UId, fetchParts.ToString().Trim()), ref data))
                 return false;
+
+            NormalizeAndProcessFetchResult(data);
 
             BindHeadersToFields();
 
-            if (!mode.HasFlag(MessageFetchMode.Body))
+            if (!mode.HasFlag(MessageFetchMode.Body) || BodyParts == null)
                 return true;
 
+            
             foreach (MessageContent bodyPart in BodyParts)
             {
                 if (mode.HasFlag(MessageFetchMode.Full) ||
@@ -556,6 +558,25 @@ namespace ImapX
             }
 
             return true;
+        }
+
+        private void NormalizeAndProcessFetchResult(IList<string> data) 
+        {
+
+            var buffer = "";
+
+            for (var i = 0; i < data.Count; i++)
+            {
+                var str = string.IsNullOrEmpty(buffer) ? data[i] : buffer + data[i];
+
+                if ((str.Split('(').Length - (i == 0 ? 1 : 0)) >= (str.Split(')').Length))
+                {
+                    ProcessCommandResult(str);
+                    buffer = "";
+                }
+                else if (i + 1 < data.Count)
+                    buffer += data[i];
+            }
         }
 
         public override byte[] AppendCommandData(string serverResponse)
