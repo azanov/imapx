@@ -19,7 +19,7 @@ namespace ImapX
     public class Message : CommandProcessor
     {
         private readonly ImapClient _client;
-        private readonly Folder _folder;
+        internal readonly Folder Folder;
 
         private MessageFetchMode _downloadProgress;
         private MessageFetchState _fetchState;
@@ -40,7 +40,7 @@ namespace ImapX
             Labels = new GMailMessageLabelCollection(client, this);
 
             _client = client;
-            _folder = folder;
+            Folder = folder;
         }
 
         internal Message(long uId, ImapClient client, Folder folder)
@@ -259,12 +259,12 @@ namespace ImapX
 
             if (!long.TryParse(threadMatch.Groups[1].Value, out threadId)) return;
 
-            GmailThread = _folder.GMailThreads.FirstOrDefault(_ => _.Id == threadId);
+            GmailThread = Folder.GMailThreads.FirstOrDefault(_ => _.Id == threadId);
 
             if (GmailThread == null)
             {
-                GmailThread = new GMailMessageThread(_client, _folder, threadId);
-                _folder.GMailThreads.AddInternal(GmailThread);
+                GmailThread = new GMailMessageThread(_client, Folder, threadId);
+                Folder.GMailThreads.AddInternal(GmailThread);
             }
 
             GmailThread.Messages.AddInternal(this);
@@ -627,8 +627,8 @@ namespace ImapX
         /// <returns><code>true</code> if the message could be removed, otherwise false</returns>
         public bool Remove()
         {
-            if (!Flags.Add(MessageFlags.Deleted) || !_folder.Expunge()) return false;
-            _folder.Messages.RemoveInternal(this);
+            if (!Flags.Add(MessageFlags.Deleted) || !Folder.Expunge()) return false;
+            Folder.Messages.RemoveInternal(this);
             return true;
         }
 

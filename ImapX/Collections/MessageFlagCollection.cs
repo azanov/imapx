@@ -58,6 +58,9 @@ namespace ImapX.Collections
                 return true;
             }
 
+            if (Client.SelectedFolder != _message.Folder)
+                _message.Folder.Select();
+
             IList<string> data = new List<string>();
             if (!Client.SendAndReceive(string.Format(ImapCommands.Store,
                 _message.UId, AddType,
@@ -111,6 +114,9 @@ namespace ImapX.Collections
                     RemoveInternal(flag);
                 return true;
             }
+
+            if (Client.SelectedFolder != _message.Folder)
+                _message.Folder.Select();
 
             IList<string> data = new List<string>();
             if (!Client.SendAndReceive(
