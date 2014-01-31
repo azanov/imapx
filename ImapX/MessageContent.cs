@@ -69,7 +69,9 @@ namespace ImapX
         private void AppendDataToContentStream(string data) {
             switch (ContentTransferEncoding) {
                 case ContentTransferEncoding.QuotedPrintable:
-                    _contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
+                    // Fix by kirchik
+                    _contentBuilder.Append(data.TrimEnd(new[] { '=' }));
+                    //_contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
                     break;
                 case ContentTransferEncoding.EightBit:
                 case ContentTransferEncoding.SevenBit:

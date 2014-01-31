@@ -303,15 +303,20 @@ namespace ImapX
 
         private void TryProcessGmLabels(string data)
         {
-            Match labelsMatch =
-                Expressions.GMailLabelSplitRex.Match(Expressions.GMailLabelsRex.Match(data).Groups[1].Value);
+            // Fix by kirchik
+            var labelsMatches =
+            Expressions.GMailLabelSplitRex.Matches(Expressions.GMailLabelsRex.Match(data).Groups[1].Value);
 
-            if (!labelsMatch.Success || labelsMatch.Groups.Count <= 1) return;
-            Labels.AddRangeInternal(
-                labelsMatch.Groups.Cast<Group>()
-                    .Skip(1)
-                    .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
+            if (labelsMatches.Count == 0) return;//.Success || labelsMatch.Groups.Count <= 1) return;
+            foreach (Match labelsMatch in labelsMatches)
+            {
+                Labels.AddRangeInternal(
+                    labelsMatch.Groups.Cast<Group>()
+                        .Skip(1)
+                        .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
+            }
             _downloadProgress = _downloadProgress | MessageFetchMode.GMailLabels;
+
         }
 
         private void TryProcessInternalDate(string data)

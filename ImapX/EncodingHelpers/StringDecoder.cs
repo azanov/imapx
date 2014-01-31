@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Parsing;
+using System.Linq;
 
 namespace ImapX.EncodingHelpers
 {
@@ -46,26 +47,51 @@ namespace ImapX.EncodingHelpers
                 encoding = Encoding.UTF8;
 
             var occurences = new Regex(@"(=[0-9A-F]{2}){1,}", RegexOptions.Multiline);
+
             var matches = occurences.Matches(input);
 
-            foreach (Match match in matches)
+            // Fix by kirchik
+            foreach (Match match in matches.Cast<Match>()
+                .OrderByDescending(c => c.Groups[0].Value.Length)
+                .ToList())
             {
                 try
                 {
-                    byte[] b = new byte[match.Groups[0].Value.Length / 3];
+                    var b = new byte[match.Groups[0].Value.Length / 3];
                     for (int i = 0; i < match.Groups[0].Value.Length / 3; i++)
                     {
                         b[i] = byte.Parse(match.Groups[0].Value.Substring(i * 3 + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
                     }
-                    char[] hexChar = encoding.GetChars(b);
-                    input = input.Replace(match.Groups[0].Value, new String(hexChar));
+                    var array = encoding.GetChars(b);
+                    input = input.Replace(match.Groups[0].Value, new string(array));
                 }
                 catch
-                {
-                    
-                }
+                { ;}
             }
-            input = input.Replace("?=", "").Replace("\r\n", "");
+            input = input.Replace("?=", "").Replace("=\r\n", "");
+
+
+
+            //var matches = occurences.Matches(input);
+
+            //foreach (Match match in matches)
+            //{
+            //    try
+            //    {
+            //        byte[] b = new byte[match.Groups[0].Value.Length / 3];
+            //        for (int i = 0; i < match.Groups[0].Value.Length / 3; i++)
+            //        {
+            //            b[i] = byte.Parse(match.Groups[0].Value.Substring(i * 3 + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+            //        }
+            //        char[] hexChar = encoding.GetChars(b);
+            //        input = input.Replace(match.Groups[0].Value, new String(hexChar));
+            //    }
+            //    catch
+            //    {
+                    
+            //    }
+            //}
+            //input = input.Replace("?=", "").Replace("\r\n", "");
 
             return input;
 
