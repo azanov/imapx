@@ -103,6 +103,7 @@
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
+            this.lblLabels = new System.Windows.Forms.Label();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.pnlWrap.SuspendLayout();
@@ -596,10 +597,10 @@
             this.pnlView.Controls.Add(this.wbrMain);
             this.pnlView.Controls.Add(this.pnlAttachments);
             this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlView.Location = new System.Drawing.Point(10, 171);
+            this.pnlView.Location = new System.Drawing.Point(10, 198);
             this.pnlView.Name = "pnlView";
             this.pnlView.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.pnlView.Size = new System.Drawing.Size(413, 356);
+            this.pnlView.Size = new System.Drawing.Size(413, 329);
             this.pnlView.TabIndex = 1;
             this.pnlView.Visible = false;
             // 
@@ -612,7 +613,7 @@
             this.wbrMain.MinimumSize = new System.Drawing.Size(20, 20);
             this.wbrMain.Name = "wbrMain";
             this.wbrMain.ScriptErrorsSuppressed = true;
-            this.wbrMain.Size = new System.Drawing.Size(413, 238);
+            this.wbrMain.Size = new System.Drawing.Size(413, 211);
             this.wbrMain.TabIndex = 0;
             // 
             // pnlAttachments
@@ -620,7 +621,7 @@
             this.pnlAttachments.BackColor = System.Drawing.Color.White;
             this.pnlAttachments.Controls.Add(this.panel4);
             this.pnlAttachments.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlAttachments.Location = new System.Drawing.Point(0, 248);
+            this.pnlAttachments.Location = new System.Drawing.Point(0, 221);
             this.pnlAttachments.Name = "pnlAttachments";
             this.pnlAttachments.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
             this.pnlAttachments.Size = new System.Drawing.Size(413, 108);
@@ -717,7 +718,7 @@
             this.pnlDownloadingBody.Controls.Add(this.lblFailedDownloadBody);
             this.pnlDownloadingBody.Controls.Add(this.lblDownloadingBody);
             this.pnlDownloadingBody.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlDownloadingBody.Location = new System.Drawing.Point(10, 117);
+            this.pnlDownloadingBody.Location = new System.Drawing.Point(10, 144);
             this.pnlDownloadingBody.Name = "pnlDownloadingBody";
             this.pnlDownloadingBody.Padding = new System.Windows.Forms.Padding(10);
             this.pnlDownloadingBody.Size = new System.Drawing.Size(413, 54);
@@ -753,13 +754,14 @@
             this.pnlInfo.Controls.Add(this.pnlEmbeddedResources);
             this.pnlInfo.Controls.Add(this.panel7);
             this.pnlInfo.Controls.Add(this.panel6);
+            this.pnlInfo.Controls.Add(this.lblLabels);
             this.pnlInfo.Controls.Add(this.lblFrom);
             this.pnlInfo.Controls.Add(this.lblSubject);
             this.pnlInfo.Controls.Add(this.lblDate);
             this.pnlInfo.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlInfo.Location = new System.Drawing.Point(10, 10);
             this.pnlInfo.Name = "pnlInfo";
-            this.pnlInfo.Size = new System.Drawing.Size(413, 107);
+            this.pnlInfo.Size = new System.Drawing.Size(413, 134);
             this.pnlInfo.TabIndex = 0;
             this.pnlInfo.Visible = false;
             // 
@@ -769,7 +771,7 @@
             this.pnlEmbeddedResources.BackColor = System.Drawing.Color.DarkGreen;
             this.pnlEmbeddedResources.Controls.Add(this.lnkDownloadEmbeddedResources);
             this.pnlEmbeddedResources.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlEmbeddedResources.Location = new System.Drawing.Point(0, 80);
+            this.pnlEmbeddedResources.Location = new System.Drawing.Point(0, 107);
             this.pnlEmbeddedResources.Name = "pnlEmbeddedResources";
             this.pnlEmbeddedResources.Padding = new System.Windows.Forms.Padding(5);
             this.pnlEmbeddedResources.Size = new System.Drawing.Size(413, 27);
@@ -795,7 +797,7 @@
             // 
             this.panel7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(171)))), ((int)(((byte)(171)))), ((int)(((byte)(171)))));
             this.panel7.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel7.Location = new System.Drawing.Point(0, 79);
+            this.panel7.Location = new System.Drawing.Point(0, 106);
             this.panel7.Name = "panel7";
             this.panel7.Size = new System.Drawing.Size(413, 1);
             this.panel7.TabIndex = 21;
@@ -804,7 +806,7 @@
             // 
             this.panel6.BackColor = System.Drawing.Color.Transparent;
             this.panel6.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel6.Location = new System.Drawing.Point(0, 69);
+            this.panel6.Location = new System.Drawing.Point(0, 96);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(413, 10);
             this.panel6.TabIndex = 20;
@@ -924,6 +926,20 @@
             this.sfdSaveAttachment.Filter = "All files|*.*";
             this.sfdSaveAttachment.Title = "Save attachment";
             // 
+            // lblLabels
+            // 
+            this.lblLabels.AutoSize = true;
+            this.lblLabels.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblLabels.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLabels.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(102)))), ((int)(((byte)(102)))));
+            this.lblLabels.Location = new System.Drawing.Point(0, 69);
+            this.lblLabels.Name = "lblLabels";
+            this.lblLabels.Padding = new System.Windows.Forms.Padding(1, 5, 0, 5);
+            this.lblLabels.Size = new System.Drawing.Size(79, 27);
+            this.lblLabels.TabIndex = 23;
+            this.lblLabels.Text = "GmailLabels";
+            this.lblLabels.Visible = false;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -1042,5 +1058,6 @@
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.SaveFileDialog sfdSaveAttachment;
+        private System.Windows.Forms.Label lblLabels;
     }
 }

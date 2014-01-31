@@ -179,7 +179,7 @@ namespace ImapX.Sample
             Program.ImapClient.Behavior.AutoDownloadBodyOnAccess = false;
             Program.ImapClient.Behavior.AutoPopulateFolderMessages = false;
             Program.ImapClient.Behavior.ExamineFolders = false;
-            Program.ImapClient.Behavior.MessageFetchMode = MessageFetchMode.Tiny;
+            Program.ImapClient.Behavior.MessageFetchMode = MessageFetchMode.Tiny | MessageFetchMode.GMailLabels;
             Program.ImapClient.Behavior.RequestedHeaders = new[]
             {
                 MessageHeader.From,
@@ -566,6 +566,15 @@ namespace ImapX.Sample
                 wbrMain.Document.Body.SetAttribute("scroll", "auto");
                 pnlDownloadingBody.Hide();
                 pnlView.Show();
+                if (_selectedMessage.Labels != null && _selectedMessage.Labels.Any())
+                {
+                    lblLabels.Text = "Labels:" + string.Join(", ", _selectedMessage.Labels.ToArray());
+                    lblLabels.Visible = true;
+                }
+                else {
+                    lblLabels.Visible = false;
+                }
+                    
                 pnlEmbeddedResources.Visible = _selectedMessage.EmbeddedResources.Any(_ => !_.Downloaded);
             }
             else
