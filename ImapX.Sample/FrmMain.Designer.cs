@@ -88,6 +88,7 @@
             this.lnkDownloadEmbeddedResources = new System.Windows.Forms.LinkLabel();
             this.panel7 = new System.Windows.Forms.Panel();
             this.panel6 = new System.Windows.Forms.Panel();
+            this.lblLabels = new System.Windows.Forms.Label();
             this.lblFrom = new System.Windows.Forms.Label();
             this.lblSubject = new System.Windows.Forms.Label();
             this.lblDate = new System.Windows.Forms.Label();
@@ -103,7 +104,6 @@
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
-            this.lblLabels = new System.Windows.Forms.Label();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.pnlWrap.SuspendLayout();
@@ -811,6 +811,20 @@
             this.panel6.Size = new System.Drawing.Size(413, 10);
             this.panel6.TabIndex = 20;
             // 
+            // lblLabels
+            // 
+            this.lblLabels.AutoSize = true;
+            this.lblLabels.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblLabels.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLabels.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(102)))), ((int)(((byte)(102)))));
+            this.lblLabels.Location = new System.Drawing.Point(0, 69);
+            this.lblLabels.Name = "lblLabels";
+            this.lblLabels.Padding = new System.Windows.Forms.Padding(1, 5, 0, 5);
+            this.lblLabels.Size = new System.Drawing.Size(79, 27);
+            this.lblLabels.TabIndex = 23;
+            this.lblLabels.Text = "GmailLabels";
+            this.lblLabels.Visible = false;
+            // 
             // lblFrom
             // 
             this.lblFrom.AutoSize = true;
@@ -925,20 +939,6 @@
             // 
             this.sfdSaveAttachment.Filter = "All files|*.*";
             this.sfdSaveAttachment.Title = "Save attachment";
-            // 
-            // lblLabels
-            // 
-            this.lblLabels.AutoSize = true;
-            this.lblLabels.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblLabels.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLabels.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(102)))), ((int)(((byte)(102)))));
-            this.lblLabels.Location = new System.Drawing.Point(0, 69);
-            this.lblLabels.Name = "lblLabels";
-            this.lblLabels.Padding = new System.Windows.Forms.Padding(1, 5, 0, 5);
-            this.lblLabels.Size = new System.Drawing.Size(79, 27);
-            this.lblLabels.TabIndex = 23;
-            this.lblLabels.Text = "GmailLabels";
-            this.lblLabels.Visible = false;
             // 
             // FrmMain
             // 
