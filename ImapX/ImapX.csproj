@@ -66,6 +66,7 @@
     <Compile Include="Collections\ImapObjectCollection.cs" />
     <Compile Include="Collections\MessageCollection.cs" />
     <Compile Include="Collections\MessageFlagCollection.cs" />
+    <Compile Include="Constants\FolderStatusFields.cs" />
     <Compile Include="Constants\ImapCommands.cs" />
     <Compile Include="Constants\MessageHeader.cs" />
     <Compile Include="Constants\MessageHeaderSets.cs" />
