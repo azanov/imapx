@@ -54,6 +54,11 @@ namespace ImapX
         /// <summary>
         ///     The message sequence number of the first unseen message in the mailbox.
         /// </summary>
+        public long FirstUnseen { get; private set; }
+
+        /// <summary>
+        ///     The number of messages which do not have the \Seen flag set.
+        /// </summary>
         public long Unseen { get; private set; }
 
         /// <summary>
@@ -300,7 +305,7 @@ namespace ImapX
 
                 if (m.Success)
                 {
-                    Unseen = long.Parse(m.Groups[1].Value);
+                    FirstUnseen = long.Parse(m.Groups[1].Value);
                     continue;
                 }
 
@@ -341,6 +346,49 @@ namespace ImapX
                 return false;
 
             ProcessSelectOrExamineResult(data);
+
+            return true;
+        }
+
+
+        public bool Status(string[] statusFields)
+        {
+            IList<string> data = new List<string>();
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Status, _path), ref data))
+                return false;
+
+            var result = data.FirstOrDefault(_ => _.ToUpper().StartsWith("* STATUS"));
+
+            if (result == null)
+                return false;
+
+            var matches = Expressions.StatusRex.Matches(result);
+
+            foreach (Match m in matches)
+            {
+                var name = m.Groups[1].Value.ToUpper();
+                var value = m.Groups[2].Value;
+
+                switch (name)
+                { 
+                    case FolderStatusFields.Messages:
+                        Exists = long.Parse(value);
+                        break;
+                    case FolderStatusFields.Recent:
+                        Recent = long.Parse(value);
+                        break;
+                    case FolderStatusFields.UIdNext:
+                        UidNext = long.Parse(value);
+                        break;
+                    case FolderStatusFields.UIdValidity:
+                        UidValidity = value;
+                        break;
+                    case FolderStatusFields.Unseen:
+                        Unseen = long.Parse(value);
+                        break;
+
+                }
+            }
 
             return true;
         }

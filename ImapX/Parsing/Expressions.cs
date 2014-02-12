@@ -20,6 +20,7 @@ namespace ImapX.Parsing
         public static readonly Regex UIdValidityRex = new Regex(@"UIDVALIDITY (\d{1,})");
         public static readonly Regex UIdNextRex = new Regex(@"UIDNEXT (\d{1,})");
         public static readonly Regex CopyUIdRex = new Regex(@"COPYUID (^\s*) (\d{1,}) (\d{1,})");
+        public static readonly Regex StatusRex = new Regex(@"(\w+)\s(\d+)");
 
         public static readonly Regex PermanentFlagsRex = new Regex(@"\* OK \[PERMANENTFLAGS \((.*)\)\]");
         public static readonly Regex SearchRex = new Regex(@"\* SEARCH ([\d\s]+)");
