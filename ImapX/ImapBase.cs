@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Sockets;
+
 using System.Security.Authentication;
+using System.Net.Sockets;
+#if !NETFX_CORE
 using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
+
 using ImapX.Constants;
 using ImapX.Exceptions;
 using ImapX.Parsing;
-#if WINDOWS_PHONE
+#if WINDOWS_PHONE || NETFX_CORE
 using SocketEx;
 #else
 using System.Net.Security;
@@ -205,7 +209,7 @@ namespace ImapX
 
             try
             {
-#if !WINDOWS_PHONE
+#if !WINDOWS_PHONE && !NETFX_CORE
                 _client = new TcpClient(_host, _port);
 
                 if (_sslProtocol == SslProtocols.None)
@@ -282,7 +286,7 @@ namespace ImapX
                 _ioStream.Dispose();
 
             if (_client != null)
-#if !WINDOWS_PHONE
+#if !WINDOWS_PHONE && !NETFX_CORE
                 _client.Close();
 #else
                 _client.Dispose();
@@ -291,7 +295,7 @@ namespace ImapX
         }
 
 
-#if !WINDOWS_PHONE
+#if !WINDOWS_PHONE && !NETFX_CORE
 
         /// <summary>
         ///     The certificate validation callback

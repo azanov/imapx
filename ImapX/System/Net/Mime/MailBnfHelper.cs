@@ -64,7 +64,7 @@ namespace System.Net.Mime
 
         internal static bool HasCrOrLf(string data)
         {
-            return data.Any(t => t == '\r' || t == '\n');
+            return data.ToCharArray().Any(t => t == '\r' || t == '\n');
         }
 
         internal static bool SkipCfWs(string data, ref int offset)

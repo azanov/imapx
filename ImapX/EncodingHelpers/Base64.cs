@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+#if !NETFX_CORE
 using System.Security.Cryptography;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -31,7 +33,7 @@ namespace ImapX.EncodingHelpers
         public static string ToBase64(byte[] data)
         {
 
-#if WINDOWS_PHONE
+#if WINDOWS_PHONE || NETFX_CORE
             return Convert.ToBase64String(data);
 #else
             var builder = new StringBuilder();
@@ -82,7 +84,7 @@ namespace ImapX.EncodingHelpers
         /// <returns></returns>
         public static byte[] FromBase64(string s)
         {
-#if WINDOWS_PHONE
+#if WINDOWS_PHONE || NETFX_CORE
             return Convert.FromBase64String(s);
 #else
             byte[] bytes;

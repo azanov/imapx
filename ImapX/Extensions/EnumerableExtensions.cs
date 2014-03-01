@@ -24,7 +24,7 @@ namespace ImapX.Extensions
             return tmp;
         }
 
-#if !WINDOWS_PHONE
+#if !WINDOWS_PHONE && !NETFX_CORE
 
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this NameValueCollection col)
         {

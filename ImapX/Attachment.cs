@@ -107,6 +107,14 @@ namespace ImapX
             }
         }
 
+#if NETFX_CORE
+
+        public void Save(string folder, string fileName = null)
+        {
+            //TODO
+        }
+
+#else
         public void Save(string folder, string fileName = null)
         {
             string path = Path.Combine(folder,
@@ -118,7 +126,10 @@ namespace ImapX
                 fileStream.Write(FileData, 0, FileData.Length);
                 fileStream.Close();
             }
+
         }
+
+#endif
 
         public long FileSize
         {
