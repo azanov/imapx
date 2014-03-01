@@ -446,11 +446,11 @@ namespace ImapX
                 BodyParts.FirstOrDefault(
                     _ =>
                         _.ContentDisposition == null && _.ContentType != null &&
-                        _.ContentType.MediaType.Equals("text/plain", StringComparison.InvariantCultureIgnoreCase)),
+                        _.ContentType.MediaType.Equals("text/plain", StringComparison.OrdinalIgnoreCase)),
                 BodyParts.FirstOrDefault(
                     _ =>
                         _.ContentDisposition == null && _.ContentType != null &&
-                        _.ContentType.MediaType.Equals("text/html", StringComparison.InvariantCultureIgnoreCase)));
+                        _.ContentType.MediaType.Equals("text/html", StringComparison.OrdinalIgnoreCase)));
 
             Attachments = (from part in BodyParts
                 where
@@ -682,6 +682,14 @@ namespace ImapX
             Save(Path.Combine(folderPath, fileName));
         }
 
+#if NETFX_CORE
+
+        public void Save(string filePath)
+        {
+            //TODO
+        }
+
+#else
         /// <summary>
         ///     Saves the current message as eml to file
         /// </summary>
@@ -697,6 +705,8 @@ namespace ImapX
                     textWriter.Write(ToEml());
             }
         }
+
+#endif
 
         #region Obsolete
 

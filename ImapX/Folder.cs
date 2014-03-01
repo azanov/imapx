@@ -557,7 +557,7 @@ namespace ImapX
                 ref data, msgUploader);
         }
 
-#if !WINDOWS_PHONE
+#if !WINDOWS_PHONE && !NETFX_CORE
 
         public bool AppendMessage(System.Net.Mail.MailMessage mailMessage)
         {

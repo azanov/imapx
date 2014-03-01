@@ -6,7 +6,7 @@ using System.Text;
 namespace System.Security.Authentication
 {
 
-    public class AuthenticationException : SystemException
+    public class AuthenticationException : Exception
     {
         public AuthenticationException() : base() { }
         public AuthenticationException(string message) : base(message) { }

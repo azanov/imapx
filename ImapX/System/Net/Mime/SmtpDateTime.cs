@@ -171,7 +171,7 @@ namespace System.Net.Mime
 
         internal void ValidateTimeZoneShortHandValue(string value)
         {
-            if (value.Where((t, i) => !char.IsLetter(value, i)).Any())
+            if (value.ToCharArray().Where((t, i) => !char.IsLetter(value, i)).Any())
             {
                 throw new FormatException();
             }

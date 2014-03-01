@@ -27,7 +27,7 @@
         Return node
     End Function
 
-    Public Shared Function Show(ByVal title As String, ByVal [text] As String, Optional ByVal owner As IWin32Window = Nothing) As Folder
+    Public Overloads Shared Function Show(ByVal title As String, ByVal [text] As String, Optional ByVal owner As IWin32Window = Nothing) As Folder
         Using dlg As FolderBox = New FolderBox(title, [text])
             If (dlg.ShowDialog(owner) = DialogResult.OK) Then
                 Return dlg.SelectedFolder
