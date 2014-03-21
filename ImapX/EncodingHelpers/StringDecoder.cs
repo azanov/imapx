@@ -47,7 +47,12 @@ namespace ImapX.EncodingHelpers
                 encoding = Encoding.UTF8;
 
             var sb = new StringBuilder();
-            const string validHex = "0123456789ABCDEF";
+            var validHex = new[]
+            {
+                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+            };
+
+    
             var start = 0;
             var end = input.Length;
             while (start < end)
