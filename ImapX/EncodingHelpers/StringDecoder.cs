@@ -46,29 +46,36 @@ namespace ImapX.EncodingHelpers
             if (encoding == null)
                 encoding = Encoding.UTF8;
 
-            var occurences = new Regex(@"(=[0-9A-F]{2}){1,}", RegexOptions.Multiline);
-
-            var matches = occurences.Matches(input);
-
-            // Fix by kirchik
-            foreach (Match match in matches.Cast<Match>()
-                .OrderByDescending(c => c.Groups[0].Value.Length)
-                .ToList())
+            var sb = new StringBuilder();
+            const string validHex = "0123456789ABCDEF";
+            var start = 0;
+            var end = input.Length;
+            while (start < end)
             {
-                try
+                int pos = input.IndexOf('=', start);
+                if (pos < 0)
                 {
-                    var b = new byte[match.Groups[0].Value.Length / 3];
-                    for (int i = 0; i < match.Groups[0].Value.Length / 3; i++)
-                    {
-                        b[i] = byte.Parse(match.Groups[0].Value.Substring(i * 3 + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-                    }
-                    var array = encoding.GetChars(b);
-                    input = input.Replace(match.Groups[0].Value, new string(array));
+                    sb.Append(input.Substring(start, end - start));
+                    break;
                 }
-                catch
-                { ;}
+                sb.Append(input.Substring(start, pos - start));
+                start = pos;
+
+                if (pos < end - 2 && validHex.Contains(input[pos + 1]) && validHex.Contains(input[pos + 2]))
+                {
+                    string hex = input.Substring(pos + 1, 2);
+                    byte b = byte.Parse(hex, NumberStyles.HexNumber);
+                    sb.Append(encoding.GetChars(new byte[] { b }));
+                    start += 3;
+                }
+                else
+                {
+                    sb.Append("=");
+                    start++;
+                }
             }
-            input = input.Replace("?=", "").Replace("=\r\n", "");
+            input = sb.ToString().Replace("?=", "").Replace("=\r\n", "");
+
 
 
 
