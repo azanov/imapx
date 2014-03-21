@@ -183,7 +183,9 @@ namespace ImapX.Parsing
             if (!string.IsNullOrEmpty(part.ContentId) && part.ContentDisposition != null)
                 part.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
 
-            if (part.ContentDisposition != null && string.IsNullOrEmpty(part.ContentDisposition.FileName) && part.ContentDisposition.DispositionType == DispositionTypeNames.Inline)
+
+
+            if (part.ContentDisposition != null && (!(part.ContentDisposition.Parameters.ContainsKey("filename") || part.ContentDisposition.Parameters.ContainsKey("name")) || string.IsNullOrEmpty(part.ContentDisposition.FileName)) && part.ContentDisposition.DispositionType == DispositionTypeNames.Inline)
                 part.ContentDisposition = null;
 
             if (part.ContentDisposition != null && string.IsNullOrEmpty(part.ContentDisposition.FileName))
