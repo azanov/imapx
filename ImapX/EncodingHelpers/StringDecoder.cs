@@ -32,13 +32,6 @@ namespace ImapX.EncodingHelpers
             return encoding.GetString(bytes, 0, bytes.Length);
         }
 
-        static readonly Regex hexRex = new Regex(@"^[0-9A-F\r\n]+$");
-
-        internal static bool IsHex(string value)
-        {
-            return hexRex.Match(value).Success;
-        }
-
         internal static string DecodeQuotedPrintable(string input, Encoding encoding)
         {
             if (string.IsNullOrEmpty(input))
@@ -79,31 +72,7 @@ namespace ImapX.EncodingHelpers
                     start++;
                 }
             }
-            input = sb.ToString().Replace("?=", "").Replace("=\r\n", "");
-
-
-
-
-            //var matches = occurences.Matches(input);
-
-            //foreach (Match match in matches)
-            //{
-            //    try
-            //    {
-            //        byte[] b = new byte[match.Groups[0].Value.Length / 3];
-            //        for (int i = 0; i < match.Groups[0].Value.Length / 3; i++)
-            //        {
-            //            b[i] = byte.Parse(match.Groups[0].Value.Substring(i * 3 + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-            //        }
-            //        char[] hexChar = encoding.GetChars(b);
-            //        input = input.Replace(match.Groups[0].Value, new String(hexChar));
-            //    }
-            //    catch
-            //    {
-                    
-            //    }
-            //}
-            //input = input.Replace("?=", "").Replace("\r\n", "");
+            input = sb.ToString().Replace("?=", "").Replace("=\r\n", Environment.NewLine);
 
             return input;
 
