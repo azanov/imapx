@@ -75,7 +75,10 @@ namespace ImapX
                     break;
                 case ContentTransferEncoding.EightBit:
                 case ContentTransferEncoding.SevenBit:
-                    _contentBuilder.AppendLine(data);
+                    if (string.IsNullOrEmpty(data))
+                        _contentBuilder.Append(Environment.NewLine);
+                    else
+                        _contentBuilder.Append(data + " ");
                     break;
                 default:
                     _contentBuilder.Append(data);
