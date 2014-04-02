@@ -182,6 +182,7 @@ namespace ImapX.Sample
             Program.ImapClient.Behavior.MessageFetchMode = MessageFetchMode.Tiny | MessageFetchMode.GMailLabels;
             Program.ImapClient.Behavior.RequestedHeaders = new[]
             {
+                MessageHeader.MessageId,
                 MessageHeader.From,
                 MessageHeader.Date,
                 MessageHeader.Subject,
