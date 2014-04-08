@@ -527,6 +527,8 @@ namespace ImapX.Sample
             lblDownloadingBody.Show();
             pnlDownloadingBody.Hide();
 
+            if (_selectedMessage.Body == null)
+                MessageBox.Show("The message contains no body. Something went wrong", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             if (_selectedMessage.Body.Downloaded == BodyType.None)
             {
                 pnlDownloadingBody.Show();

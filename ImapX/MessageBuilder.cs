@@ -105,7 +105,7 @@ namespace ImapX
             sb.AppendLine(); // separate header from body through an empty line
 
             var boundary = message.BodyParts.Length > 1
-                ? (string.IsNullOrEmpty(message.ContentType.Boundary)
+                ? (message.ContentType == null || string.IsNullOrEmpty(message.ContentType.Boundary)
                     ? (new Guid().ToString("N"))
                     : message.ContentType.Boundary)
                 : null;

@@ -325,6 +325,28 @@ namespace ImapX.Parsing
 
         #endregion
 
+        private string ReadParameterName(bool trimSpaces = true)
+        {
+            if (trimSpaces)
+                SkipSpaces();
+
+            char currentChar;
+
+            var sb = new StringBuilder();
+
+            while ((currentChar = (char)_reader.Read()) != ' ')
+            {
+                sb.Append(currentChar);
+                if (sb.ToString() == "NIL")
+                    return string.Empty;
+            }
+
+            if (trimSpaces)
+                SkipSpaces();
+
+            return sb.ToString().Replace("\"", "");
+        }
+
         private Dictionary<string, string> ReadParameterList()
         {
             var result = new Dictionary<string, string>();
@@ -340,7 +362,7 @@ namespace ImapX.Parsing
             _reader.Read();
 
             while (_reader.Peek() != ')')
-                result.Add(ReadString().ToLower(), ReadString());
+                result.Add(ReadParameterName().ToLower(), ReadString());
 
             _reader.Read();
 
