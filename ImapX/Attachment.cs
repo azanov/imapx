@@ -70,9 +70,19 @@ namespace ImapX
             get
             {
                 if (_fileName == null)
-                    _fileName = string.IsNullOrEmpty(_content.ContentDisposition.FileName)
-                        ? "unnamed"
-                        : StringDecoder.Decode(_content.ContentDisposition.FileName, true);
+                {
+                    if (string.IsNullOrEmpty(_content.ContentDisposition.FileName))
+                    {
+                        if (string.IsNullOrEmpty(_content.ContentType.Name))
+                            _fileName = "unnamed";
+                        else if (_content.ContentType.Parameters.ContainsKey("name"))
+                            _fileName = _content.ContentType.Name;
+                    }
+                    else
+                        _fileName = _content.ContentDisposition.FileName;
+
+                    _fileName = StringDecoder.Decode(_fileName, true);
+                }
                 return _fileName;
             }
         }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ImapX.Parsing;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ImapX.EncodingHelpers
 {
@@ -59,14 +60,24 @@ namespace ImapX.EncodingHelpers
                 sb.Append(input.Substring(start, pos - start));
                 start = pos;
 
-                if (pos < end - 2 && validHex.Contains(input[pos + 1]) && validHex.Contains(input[pos + 2]))
+                var buffer = new List<byte>();
+
+                while (pos < end - 2 && input[pos] == '=' && validHex.Contains(char.ToUpper(input[pos + 1])) && validHex.Contains(char.ToUpper(input[pos + 2])))
                 {
                     string hex = input.Substring(pos + 1, 2);
                     byte b = byte.Parse(hex, NumberStyles.HexNumber);
-                    sb.Append(encoding.GetChars(new byte[] { b }));
+                    buffer.Add(b);
                     start += 3;
+                    pos += 3;
                 }
-                else
+
+                if (buffer.Count > 0)
+                {
+                    sb.Append(encoding.GetChars(buffer.ToArray()));
+                    buffer.Clear();
+                }
+
+                if(pos < input.Length && input[pos] == '=')
                 {
                     sb.Append("=");
                     start++;

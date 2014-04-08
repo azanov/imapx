@@ -28,7 +28,7 @@ Public Class NativeMethods
     Public Shared Function GetWindowLong(ByVal hWnd As IntPtr, ByVal nIndex As Integer) As Integer
     End Function
 
-    <DllImport("shell32.dll")> _
+    <DllImport("shell32.dll", CharSet:=CharSet.Unicode)> _
     Public Shared Function SHGetFileInfo(ByVal pszPath As String, ByVal dwFileAttributes As UInt32, ByRef psfi As SHFILEINFO, ByVal cbSizeFileInfo As UInt32, ByVal uFlags As UInt32) As IntPtr
     End Function
 

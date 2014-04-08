@@ -1,6 +1,6 @@
 ﻿Imports System.Runtime.InteropServices
 
-<StructLayout(LayoutKind.Sequential)> _
+<StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Unicode)> _
 Public Structure SHFILEINFO
     Public hIcon As IntPtr
     Public iIcon As IntPtr
