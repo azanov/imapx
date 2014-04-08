@@ -189,8 +189,8 @@ namespace ImapX.Parsing
                 part.ContentDisposition = null;
 
             if (part.ContentDisposition != null && string.IsNullOrEmpty(part.ContentDisposition.FileName))
-                part.ContentDisposition.FileName = string.Format("unnamed-{0}.{1}", part.ContentNumber,
-                    contentType == "message" ? "eml" : "dat");
+                part.ContentDisposition.FileName = string.IsNullOrEmpty(part.ContentType.Name) ? string.Format("unnamed-{0}.{1}", part.ContentNumber,
+                    contentType == "message" ? "eml" : "dat") : part.ContentType.Name;
 
             if (_reader.Peek() == ')')
             {
