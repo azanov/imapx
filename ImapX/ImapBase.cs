@@ -29,7 +29,6 @@ namespace ImapX
         private static readonly Regex NewLineRex = new Regex(@"\r\n");
 
         private TcpClient _client;
-        private bool _connected;
         private long _counter;
 
         private string _host;
@@ -50,7 +49,7 @@ namespace ImapX
         /// </summary>
         public bool IsConnected
         {
-            get { return _connected; }
+            get { return _client != null && _client.Connected; }
         }
 
         public bool IsDebug { get; set; }
@@ -64,7 +63,7 @@ namespace ImapX
             get { return _host; }
             set
             {
-                if (_connected)
+                if (IsConnected)
                     throw new InvalidStateException(
                         "The host cannot be changed after the connection has been established. Please disconnect first.");
                 _host = value;
@@ -80,7 +79,7 @@ namespace ImapX
             get { return _port; }
             set
             {
-                if (_connected)
+                if (IsConnected)
                     throw new InvalidStateException(
                         "The port cannot be changed after the connection has been established. Please disconnect first.");
                 _port = value;
@@ -96,7 +95,7 @@ namespace ImapX
             get { return _sslProtocol; }
             set
             {
-                if (_connected)
+                if (IsConnected)
                     throw new InvalidStateException(
                         "The SSL protocol cannot be changed after the connection has been established. Please disconnect first.");
                 _sslProtocol = value;
@@ -123,7 +122,7 @@ namespace ImapX
             get { return _validateServerCertificate; }
             set
             {
-                if (_connected)
+                if (IsConnected)
                     throw new InvalidStateException(
                         "The certificate validation mode cannot be changed after the connection has been established. Please disconnect first.");
 
@@ -204,7 +203,7 @@ namespace ImapX
             _sslProtocol = sslProtocol;
             _validateServerCertificate = validateServerCertificate;
 
-            if (_connected)
+            if (IsConnected)
                 throw new InvalidStateException("The client is already connected. Please disconnect first.");
 
             try
@@ -235,13 +234,11 @@ namespace ImapX
 
                 if (result != null && result.StartsWith(ResponseType.ServerOk))
                 {
-                    _connected = true;
                     Capability();
                     return true;
                 }
                 else if (result != null && result.StartsWith(ResponseType.ServerPreAuth))
                 {
-                    _connected = true;
                     IsAuthenticated = true;
                     Capability();
                     return true;
@@ -276,7 +273,7 @@ namespace ImapX
         {
             _counter = 0;
 
-            if (!_connected)
+            if (!IsConnected)
                 return;
 
             if (_streamReader != null)
@@ -291,7 +288,7 @@ namespace ImapX
 #else
                 _client.Dispose();
 #endif
-            _connected = false;
+            
         }
 
 
