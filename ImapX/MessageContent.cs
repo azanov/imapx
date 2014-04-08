@@ -220,8 +220,14 @@ namespace ImapX
             }
             else if (CommandEndRex.IsMatch(data))
             {
-                if (_contentBuilder.Length > 0 && _contentBuilder[_contentBuilder.Length - 1] == ')')
-                    _contentBuilder.Remove(_contentBuilder.Length - 1, 1);
+                for (var i = _contentBuilder.Length - 1; i >= 0; i--)
+                {
+                    if (_contentBuilder[i] == ')')
+                    {
+                        _contentBuilder.Remove(i, _contentBuilder.Length - i);
+                        return;
+                    }
+                }
             }
             else
                 AppendDataToContentStream(data);

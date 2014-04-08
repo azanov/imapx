@@ -28,6 +28,9 @@ namespace ImapX
         internal Message()
         {
             Headers = new Dictionary<string, string>();
+            BodyParts = new MessageContent[0];
+            Attachments = new Attachment[0];
+            EmbeddedResources = new Attachment[0];
             To = new List<MailAddress>();
             Cc = new List<MailAddress>();
             Bcc = new List<MailAddress>();
@@ -574,7 +577,7 @@ namespace ImapX
             {
                 var str = string.IsNullOrEmpty(buffer) ? data[i] : buffer + data[i];
 
-                if ((str.Split('(').Length - (i == 0 ? 1 : 0)) >= (str.Split(')').Length))
+                if ((str.Split(')').Length + (i == 0 ? 1 : 0)) >= (str.Split('(').Length) || (i + 1 < data.Count && Regex.IsMatch(data[i + 1], @"^[A-Za-z-]+:")))
                 {
                     ProcessCommandResult(str);
                     buffer = "";

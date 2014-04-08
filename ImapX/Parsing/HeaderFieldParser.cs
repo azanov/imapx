@@ -101,6 +101,9 @@ namespace ImapX.Parsing
                 else if (v.StartsWith("iso-"))
                     sb.Append("charset=" + v + (i < tmp.Length - 1 ? "; " : ""));
             }
+
+            if (string.IsNullOrWhiteSpace(type))
+                return null;
             try
             {
                 return new ContentType(type + (sb.Length == 0 ? "" : "; " + sb));
