@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using ImapX.Constants;
+using ImapX.EncodingHelpers;
 
 namespace ImapX.Authentication
 {
@@ -35,7 +36,7 @@ namespace ImapX.Authentication
             if (!IsSupported(capabilities))
                 throw new NotSupportedException("The selected authentication mechanism is not supported");
 
-            return capabilities.LoginDisabled ? string.Format(ImapCommands.Authenticate + " \"{1}\" \"{2}\"", "PLAIN", Login, Password) : string.Format(ImapCommands.Login, Login, Password);
+            return capabilities.LoginDisabled ? string.Format(ImapCommands.Authenticate + "\n{1}\n{2}", "PLAIN", Base64.ToBase64(Encoding.UTF8.GetBytes(Login)), Base64.ToBase64(Encoding.UTF8.GetBytes(Password))) : string.Format(ImapCommands.Login, Login, Password);
         }
 
         public override bool IsSupported(Capability capabilities)

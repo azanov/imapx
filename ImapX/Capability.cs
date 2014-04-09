@@ -160,16 +160,16 @@ namespace ImapX
 
             commandResult = commandResult.Replace("* CAPABILITY IMAP4rev1 ", "");
 
-            All = commandResult.Split(' ').Where(_ => !string.IsNullOrEmpty(_.Trim())).ToArray();
+            All = (All ?? new string[0]).Concat(commandResult.Split(' ').Where(_ => !string.IsNullOrEmpty(_.Trim()))).Distinct().ToArray();
 
-            AuthenticationMechanisms = All.Where(_ => _.StartsWith("AUTH="))
-                .Select(_ => _.Substring(5, _.Length - 5)).ToArray();
+            AuthenticationMechanisms = (AuthenticationMechanisms ?? new string[0]).Concat(All.Where(_ => _.StartsWith("AUTH="))
+                .Select(_ => _.Substring(5, _.Length - 5))).Distinct().ToArray();
 
-            CompressionMechanisms = All.Where(_ => _.StartsWith("COMPRESS="))
-                .Select(_ => _.Substring(10, _.Length - 10)).ToArray();
+            CompressionMechanisms = (CompressionMechanisms ?? new string[0]).Concat(All.Where(_ => _.StartsWith("COMPRESS="))
+                .Select(_ => _.Substring(9, _.Length - 9))).Distinct().ToArray();
 
-            Contexts = All.Where(_ => _.StartsWith("CONTEXT="))
-                .Select(_ => _.Substring(8, _.Length - 8)).ToArray();
+            Contexts = (Contexts ?? new string[0]).Concat(All.Where(_ => _.StartsWith("CONTEXT="))
+                .Select(_ => _.Substring(8, _.Length - 8))).Distinct().ToArray();
 
             foreach (string s in All)
             {

@@ -104,6 +104,7 @@ namespace ImapX.Collections
                     case "下書き":
                     case "drafts":
                     case "draft":
+                    case "draftbox":
                     case "草稿":
                     case "임시보관함":
                         Drafts = folder;
@@ -122,6 +123,7 @@ namespace ImapX.Collections
                     case "wysłane":
                     case "sent":
                     case "sent items":
+                    case "sentbox":
                     case "sent messages":
                     case "éléments envoyés":
                     case "απεσταλμένα":
