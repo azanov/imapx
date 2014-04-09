@@ -113,7 +113,7 @@ namespace ImapX
         {
             Credentials = credentials;
             IList<string> data = new List<string>();
-            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data, credentials);
+            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data, credentials, null, true);
 
             var capabilities = data.FirstOrDefault(_ => _.StartsWith("* CAPABILITY"));
 

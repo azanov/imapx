@@ -313,7 +313,7 @@ namespace ImapX
         }
 
         public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
-            Encoding encoding = null)
+            Encoding encoding = null, bool pushResultToDatadespiteProcessor = false)
         {
             lock (_ioStream)
             {
@@ -349,7 +349,7 @@ namespace ImapX
                     if (IsDebug)
                         Debug.WriteLine(tmp);
 
-                    if (processor == null)
+                    if (processor == null || pushResultToDatadespiteProcessor)
                         data.Add(tmp);
 
                     if (processor != null)

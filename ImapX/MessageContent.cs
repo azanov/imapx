@@ -20,7 +20,8 @@ namespace ImapX
         private MessageFetchState _fetchProgress;
 
         private static readonly Regex CommandEndRex = new Regex(@"IMAPX\d+ OK");
-        private static readonly Regex CommandStartRex = new Regex(@"^\* \d+ FETCH \(UID \d+");
+        private static readonly Regex CommandJunkUID = new Regex(@"UID \d+");
+        private static readonly Regex CommandStartRex = new Regex(@"^\* \d+ FETCH \((UID \d+)?");
 
         internal MessageContent(){}
 
@@ -102,7 +103,7 @@ namespace ImapX
             {
                 data = CleanData(data, index).Trim();
 
-                if (data.StartsWith("*") && data.Contains("UID"))
+                if (data.StartsWith("*") && data.Contains("FETCH"))
                     data = CommandStartRex.Replace(data, "");
 
                 if (!string.IsNullOrEmpty(data))
@@ -218,6 +219,12 @@ namespace ImapX
                     
                 }
             }
+            else if ((index = data.IndexOf("UID")) != -1)
+            {
+                data = CommandJunkUID.Replace(data, "");
+                AppendDataToContentStream(data);
+                return;
+            }
             else if (CommandEndRex.IsMatch(data))
             {
                 for (var i = _contentBuilder.Length - 1; i >= 0; i--)
@@ -242,13 +249,14 @@ namespace ImapX
             // _writer = new StreamWriter(ContentStream);
 
             Encoding encoding = null;
-            try
-            {
-                encoding = Encoding.GetEncoding(ContentType.CharSet);
-            }
-            catch
-            {
-            }
+            if(ContentType != null && ContentType.CharSet != null)
+                try
+                {
+                    encoding = Encoding.GetEncoding(ContentType.CharSet);
+                }
+                catch
+                {
+                }
 
             IList<string> data = new List<string>();
 
