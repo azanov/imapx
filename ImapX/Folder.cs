@@ -47,10 +47,7 @@ namespace ImapX
         ///     The number of messages with the \Recent flag set.
         /// </summary>
         public long Recent { get; private set; }
-
-        [Obsolete("Recents is obsolete, please use Recent instead", true)]
-        public long Recents { get; private set; }
-
+        
         /// <summary>
         ///     The message sequence number of the first unseen message in the mailbox.
         /// </summary>
@@ -129,14 +126,7 @@ namespace ImapX
             get { return _path; }
             internal set { _path = value; }
         }
-
-        [Obsolete("FolderPath is obsolete, please use Path instead")]
-        public string FolderPath
-        {
-            get { return _path; }
-            internal set { _path = value; }
-        }
-
+        
         /// <summary>
         ///     Flags of current folder. Determine the type of the folder.
         /// </summary>
@@ -483,53 +473,7 @@ namespace ImapX
         {
             return Fetch(uIds, mode);
         }
-
-         [Obsolete("This Search overload is obsolete, please use another instead", true)]
-        public MessageCollection Search(string path, bool makeProcess)
-        {
-            throw new NotImplementedException();
-        }
-
-        [Obsolete("CreateFolder is obsolete, please use SubFolders.Add instead", true)]
-        public bool CreateFolder(string name)
-        {
-            return SubFolders.Add(name) != null;
-        }
-
-        [Obsolete("CopyMessageToFolder is obsolete, please use Message.CopyTo instead", true)]
-        public bool CopyMessageToFolder(Message msg, Folder folder)
-        {
-            return msg.CopyTo(folder);
-        }
-
-        [Obsolete("DeleteMessage is obsolete, please use Message.Remove instead", true)]
-        public bool DeleteMessage(Message msg)
-        {
-            return msg.Remove();
-        }
-
-        [Obsolete("DeleteFolder is obsolete, please use Remove instead")]
-        public bool DeleteFolder()
-        {
-            return Remove();
-        }
-
-
-        [Obsolete("MoveMessageToFolder is obsolete, please use Message.MoveTo instead", true)]
-        public bool MoveMessageToFolder(Message msg, Folder folder)
-        {
-            return msg.MoveTo(folder);
-        }
-
-         [Obsolete("SubFolder is obsolete, please use SubFolders instead", true)]
-         public FolderCollection SubFolder { get; internal set; }
-
-         [Obsolete("CheckNewMessage is obsolete", true)]
-        public MessageCollection CheckNewMessage(bool processMessages)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         /// <summary>
         /// Appends a new message to the end of specified folder
         /// </summary>
@@ -575,13 +519,7 @@ namespace ImapX
         }
 
 #endif
-
-        [Obsolete("AppendMessage(Message) is obsolete", true)]
-        public bool AppendMessage(Message msg)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         /// <summary>
         ///     Removes all messages from current folder
         /// </summary>
