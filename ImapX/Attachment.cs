@@ -154,31 +154,5 @@ namespace ImapX
             return _content.ContentStream;
         }
 
-        #region Obsolete
-
-        [Obsolete("GetStream is obsolete, please use GetTextData instead", true)]
-        public string GetStream()
-        {
-            return _content.ContentStream;
-        }
-
-        [Obsolete("SaveFile is obsolete. Please use Save instead.", true)]
-        public void SaveFile(string folderPath)
-        {
-        }
-
-        [Obsolete("FileType is obsolete. Please use ContentType instead.", true)]
-        public string FileType
-        {
-            get { return null; }
-        }
-
-        [Obsolete("FileEncoding is obsolete. Please use ContentType.Charset and ContentTransferEncoding instead.", true)]
-        public string FileEncoding
-        {
-            get { return null; }
-        }
-
-        #endregion
     }
 }

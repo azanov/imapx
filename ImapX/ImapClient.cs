@@ -77,13 +77,6 @@ namespace ImapX
             ValidateServerCertificate = validateServerCertificate;
         }
 
-        [Obsolete("Please use another constructor. This will be removed in future releases.", true)]
-        public ImapClient(string host, int port, bool useSsl = false, SslProtocols sslProtocols = SslProtocols.Default, bool validateServerCertificate = true)
-            : this(host, port, useSsl ? sslProtocols : SslProtocols.None, validateServerCertificate)
-        {
-
-        }
-
         /// <summary>
         /// Authenticate using credentials set through the <code>Credentials</code> property
         /// </summary>
@@ -189,51 +182,6 @@ namespace ImapX
 
         }
 
-        #region Obsolete
-
-        [Obsolete("SelectFolder is obsolete", true)]
-        public bool SelectFolder(string folderName)
-        {
-            throw new NotImplementedException();
-        }
-
-        [Obsolete("OAuth2LogIn is obsolete, please use Login(IImapCredentials) with OAuth2Credentials instead", true)]
-        public bool OAuth2LogIn(string login, string authToken)
-        {
-            return Login(new OAuth2Credentials(login, authToken));
-        }
-
-        [Obsolete("Connection is obsolete, please use Connect instead", true)]
-        public bool Connection()
-        {
-            return Connect();
-        }
-
-        [Obsolete("UserLogin is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
-            true)]
-        public string UserLogin
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-
-        [Obsolete(
-            "UserPassword is obsolete, please use Credentials together with Authentication.PlainCredentials instead",
-            true)]
-        public string UserPassword
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-
-        [Obsolete("IsLogined is obsolete, please use IsAuthenticated instead", true)]
-        public bool IsLogined
-        {
-            get { return IsAuthenticated; }
-        }
-
-
-        #endregion
 
     }
 }

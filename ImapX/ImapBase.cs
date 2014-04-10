@@ -391,25 +391,5 @@ namespace ImapX
             }
         }
 
-        #region Obsolete
-
-        [Obsolete("SendCommand is obsolete", true)]
-        public void SendCommand(string command)
-        {
-        }
-
-        [Obsolete("SendData", true)]
-        public bool SendData(string data)
-        {
-            throw new NotImplementedException();
-        }
-
-        [Obsolete("SendAndReceiveMessage", true)]
-        public bool SendAndReceiveMessage(string command, ref List<string> data, Message msg)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }
