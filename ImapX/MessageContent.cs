@@ -23,7 +23,7 @@ namespace ImapX
         private static readonly Regex CommandJunkUID = new Regex(@"UID \d+");
         private static readonly Regex CommandStartRex = new Regex(@"^\* \d+ FETCH \((UID \d+)?");
 
-        internal MessageContent(){}
+        internal MessageContent() { }
 
         public MessageContent(ImapClient client, Message message)
         {
@@ -67,8 +67,10 @@ namespace ImapX
             get { return _fetchProgress.HasFlag(MessageFetchState.Headers | MessageFetchState.Body); }
         }
 
-        private void AppendDataToContentStream(string data) {
-            switch (ContentTransferEncoding) {
+        private void AppendDataToContentStream(string data)
+        {
+            switch (ContentTransferEncoding)
+            {
                 case ContentTransferEncoding.QuotedPrintable:
                     // Fix by kirchik
                     _contentBuilder.Append(data.TrimEnd(new[] { '=' }));
@@ -90,27 +92,34 @@ namespace ImapX
         private static string CleanData(string value, int startIndex)
         {
             var endIndex = value.IndexOf('}', startIndex);
-            
+
             return endIndex == -1 ? value : value.Remove(startIndex, endIndex - startIndex + 1);
         }
 
         public override void ProcessCommandResult(string data)
         {
 
-            int index;
+            int index, index2;
 
             if ((index = data.IndexOf("BODY[" + ContentNumber + ".MIME]", StringComparison.Ordinal)) != -1)
             {
-                data = CleanData(data, index).Trim();
+                if ((index2 = data.IndexOf("BODY[" + ContentNumber + ".MIME] NIL", StringComparison.Ordinal)) != -1)
+                {
+                    data = data.Replace("BODY[" + ContentNumber + ".MIME] NIL", "");
+                }
+                else
+                {
+                    data = CleanData(data, index).Trim();
 
-                if (data.StartsWith("*") && data.Contains("FETCH"))
-                    data = CommandStartRex.Replace(data, "");
+                    if (data.StartsWith("*") && data.Contains("FETCH"))
+                        data = CommandStartRex.Replace(data, "");
 
-                if (!string.IsNullOrEmpty(data))
-                    AppendDataToContentStream(data);
-                _fetchState = MessageFetchState.Headers;
-                _fetchProgress = _fetchProgress | MessageFetchState.Headers;
-                return;
+                    if (!string.IsNullOrEmpty(data))
+                        AppendDataToContentStream(data);
+                    _fetchState = MessageFetchState.Headers;
+                    _fetchProgress = _fetchProgress | MessageFetchState.Headers;
+                    return;
+                }
             }
 
             if ((index = data.IndexOf("BODY[" + ContentNumber + "]", StringComparison.Ordinal)) != -1)
@@ -118,7 +127,7 @@ namespace ImapX
 
                 data = CleanData(data, index).Trim();
 
-                if (data.StartsWith("*") && data.Contains("UID"))
+                if (data.StartsWith("*") && (data.Contains("UID") || data.Contains("FETCH")))
                     data = CommandStartRex.Replace(data, "");
 
                 if (!string.IsNullOrEmpty(data))
@@ -129,7 +138,7 @@ namespace ImapX
                 return;
             }
 
-            
+
 
 
             if (_fetchState == MessageFetchState.Headers)
@@ -143,7 +152,7 @@ namespace ImapX
                     string key = headerMatch.Groups[1].Value.ToLower();
                     string value = headerMatch.Groups[2].Value;
 
-                    if(this.ContentType != null && this.ContentType.MediaType == "message/rfc822")
+                    if (this.ContentType != null && this.ContentType.MediaType == "message/rfc822")
                         _contentBuilder.AppendLine(data);
 
                     if (Parameters.ContainsKey(key))
@@ -216,7 +225,7 @@ namespace ImapX
                 }
                 catch
                 {
-                    
+
                 }
             }
             else if ((index = data.IndexOf("UID")) != -1)
@@ -242,14 +251,14 @@ namespace ImapX
 
         public bool Download()
         {
-            if (Downloaded) 
+            if (Downloaded)
                 return true;
 
             //ContentStream = new MemoryStream();
             // _writer = new StreamWriter(ContentStream);
 
             Encoding encoding = null;
-            if(ContentType != null && ContentType.CharSet != null)
+            if (ContentType != null && ContentType.CharSet != null)
                 try
                 {
                     encoding = Encoding.GetEncoding(ContentType.CharSet);
@@ -279,7 +288,7 @@ namespace ImapX
 
             return result;
         }
-        
+
         internal void AppendEml(ref StringBuilder sb, bool addHeaders)
         {
             if (addHeaders)
