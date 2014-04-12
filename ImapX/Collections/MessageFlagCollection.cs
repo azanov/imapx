@@ -58,18 +58,17 @@ namespace ImapX.Collections
                 return true;
             }
 
-            if (Client.SelectedFolder != _message.Folder)
-                _message.Folder.Select();
-
             IList<string> data = new List<string>();
             if (!Client.SendAndReceive(string.Format(ImapCommands.Store,
                 _message.UId, AddType,
                 string.Join(" ",
                     this.Concat(flags.Where(_ => !string.IsNullOrEmpty(_)))
-                        .Distinct()
-                        .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
-                        .Select(_ =>  (IsUTF7 ? ImapUTF7.Encode(_) : _)).ToArray())),
-                ref data)) return false;
+                               .Where(_ => !_.Equals(Flags.MessageFlags.Recent))
+                               .Distinct()
+                               .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
+                               .Select(_ => (IsUTF7 ? ImapUTF7.Encode(_) : _)).ToArray())),
+                ref data))
+                return false;
 
             AddRangeInternal(flags.Except(List));
 
