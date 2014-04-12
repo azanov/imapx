@@ -4,6 +4,7 @@ using System.Globalization;
 using ImapX.EncodingHelpers;
 using System.Net.Mime;
 using System.Text;
+using ImapX.Extensions;
 
 namespace ImapX.Parsing
 {
@@ -57,29 +58,7 @@ namespace ImapX.Parsing
 
         public static DateTime? ParseDate(string value)
         {
-            if (string.IsNullOrEmpty(value)) return null;
-
-            var num = value.IndexOf(':');
-
-            if (num != -1)
-            {
-                var num2 = value.IndexOfAny(new[] { ' ', '\t' }, num);
-                if (num2 == -1)
-                    return null;
-                value = value.Substring(0, num2);
-            }
-
-            value = value.Replace('-', ' ');
-
-            DateTime dateTime;
-            if (
-                !DateTime.TryParseExact(value, ValidDateTimeFormats, DateTimeFormatInfo.InvariantInfo,
-                    DateTimeStyles.AllowWhiteSpaces, out dateTime))
-                return null;
-
-
-
-            return dateTime;
+            return DateTimeExtensions.ParseDate(value);
         }
 
         public static ContentType ParseContentType(string value)
