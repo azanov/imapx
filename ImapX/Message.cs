@@ -597,11 +597,11 @@ namespace ImapX
         /// </summary>
         /// <param name="folder">The folder where the current message should be  moved to</param>
         /// <returns><code>true</code> if the message could be moved</returns>
-        public bool MoveTo(Folder folder)
+        public bool MoveTo(Folder folder, bool downloadCopy = false)
         {
             if (folder == null)
                 throw new ArgumentNullException("folder");
-            return CopyTo(folder) && Remove();
+            return CopyTo(folder, downloadCopy) && Remove();
         }
 
         /// <summary>
