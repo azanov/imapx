@@ -26,7 +26,7 @@ namespace ImapX.Parsing
         public static readonly Regex SearchRex = new Regex(@"\* SEARCH ([\d\s]+)");
 
         public static readonly Regex HeaderRex = new Regex(@"BODY\[HEADER(\.FIELDS.*?)?\] \{\d+\}$");
-        public static readonly Regex HeaderParseRex = new Regex(@"^(\w.{1,}?):[\s]?(.+)");
+        public static readonly Regex HeaderParseRex = new Regex(@"^(\w.{1,}?):[\s]?(.{0,})");
 
         public static readonly Regex BodyStructRex = new Regex(@"BODYSTRUCTURE (\(.+\))");
         public static readonly Regex SizeRex = new Regex(@"RFC822.SIZE (\d+)");
