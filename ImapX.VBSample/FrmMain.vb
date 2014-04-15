@@ -4,6 +4,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Linq
 Imports System.ComponentModel
+Imports System.Web
 
 Public Class FrmMain
 
@@ -239,8 +240,10 @@ Public Class FrmMain
         If e.Result Then
             Dim body As String = If(Me._selectedMessage.Body.HasHtml, Me._selectedMessage.Body.Html, Me._selectedMessage.Body.Text)
             Me.wbrMain.Document.OpenNew(True)
-            Me.wbrMain.Document.Write(If(Me._selectedMessage.Body.HasHtml, body, body.Replace(Environment.NewLine, "<br />")))
-            Me.wbrMain.Document.Body.SetAttribute("scroll", "auto")
+            Me.wbrMain.Document.Write(If(Me._selectedMessage.Body.HasHtml, body, HttpUtility.HtmlEncode(body).Replace(Environment.NewLine, "<br />")))
+            If Not wbrMain.Document.Body Is Nothing Then
+                Me.wbrMain.Document.Body.SetAttribute("scroll", "auto")
+            End If
             Me.pnlDownloadingBody.Hide()
             Me.pnlView.Show()
             If ((Not Me._selectedMessage.Labels Is Nothing) AndAlso Enumerable.Any(Of String)(Me._selectedMessage.Labels)) Then
@@ -439,7 +442,7 @@ Public Class FrmMain
     End Function
 
     Private Sub FrmMain_Load(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.Load
-        
+
     End Sub
 
     Private Sub FrmMainOrLsvMails_SizeChanged(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.SizeChanged, lsvMessages.SizeChanged
@@ -458,7 +461,7 @@ Public Class FrmMain
             args = New ServerCallCompletedEventArgs(False, ex, Nothing)
             MyBase.Invoke(New EventHandler(Of ServerCallCompletedEventArgs)(AddressOf Me.GetMailsCompleted), New Object() {My.MyApplication.ImapClient, args})
         End Try
-End Sub
+    End Sub
 
     Private Sub GetMailsCompleted(ByVal sender As Object, ByVal e As ServerCallCompletedEventArgs)
         If e.Result Then

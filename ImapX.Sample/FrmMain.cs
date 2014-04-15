@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using ImapX.Constants;
 using ImapX.Enums;
 using ImapX.Sample.Native;
+using System.Web;
 
 namespace ImapX.Sample
 {
@@ -565,8 +566,9 @@ namespace ImapX.Sample
             {
                 string body = _selectedMessage.Body.HasHtml ? _selectedMessage.Body.Html : _selectedMessage.Body.Text;
                 wbrMain.Document.OpenNew(true);
-                wbrMain.Document.Write(_selectedMessage.Body.HasHtml ? body : body.Replace(Environment.NewLine, "<br />"));
-                wbrMain.Document.Body.SetAttribute("scroll", "auto");
+                wbrMain.Document.Write(_selectedMessage.Body.HasHtml ? body : HttpUtility.HtmlEncode(body).Replace(Environment.NewLine, "<br />"));
+                if (wbrMain.Document.Body != null)
+                    wbrMain.Document.Body.SetAttribute("scroll", "auto");
                 pnlDownloadingBody.Hide();
                 pnlView.Show();
                 if (_selectedMessage.Labels != null && _selectedMessage.Labels.Any())

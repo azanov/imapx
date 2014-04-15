@@ -39,6 +39,9 @@ namespace ImapX.Sample
             try
             {
                 HtmlElement element = wbrMain.Document.GetElementById("code");
+
+                if (element == null) return;
+
                 _googleOAuth2Key = element.GetAttribute("value");
                 wbrMain.Hide();
                 lblWait.Text = "Connecting...";

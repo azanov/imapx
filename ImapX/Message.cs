@@ -541,13 +541,12 @@ namespace ImapX
                     fetchParts.Append("X-GM-LABELS ");
             }
 
-
             IList<string> data = new List<string>();
-            if (
+            if (fetchParts.Length > 0 &&
                 !_client.SendAndReceive(string.Format(ImapCommands.Fetch, UId, fetchParts.ToString().Trim()), ref data))
                 return false;
-
-            NormalizeAndProcessFetchResult(data);
+            else
+                NormalizeAndProcessFetchResult(data);
 
             BindHeadersToFields();
 

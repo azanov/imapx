@@ -164,6 +164,10 @@ Public Class FrmConnect
 
     Private Sub wbrMain_DocumentCompleted(ByVal sender As Object, ByVal e As WebBrowserDocumentCompletedEventArgs) Handles wbrMain.DocumentCompleted
         Try
+            Dim codeField = Me.wbrMain.Document.GetElementById("code")
+
+            If codeField Is Nothing Then Return
+
             Me._googleOAuth2Key = Me.wbrMain.Document.GetElementById("code").GetAttribute("value")
             Me.wbrMain.Hide()
             Me.lblWait.Text = "Connecting..."
