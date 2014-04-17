@@ -26,18 +26,18 @@ namespace ImapX
     {
         public const int DefaultImapPort = 143;
         public const int DefaultImapSslPort = 993;
-        private static readonly Regex NewLineRex = new Regex(@"\r\n");
+        protected static readonly Regex NewLineRex = new Regex(@"\r\n");
 
-        private TcpClient _client;
-        private long _counter;
+        protected TcpClient _client;
+        protected long _counter;
 
-        private string _host;
-        private Stream _ioStream;
-        private int _port = DefaultImapPort;
+        protected string _host;
+        protected Stream _ioStream;
+        protected int _port = DefaultImapPort;
 
-        private SslProtocols _sslProtocol = SslProtocols.None;
-        private StreamReader _streamReader;
-        private bool _validateServerCertificate = true;
+        protected SslProtocols _sslProtocol = SslProtocols.None;
+        protected StreamReader _streamReader;
+        protected bool _validateServerCertificate = true;
 
         /// <summary>
         ///     Gets whether the client is authenticated
@@ -390,6 +390,7 @@ namespace ImapX
                 }
             }
         }
+
 
     }
 }

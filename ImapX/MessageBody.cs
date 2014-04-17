@@ -68,7 +68,7 @@ namespace ImapX
                 if (!_htmlContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)
                     _htmlContent.Download();
 
-                _decodedHtml = BodyDecoder.DecodeMessageContent(_htmlContent);
+                _decodedHtml = _htmlContent.ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable ? _htmlContent.ContentStream : BodyDecoder.DecodeMessageContent(_htmlContent);
 
                 return _decodedHtml ?? string.Empty;
             }
@@ -95,7 +95,7 @@ namespace ImapX
                 if (!_textContent.Downloaded && _client.Behavior.AutoDownloadBodyOnAccess)
                     _textContent.Download();
 
-                _decodedText = BodyDecoder.DecodeMessageContent(_textContent);
+                _decodedText = _textContent.ContentTransferEncoding == ContentTransferEncoding.QuotedPrintable ? _textContent.ContentStream : BodyDecoder.DecodeMessageContent(_textContent);
 
                 return _decodedText ?? string.Empty;
             }
