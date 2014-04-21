@@ -184,51 +184,6 @@ namespace ImapX
 
         }
 
-        //#region Idle support
-
-        //private Folder _idlingFolder;
-        //private IdleState _idleState;
-        //private Thread _idleLoopThread;
-
-        //public bool StartIdling(Folder folder)
-        //{
-
-        //}
-
-        //private void WaitForIdleServerEvents()
-        //{
-        //    lock (_ioStream)
-        //    {
-        //        while (_idleState == IdleState.On)
-        //        {
-        //            if (_streamReader.Peek() == -1)
-        //                throw new Exception();
-
-        //            string tmp = _streamReader.ReadLine();
-
-        //            if (tmp.ToUpper().Contains("OK IDLE"))
-        //                return;
-
-        //            var match = Expressions.IdleResponseRex.Match(tmp);
-
-        //            if (!m.Success)
-        //                continue;
-
-
-        //        }
-        //    }
-        //}
-
-        //public bool PauseIdling()
-        //{
-
-        //}
-
-        //public bool StopIdling()
-        //{
-
-        //}
-
-        //#endregion
+        
     }
 }

@@ -18,6 +18,8 @@ using ImapX.Parsing;
 using SocketEx;
 #else
 using System.Net.Security;
+using ImapX.Enums;
+using System.Threading;
 #endif
 
 namespace ImapX
@@ -263,6 +265,8 @@ namespace ImapX
         /// </summary>
         public void Disconnect()
         {
+            //if (_idleState != IdleState.Off)
+            //    PauseIdling();
             CleanUp();
         }
 
@@ -315,6 +319,11 @@ namespace ImapX
         public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
             Encoding encoding = null, bool pushResultToDatadespiteProcessor = false)
         {
+
+
+            //if (_idleState == IdleState.On)
+            //    PauseIdling();
+
             lock (_ioStream)
             {
                 if (_client == null || !_client.Connected)
@@ -343,6 +352,8 @@ namespace ImapX
 
                     if (tmp == null)
                     {
+                        //if (_idleState == IdleState.Paused)
+                        //    StartIdling(_idlingFolder);
                         return false;
                     }
 
@@ -374,14 +385,27 @@ namespace ImapX
                     }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
+                    {
+                        //if (_idleState == IdleState.Paused)
+                        //    StartIdling(_idlingFolder);
+                        
                         return true;
+                    }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
+                    {
+                        //if (_idleState == IdleState.Paused)
+                        //    StartIdling(_idlingFolder);
+                        
                         return true;
+                    }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
                         tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
                     {
+                        //if (_idleState == IdleState.Paused)
+                        //    StartIdling(_idlingFolder);
+                        
                         var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
                         if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
                             throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
@@ -391,6 +415,132 @@ namespace ImapX
             }
         }
 
+        //#region Idle support
 
+        //private Folder _idlingFolder;
+        //private IdleState _idleState;
+        //private Thread _idleLoopThread;
+        //private long _lastIdleUId;
+
+        //public void StartIdling(Folder folder)
+        //{
+        //    switch (_idleState)
+        //    { 
+        //        case IdleState.Off:
+        //            _idlingFolder = folder;
+        //            folder.Select();
+        //            if (folder.UidNext == 0)
+        //                folder.Status(new[] { FolderStatusFields.UIdNext });
+        //            _lastIdleUId = folder.UidNext;
+        //            break;
+        //        case IdleState.On:
+        //            if (_idlingFolder != folder)
+        //            {
+        //                StopIdling();
+        //                StartIdling(folder);
+        //            }
+        //            return;
+
+        //        case IdleState.Paused:
+
+        //            _idlingFolder.Select();
+        //            if (folder.UidNext == 0)
+        //                folder.Status(new[] { FolderStatusFields.UIdNext });
+
+        //            break;
+        //    }
+
+        //    lock (_ioStream)
+        //    {
+        //        const string tmpl = "IMAPX{0} {1}";
+        //        _counter++;
+        //        string text = string.Format(tmpl, _counter, "IDLE") + "\r\n";
+        //        byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+        //        if (IsDebug)
+        //            Debug.WriteLine(text);
+
+        //        _ioStream.Write(bytes, 0, bytes.Length);
+        //        string line = "";
+        //        if (_ioStream.ReadByte() != '+')
+        //            throw new Exception();
+        //        else
+        //            line = _streamReader.ReadLine();
+        //    }
+
+        //    _idleState = IdleState.On;
+
+        //    _idleLoopThread = new Thread(WaitForIdleServerEvents) { IsBackground = true };
+        //    _idleLoopThread.Start();
+
+        //}
+
+        //private void WaitForIdleServerEvents()
+        //{
+           
+        //        while (_idleState == IdleState.On)
+        //        {
+                   
+        //                if (_ioStream.ReadByte() != -1)
+        //                {
+
+        //                    string tmp = _streamReader.ReadLine();
+
+        //                    if (tmp == null)
+        //                        continue;
+
+        //                    if (tmp.ToUpper().Contains("OK IDLE"))
+        //                        return;
+
+        //                    var match = Expressions.IdleResponseRex.Match(tmp);
+
+        //                    if (!match.Success)
+        //                        continue;
+
+        //                    if (match.Groups[2].Value == "EXISTS")
+        //                    {
+        //                        _idlingFolder.Status(new[] { FolderStatusFields.UIdNext });
+
+        //                        if (_lastIdleUId != _idlingFolder.UidNext)
+        //                        {
+        //                            var msgs = _idlingFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, _idlingFolder.UidNext));
+        //                            _lastIdleUId = _idlingFolder.UidNext;
+        //                        }
+        //                    }
+        //                }
+                    
+        //            //Thread.Sleep(5000);
+        //        }
+           
+        //}
+
+        //public void PauseIdling()
+        //{
+        //    if (_idleState != IdleState.On)
+        //        return;
+        //    StopIdling();
+        //    _idleState = IdleState.Paused;
+        //}
+
+        //public void StopIdling()
+        //{
+        //    if (_idleState == IdleState.Off)
+        //        return;
+        //    IList<string> data = new List<string>();
+            
+        //        const string tmpl = "IMAPX{0} {1}";
+        //        _counter++;
+        //        string text = "DONE" + "\r\n";
+        //        byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+        //        if (IsDebug)
+        //            Debug.WriteLine(text);
+
+        //        _ioStream.Write(bytes, 0, bytes.Length);
+        //        _idleLoopThread.Join();
+
+        //        _idleState = IdleState.Off;
+        //    _idleLoopThread = null;
+        //}
+
+        //#endregion
     }
 }
