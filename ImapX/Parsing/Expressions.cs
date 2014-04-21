@@ -33,7 +33,7 @@ namespace ImapX.Parsing
         public static readonly Regex FlagsRex = new Regex(@"FLAGS \((.*?)\)");
         public static readonly Regex InternalDateRex = new Regex("INTERNALDATE \"(.+?)\"");
 
-        public static readonly Regex IdleResponseRex = new Regex(@"\* (\d{1,}) (\w+)");
+        public static readonly Regex IdleResponseRex = new Regex(@"\[*]? (\d{1,}) (\w+)");
 
         #region Encoding/Decoding
 

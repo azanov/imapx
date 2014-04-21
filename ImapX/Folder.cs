@@ -344,7 +344,7 @@ namespace ImapX
         public bool Status(string[] statusFields)
         {
             IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Status, _path), ref data))
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Status, _path, string.Join(" ", statusFields)), ref data))
                 return false;
 
             var result = data.FirstOrDefault(_ => _.ToUpper().StartsWith("* STATUS"));
