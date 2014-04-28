@@ -97,6 +97,7 @@
     <Compile Include="GMailMessageThread.cs" />
     <Compile Include="Attachment.cs" />
     <Compile Include="Folder.cs" />
+    <Compile Include="IdleEventArgs.cs" />
     <Compile Include="ImapBase.cs" />
     <Compile Include="ImapClient.cs" />
     <Compile Include="MailAddress.cs" />

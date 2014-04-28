@@ -389,6 +389,7 @@ namespace ImapX
         /// <returns></returns>
         public bool Select()
         {
+
             if (!Selectable)
                 throw new InvalidOperationException("A non-selectable folder cannot be selected.");
 
@@ -549,6 +550,14 @@ namespace ImapX
             Examine();
 
             return true;
+        }
+
+        public event EventHandler<IdleEventArgs> OnNewMessagesArrived;
+
+        internal void RaiseNewMessagesArrived(IdleEventArgs args)
+        {
+            if (OnNewMessagesArrived == null) return;
+            OnNewMessagesArrived(this, args);
         }
     }
 }
