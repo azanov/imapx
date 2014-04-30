@@ -136,6 +136,7 @@
     <Compile Include="Enums\BodyType.cs" />
     <Compile Include="Enums\ContentTransferEncoding.cs" />
     <Compile Include="Enums\FolderTreeBrowseMode.cs" />
+    <Compile Include="Enums\IdleState.cs" />
     <Compile Include="Enums\MessageFetchMode.cs" />
     <Compile Include="Enums\MessageFetchState.cs" />
     <Compile Include="Enums\MessageImportance.cs" />
@@ -154,6 +155,7 @@
     <Compile Include="Flags\MessageFlags.cs" />
     <Compile Include="Folder.cs" />
     <Compile Include="GMailMessageThread.cs" />
+    <Compile Include="IdleEventArgs.cs" />
     <Compile Include="ImapBase.cs" />
     <Compile Include="ImapClient.cs" />
     <Compile Include="MailAddress.cs" />
