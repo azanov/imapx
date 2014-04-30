@@ -89,6 +89,8 @@ namespace ImapX
             }
         }
 
+        internal Folder SelectedFolder { get; set; }
+
         /// <summary>
         ///     The SSL protocol used. <code>SslProtocols.None</code> by default
         /// </summary>
@@ -420,35 +422,41 @@ namespace ImapX
 
         private Folder _idlingFolder;
         private IdleState _idleState;
+        internal IdleState IdleState
+        {
+            get
+            {
+                return _idleState;
+            }
+        }
         private Thread _idleLoopThread;
         private Thread _idleProcessThread;
         private long _lastIdleUId;
         private Queue<string> _idleEvents = new Queue<string>();
 
-        public void StartIdling(Folder folder)
+        public bool StartIdling()
         {
+            if(SelectedFolder == null)
+                return false;
+
             switch (_idleState)
             {
                 case IdleState.Off:
-                    _idlingFolder = folder;
-                    folder.Select();
-                    if (folder.UidNext == 0)
-                        folder.Status(new[] { FolderStatusFields.UIdNext });
-                    _lastIdleUId = folder.UidNext;
+                    
+                    if (SelectedFolder.UidNext == 0)
+                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                    _lastIdleUId = SelectedFolder.UidNext;
                     break;
                 case IdleState.On:
-                    if (_idlingFolder != folder)
-                    {
-                        StopIdling();
-                        StartIdling(folder);
-                    }
                     return;
 
                 case IdleState.Paused:
-                    _idleState = IdleState.Off;
-                    _idlingFolder.Select();
-                    if (folder.UidNext == 0)
-                        folder.Status(new[] { FolderStatusFields.UIdNext });
+
+                    if (SelectedFolder.UidNext == 0)
+                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+
+                    if (_lastIdleUId != _idlingFolder.UidNext)
+                        _idleEvents.Enqueue("* " + (_idlingFolder.UidNext - _lastIdleUId) + " EXISTS");
 
                     break;
             }
@@ -465,7 +473,7 @@ namespace ImapX
                 _ioStream.Write(bytes, 0, bytes.Length);
                 string line = "";
                 if (_ioStream.ReadByte() != '+')
-                    throw new Exception();
+                    return false;
                 else
                     line = _streamReader.ReadLine();
             }
@@ -477,6 +485,8 @@ namespace ImapX
 
             _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
             _idleProcessThread.Start();
+
+            return true;
 
         }
 
@@ -571,12 +581,12 @@ namespace ImapX
                 Debug.WriteLine(text);
 
             _ioStream.Write(bytes, 0, bytes.Length);
-           
 
+            _idleProcessThread.Join();
             _idleLoopThread.Join();
 
-            
-            _idleLoopThread = null;
+            _idlingFolder = null;
+            _idleLoopThread = _idleProcessThread = null;
         }
 
         public event EventHandler<IdleEventArgs> OnNewMessagesArrived;
