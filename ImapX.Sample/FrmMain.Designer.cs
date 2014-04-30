@@ -104,6 +104,11 @@
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
+            this.panel9 = new System.Windows.Forms.Panel();
+            this.lblIdle = new System.Windows.Forms.Label();
+            this.panel10 = new System.Windows.Forms.Panel();
+            this.panel11 = new System.Windows.Forms.Panel();
+            this.panel12 = new System.Windows.Forms.Panel();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.pnlWrap.SuspendLayout();
@@ -123,17 +128,22 @@
             this.pnlInfo.SuspendLayout();
             this.pnlEmbeddedResources.SuspendLayout();
             this.mnuFolder.SuspendLayout();
+            this.panel9.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlFolders
             // 
             this.pnlFolders.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(241)))), ((int)(((byte)(241)))));
             this.pnlFolders.Controls.Add(this.trwFolders);
+            this.pnlFolders.Controls.Add(this.panel12);
+            this.pnlFolders.Controls.Add(this.panel11);
+            this.pnlFolders.Controls.Add(this.panel10);
             this.pnlFolders.Controls.Add(this.panel1);
             this.pnlFolders.Controls.Add(this.panel3);
             this.pnlFolders.Controls.Add(this.panel2);
             this.pnlFolders.Controls.Add(this.pnlFavorites);
             this.pnlFolders.Controls.Add(this.lblFavorites);
+            this.pnlFolders.Controls.Add(this.panel9);
             this.pnlFolders.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlFolders.Location = new System.Drawing.Point(0, 0);
             this.pnlFolders.Name = "pnlFolders";
@@ -152,7 +162,7 @@
             this.trwFolders.Location = new System.Drawing.Point(10, 327);
             this.trwFolders.Name = "trwFolders";
             this.trwFolders.ShowRootLines = false;
-            this.trwFolders.Size = new System.Drawing.Size(210, 230);
+            this.trwFolders.Size = new System.Drawing.Size(210, 156);
             this.trwFolders.TabIndex = 17;
             this.trwFolders.BeforeSelect += new System.Windows.Forms.TreeViewCancelEventHandler(this.trwFolders_BeforeSelect);
             this.trwFolders.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.trwFolders_AfterSelect);
@@ -940,6 +950,53 @@
             this.sfdSaveAttachment.Filter = "All files|*.*";
             this.sfdSaveAttachment.Title = "Save attachment";
             // 
+            // panel9
+            // 
+            this.panel9.Controls.Add(this.lblIdle);
+            this.panel9.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel9.Location = new System.Drawing.Point(10, 520);
+            this.panel9.Name = "panel9";
+            this.panel9.Padding = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.panel9.Size = new System.Drawing.Size(210, 37);
+            this.panel9.TabIndex = 19;
+            // 
+            // lblIdle
+            // 
+            this.lblIdle.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblIdle.Location = new System.Drawing.Point(0, 0);
+            this.lblIdle.Name = "lblIdle";
+            this.lblIdle.Padding = new System.Windows.Forms.Padding(5);
+            this.lblIdle.Size = new System.Drawing.Size(210, 27);
+            this.lblIdle.TabIndex = 0;
+            this.lblIdle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panel10
+            // 
+            this.panel10.BackColor = System.Drawing.Color.Transparent;
+            this.panel10.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel10.Location = new System.Drawing.Point(10, 502);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(210, 18);
+            this.panel10.TabIndex = 20;
+            // 
+            // panel11
+            // 
+            this.panel11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(171)))), ((int)(((byte)(171)))), ((int)(((byte)(171)))));
+            this.panel11.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel11.Location = new System.Drawing.Point(10, 501);
+            this.panel11.Name = "panel11";
+            this.panel11.Size = new System.Drawing.Size(210, 1);
+            this.panel11.TabIndex = 21;
+            // 
+            // panel12
+            // 
+            this.panel12.BackColor = System.Drawing.Color.Transparent;
+            this.panel12.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel12.Location = new System.Drawing.Point(10, 483);
+            this.panel12.Name = "panel12";
+            this.panel12.Size = new System.Drawing.Size(210, 18);
+            this.panel12.TabIndex = 22;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -979,6 +1036,7 @@
             this.pnlEmbeddedResources.ResumeLayout(false);
             this.pnlEmbeddedResources.PerformLayout();
             this.mnuFolder.ResumeLayout(false);
+            this.panel9.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1059,5 +1117,10 @@
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.SaveFileDialog sfdSaveAttachment;
         private System.Windows.Forms.Label lblLabels;
+        private System.Windows.Forms.Panel panel9;
+        private System.Windows.Forms.Label lblIdle;
+        private System.Windows.Forms.Panel panel12;
+        private System.Windows.Forms.Panel panel11;
+        private System.Windows.Forms.Panel panel10;
     }
 }

@@ -190,6 +190,45 @@ namespace ImapX.Sample
                 MessageHeader.ContentType,
                 MessageHeader.Importance
             };
+            Program.ImapClient.OnIdleStarted += ImapClient_OnIdleStarted;
+            Program.ImapClient.OnIdlePaused += ImapClient_OnIdlePaused;
+            Program.ImapClient.OnIdleStopped += ImapClient_OnIdleStopped;
+        }
+
+        void ImapClient_OnIdleStopped(object sender, IdleEventArgs e)
+        {
+            if (InvokeRequired)
+                Invoke(new EventHandler<IdleEventArgs>(ImapClient_OnIdleStopped), new[] {sender, e});
+            else
+            {
+                lblIdle.Text = "IDLE: Stopped";
+                lblIdle.BackColor = Color.Gray;
+                lblIdle.ForeColor = Color.GhostWhite;
+            }
+        }
+
+        void ImapClient_OnIdlePaused(object sender, IdleEventArgs e)
+        {
+            if (InvokeRequired)
+                Invoke(new EventHandler<IdleEventArgs>(ImapClient_OnIdlePaused), new[] { sender, e });
+            else
+            {
+                lblIdle.Text = "IDLE: Paused";
+                lblIdle.BackColor = Color.Orange;
+                lblIdle.ForeColor = Color.Black;
+            }
+        }
+
+        void ImapClient_OnIdleStarted(object sender, IdleEventArgs e)
+        {
+            if (InvokeRequired)
+                Invoke(new EventHandler<IdleEventArgs>(ImapClient_OnIdleStarted), new[] { sender, e });
+            else
+            {
+                lblIdle.Text = "IDLE: Started";
+                lblIdle.BackColor = Color.Green;
+                lblIdle.ForeColor = Color.White;
+            }
         }
 
         #endregion
@@ -410,7 +449,7 @@ namespace ImapX.Sample
             try
             {
                 _messages = _selectedFolder.Search().OrderByDescending(_ => _.Date).ToList();
-                //Program.ImapClient.StartIdling(_selectedFolder);
+                _selectedFolder.StartIdling();
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(GetMailsCompleted), Program.ImapClient, args);
             }

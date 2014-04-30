@@ -38,6 +38,11 @@ namespace ImapX
             GMailThreads = new GMailThreadCollection();
         }
 
+        internal ImapClient Client
+        {
+            get { return _client; }
+        }
+
         /// <summary>
         ///     The number of messages in the mailbox.
         /// </summary>
@@ -396,8 +401,8 @@ namespace ImapX
             if (_client.SelectedFolder == this)
                 return true;
 
-            //if (_client.IdleState == IdleState.On)
-            //    _client.StopIdling();
+            if (_client.IdleState == IdleState.On)
+                _client.StopIdling();
 
             IList<string> data = new List<string>();
             if (!_client.SendAndReceive(string.Format(ImapCommands.Select, _path), ref data))
@@ -410,20 +415,20 @@ namespace ImapX
             return true;
         }
 
-        //public bool StartIdling()
-        //{
-        //    return _client.Capabilities.Idle && Select() && _client.StartIdling();
-        //}
+        public bool StartIdling()
+        {
+            return _client.Capabilities.Idle && Select() && _client.StartIdling();
+        }
 
-        //public void PauseIdling()
-        //{
-        //    _client.PauseIdling();
-        //}
+        public void PauseIdling()
+        {
+            _client.PauseIdling();
+        }
 
-        //public void StopIdling()
-        //{
-        //    _client.StopIdling(); 
-        //}
+        public void StopIdling()
+        {
+            _client.StopIdling();
+        }
 
         internal Message[] Fetch(IEnumerable<long> uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
         {
