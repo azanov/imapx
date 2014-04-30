@@ -410,7 +410,7 @@ namespace ImapX.Sample
             try
             {
                 _messages = _selectedFolder.Search().OrderByDescending(_ => _.Date).ToList();
-                Program.ImapClient.StartIdling(_selectedFolder);
+                //Program.ImapClient.StartIdling(_selectedFolder);
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(GetMailsCompleted), Program.ImapClient, args);
             }
