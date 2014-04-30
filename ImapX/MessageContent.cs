@@ -81,7 +81,7 @@ namespace ImapX
                     }
                     else if (string.IsNullOrWhiteSpace(data))
                     {
-                        _contentBuilder.Append("\r\n");
+                        _contentBuilder.Append("=\r\n");
                     }
                     else
                     {

@@ -283,6 +283,8 @@ namespace ImapX
             if (!IsConnected)
                 return;
 
+            StopIdling();
+
             if (_streamReader != null)
                 _streamReader.Dispose();
 
@@ -324,8 +326,8 @@ namespace ImapX
         {
 
 
-            //if (_idleState == IdleState.On)
-            //    PauseIdling();
+            if (_idleState == IdleState.On)
+                PauseIdling();
 
             lock (_lock)
             {
@@ -355,8 +357,8 @@ namespace ImapX
 
                     if (tmp == null)
                     {
-                        //if (_idleState == IdleState.Paused)
-                        //    StartIdling(_idlingFolder);
+                        if (_idleState == IdleState.Paused)
+                            StartIdling();
                         return false;
                     }
 
@@ -389,16 +391,16 @@ namespace ImapX
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
                     {
-                        //if (_idleState == IdleState.Paused)
-                        //    StartIdling(_idlingFolder);
+                        if (_idleState == IdleState.Paused)
+                            StartIdling();
                         
                         return true;
                     }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
                     {
-                        //if (_idleState == IdleState.Paused)
-                        //    StartIdling(_idlingFolder);
+                        if (_idleState == IdleState.Paused)
+                            StartIdling();
                         
                         return true;
                     }
@@ -406,8 +408,8 @@ namespace ImapX
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
                         tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
                     {
-                        //if (_idleState == IdleState.Paused)
-                        //   StartIdling(_idlingFolder);
+                        if (_idleState == IdleState.Paused)
+                            StartIdling();
                         
                         var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
                         if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
@@ -418,179 +420,201 @@ namespace ImapX
             }
         }
 
-        //#region Idle support
+        #region Idle support
 
-        //private Folder _idlingFolder;
-        //private IdleState _idleState;
-        //internal IdleState IdleState
-        //{
-        //    get
-        //    {
-        //        return _idleState;
-        //    }
-        //}
-        //private Thread _idleLoopThread;
-        //private Thread _idleProcessThread;
-        //private long _lastIdleUId;
-        //private Queue<string> _idleEvents = new Queue<string>();
+        private IdleState _idleState;
+        internal IdleState IdleState
+        {
+            get
+            {
+                return _idleState;
+            }
+        }
+        private Thread _idleLoopThread;
+        private Thread _idleProcessThread;
+        private long _lastIdleUId;
+        private readonly Queue<string> _idleEvents = new Queue<string>();
 
-        //public bool StartIdling()
-        //{
-        //    if(SelectedFolder == null)
-        //        return false;
+        internal bool StartIdling()
+        {
+            if (SelectedFolder == null)
+                return false;
 
-        //    switch (_idleState)
-        //    {
-        //        case IdleState.Off:
-                    
-        //            if (SelectedFolder.UidNext == 0)
-        //                SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
-        //            _lastIdleUId = SelectedFolder.UidNext;
-        //            break;
-        //        case IdleState.On:
-        //            return;
+            switch (_idleState)
+            {
+                case IdleState.Off:
 
-        //        case IdleState.Paused:
+                    if (SelectedFolder.UidNext == 0)
+                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                    _lastIdleUId = SelectedFolder.UidNext;
+                    break;
+                case IdleState.On:
+                    return true;
 
-        //            if (SelectedFolder.UidNext == 0)
-        //                SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                case IdleState.Paused:
 
-        //            if (_lastIdleUId != _idlingFolder.UidNext)
-        //                _idleEvents.Enqueue("* " + (_idlingFolder.UidNext - _lastIdleUId) + " EXISTS");
+                    if (SelectedFolder.UidNext == 0)
+                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
 
-        //            break;
-        //    }
+                    if (_lastIdleUId != SelectedFolder.UidNext)
+                        _idleEvents.Enqueue("* " + (SelectedFolder.UidNext - _lastIdleUId) + " EXISTS");
 
-        //    lock (_lock)
-        //    {
-        //        const string tmpl = "IMAPX{0} {1}";
-        //        _counter++;
-        //        string text = string.Format(tmpl, _counter, "IDLE") + "\r\n";
-        //        byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-        //        if (IsDebug)
-        //            Debug.WriteLine(text);
+                    break;
+            }
 
-        //        _ioStream.Write(bytes, 0, bytes.Length);
-        //        string line = "";
-        //        if (_ioStream.ReadByte() != '+')
-        //            return false;
-        //        else
-        //            line = _streamReader.ReadLine();
-        //    }
+            lock (_lock)
+            {
+                const string tmpl = "IMAPX{0} {1}";
+                _counter++;
+                string text = string.Format(tmpl, _counter, "IDLE") + "\r\n";
+                byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+                if (IsDebug)
+                    Debug.WriteLine(text);
 
-        //    _idleState = IdleState.On;
+                _ioStream.Write(bytes, 0, bytes.Length);
+                string line = "";
+                if (_ioStream.ReadByte() != '+')
+                    return false;
+                else
+                    line = _streamReader.ReadLine();
+            }
 
-        //    _idleLoopThread = new Thread(WaitForIdleServerEvents) { IsBackground = true };
-        //    _idleLoopThread.Start();
+            _idleState = IdleState.On;
 
-        //    _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
-        //    _idleProcessThread.Start();
+            _idleLoopThread = new Thread(WaitForIdleServerEvents) { IsBackground = true };
+            _idleLoopThread.Start();
 
-        //    return true;
+            _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
+            _idleProcessThread.Start();
 
-        //}
+            if (OnIdleStarted != null)
+                OnIdleStarted(SelectedFolder, new IdleEventArgs
+                {
+                    Client = SelectedFolder.Client,
+                    Folder = SelectedFolder
+                });
 
-        //private void ProcessIdleServerEvents()
-        //{
-        //    while (true)
-        //    {
-        //        if (_idleEvents.Count == 0)
-        //        {
-        //            if (_idleState == IdleState.On)
-        //                continue;
-        //            else
-        //                return;
-        //        }
-        //        var tmp = _idleEvents.Dequeue();
-        //        var match = Expressions.IdleResponseRex.Match(tmp);
+            return true;
 
-        //        if (!match.Success)
-        //            continue;
+        }
 
-        //        if (match.Groups[2].Value == "EXISTS")
-        //        {
-        //            _idlingFolder.Status(new[] { FolderStatusFields.UIdNext });
+        private void ProcessIdleServerEvents()
+        {
+            while (true)
+            {
+                if (_idleEvents.Count == 0)
+                {
+                    if (_idleState == IdleState.On)
+                        continue;
+                    else
+                        return;
+                }
+                var tmp = _idleEvents.Dequeue();
+                var match = Expressions.IdleResponseRex.Match(tmp);
 
-        //            if (_lastIdleUId != _idlingFolder.UidNext)
-        //            {
-        //                var msgs = _idlingFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, _idlingFolder.UidNext));
-        //                var args = new IdleEventArgs
-        //                {
-        //                    Folder = _idlingFolder,
-        //                    Messages = msgs
-        //                };
-        //                if (OnNewMessagesArrived != null)
-        //                    OnNewMessagesArrived(_idlingFolder, args);
-        //                _idlingFolder.RaiseNewMessagesArrived(args);
-        //                _lastIdleUId = _idlingFolder.UidNext;
-        //            }
-        //        }
+                if (!match.Success)
+                    continue;
 
-        //    }
-        //}
+                if (match.Groups[2].Value == "EXISTS")
+                {
+                    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
 
-        //private void WaitForIdleServerEvents()
-        //{
+                    if (_lastIdleUId != SelectedFolder.UidNext)
+                    {
+                        var msgs = SelectedFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, SelectedFolder.UidNext));
+                        var args = new IdleEventArgs
+                        {
+                            Folder = SelectedFolder,
+                            Messages = msgs
+                        };
+                        if (OnNewMessagesArrived != null)
+                            OnNewMessagesArrived(SelectedFolder, args);
+                        SelectedFolder.RaiseNewMessagesArrived(args);
+                        _lastIdleUId = SelectedFolder.UidNext;
+                    }
+                }
 
-        //    while (_idleState == IdleState.On)
-        //    {
+            }
+        }
 
-        //        if (_ioStream.ReadByte() != -1)
-        //        {
+        private void WaitForIdleServerEvents()
+        {
 
-        //            string tmp = _streamReader.ReadLine();
+            while (_idleState == IdleState.On)
+            {
 
-        //            if (tmp == null)
-        //                continue;
+                if (_ioStream.ReadByte() != -1)
+                {
 
-        //            if (tmp.ToUpper().Contains("OK IDLE"))
-        //                return;
+                    string tmp = _streamReader.ReadLine();
 
-        //            _idleEvents.Enqueue(tmp);
+                    if (tmp == null)
+                        continue;
 
-                    
-        //        }
+                    if (IsDebug)
+                        Debug.WriteLine(tmp);
 
-        //        //Thread.Sleep(5000);
-        //    }
+                    if (tmp.ToUpper().Contains("OK IDLE"))
+                    {
+                        _idleState = IdleState.Off;
+                        return;
+                    }
+                    _idleEvents.Enqueue(tmp);
 
-        //}
 
-        //public void PauseIdling()
-        //{
-        //    if (_idleState != IdleState.On)
-        //        return;
-        //    StopIdling();
-        //    _idleState = IdleState.Paused;
-        //}
+                }
 
-        //public void StopIdling()
-        //{
-        //    if (_idleState == IdleState.Off)
-        //        return;
+                //Thread.Sleep(5000);
+            }
 
-            
+        }
 
-        //    IList<string> data = new List<string>();
+        internal void PauseIdling()
+        {
+            if (_idleState != IdleState.On)
+                return;
+            StopIdling(false);
+            _idleState = IdleState.Paused;
 
-        //    const string tmpl = "IMAPX{0} {1}";
-        //    _counter++;
-        //    string text = "DONE" + "\r\n";
-        //    byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-        //    if (IsDebug)
-        //        Debug.WriteLine(text);
+            if (OnIdlePaused != null)
+                OnIdlePaused(SelectedFolder, new IdleEventArgs
+                {
+                    Client = SelectedFolder.Client,
+                    Folder = SelectedFolder
+                });
+        }
 
-        //    _ioStream.Write(bytes, 0, bytes.Length);
+        internal void StopIdling(bool raiseEvent = true)
+        {
+            if (_idleState == IdleState.Off)
+                return;
 
-        //    _idleProcessThread.Join();
-        //    _idleLoopThread.Join();
+            _counter++;
+            const string text = "DONE" + "\r\n";
+            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
+            if (IsDebug)
+                Debug.WriteLine(text);
 
-        //    _idlingFolder = null;
-        //    _idleLoopThread = _idleProcessThread = null;
-        //}
+            _ioStream.Write(bytes, 0, bytes.Length);
 
-        //public event EventHandler<IdleEventArgs> OnNewMessagesArrived;
+            _idleProcessThread.Join();
+            _idleLoopThread.Join();
 
-        //#endregion
+            _idleLoopThread = _idleProcessThread = null;
+
+            if (raiseEvent && OnIdleStopped != null)
+                OnIdleStopped(SelectedFolder, new IdleEventArgs
+                {
+                    Client = SelectedFolder.Client,
+                    Folder = SelectedFolder
+                });
+        }
+
+        public event EventHandler<IdleEventArgs> OnNewMessagesArrived;
+        public event EventHandler<IdleEventArgs> OnIdleStarted;
+        public event EventHandler<IdleEventArgs> OnIdlePaused;
+        public event EventHandler<IdleEventArgs> OnIdleStopped;
+
+        #endregion
     }
 }
