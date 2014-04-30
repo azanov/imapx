@@ -72,9 +72,21 @@ namespace ImapX
             switch (ContentTransferEncoding)
             {
                 case ContentTransferEncoding.QuotedPrintable:
-                    // Fix by kirchik
-                    _contentBuilder.Append(data.TrimEnd(new[] { '=' }));
-                    //_contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
+                    // Fix by danbert2000 (if/else if/else statement is new to deal with missing quoted-printable line delimiters)
+                    if (data.EndsWith("="))
+                    {
+                        // Fix by kirchik
+                        //_contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
+                        _contentBuilder.Append(data.TrimEnd('='));
+                    }
+                    else if (string.IsNullOrWhiteSpace(data))
+                    {
+                        _contentBuilder.Append("\r\n");
+                    }
+                    else
+                    {
+                        _contentBuilder.Append(data + " ");
+                    }
                     break;
                 case ContentTransferEncoding.EightBit:
                 case ContentTransferEncoding.SevenBit:
