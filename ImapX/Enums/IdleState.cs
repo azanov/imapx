@@ -11,6 +11,7 @@ namespace ImapX.Enums
     {
         Off = 0,
         On = 1,
-        Paused = 2
+        Paused = 2,
+        Starting = 4
     }
 }

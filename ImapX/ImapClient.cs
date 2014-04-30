@@ -39,8 +39,6 @@ namespace ImapX
         /// </summary>
         public ImapCredentials Credentials { get; set; }
 
-        internal Folder SelectedFolder { get; set; }
-
         /// <summary>
         /// Creates a new IMAP client
         /// </summary>

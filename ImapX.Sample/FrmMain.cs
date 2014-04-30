@@ -290,10 +290,15 @@ namespace ImapX.Sample
                 SelectFolder(folder);
         }
 
+        
+
         private void SelectFolder(Folder folder)
         {
-            _selectedFolder = folder;
+            if (_selectedFolder != null)
+                _selectedFolder.OnNewMessagesArrived -= _selectedFolder_OnNewMessagesArrived;
 
+            _selectedFolder = folder;
+            _selectedFolder.OnNewMessagesArrived += _selectedFolder_OnNewMessagesArrived;
             SetFavoriteSelection(folder);
 
             TreeNode node = trwFolders.Nodes.Find(folder.Path, true).FirstOrDefault();
@@ -321,6 +326,18 @@ namespace ImapX.Sample
             lblFolder.Text = _selectedFolder.Name;
 
             (new Thread(GetMails)).Start();
+        }
+
+        void _selectedFolder_OnNewMessagesArrived(object sender, IdleEventArgs e)
+        {
+            if (InvokeRequired)
+                Invoke(new EventHandler<IdleEventArgs>(_selectedFolder_OnNewMessagesArrived), new[] { sender, e });
+            else
+            {
+                _messages.InsertRange(0, e.Messages);
+                lsvMessages.VirtualListSize = _messages.Count;
+                lsvMessages.Invalidate();
+            }
         }
 
         private void lnkFavorite_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -393,6 +410,7 @@ namespace ImapX.Sample
             try
             {
                 _messages = _selectedFolder.Search().OrderByDescending(_ => _.Date).ToList();
+                Program.ImapClient.StartIdling(_selectedFolder);
                 var args = new ServerCallCompletedEventArgs();
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(GetMailsCompleted), Program.ImapClient, args);
             }
