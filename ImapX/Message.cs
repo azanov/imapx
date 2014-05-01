@@ -307,8 +307,13 @@ namespace ImapX
         private void TryProcessGmLabels(string data)
         {
             // Fix by kirchik
-            var labelsMatches =
-            Expressions.GMailLabelSplitRex.Matches(Expressions.GMailLabelsRex.Match(data).Groups[1].Value);
+
+            var match = Expressions.GMailLabelsRex.Match(data);
+
+            if (match.Success)
+                _downloadProgress = _downloadProgress | MessageFetchMode.GMailLabels;
+
+            var labelsMatches = Expressions.GMailLabelSplitRex.Matches(match.Groups[1].Value);
 
             if (labelsMatches.Count == 0) return;//.Success || labelsMatch.Groups.Count <= 1) return;
             foreach (Match labelsMatch in labelsMatches)
@@ -318,7 +323,7 @@ namespace ImapX
                         .Skip(1)
                         .Select(_ => (_.Value.StartsWith("&") ? ImapUTF7.Decode(_.Value) : _.Value).Replace("\"", "")));
             }
-            _downloadProgress = _downloadProgress | MessageFetchMode.GMailLabels;
+            
 
         }
 

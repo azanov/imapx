@@ -376,6 +376,12 @@ namespace ImapX.Sample
                 _messages.InsertRange(0, e.Messages);
                 lsvMessages.VirtualListSize = _messages.Count;
                 lsvMessages.Invalidate();
+
+                int count = _messages.Count(_ => !_.Seen);
+                trwFolders.SelectedNode.Text = _selectedFolder.Name + (count == 0 ? "" : string.Format(" ({0})", count));
+
+                AutoResizeMessageListViewColumn();
+
             }
         }
 

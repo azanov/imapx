@@ -420,11 +420,6 @@ namespace ImapX
             return _client.Capabilities.Idle && Select() && _client.StartIdling();
         }
 
-        public void PauseIdling()
-        {
-            _client.PauseIdling();
-        }
-
         public void StopIdling()
         {
             _client.StopIdling();
