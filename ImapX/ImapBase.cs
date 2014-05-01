@@ -284,8 +284,9 @@ namespace ImapX
             if (!IsConnected)
                 return;
 
+#if !NETFX_CORE
             StopIdling();
-
+#endif
             if (_streamReader != null)
                 _streamReader.Dispose();
 
@@ -326,10 +327,10 @@ namespace ImapX
             Encoding encoding = null, bool pushResultToDatadespiteProcessor = false)
         {
 
-
+#if !NETFX_CORE
             if (_idleState == IdleState.On)
                 PauseIdling();
-
+#endif
             lock (_lock)
             {
                 if (_client == null || !_client.Connected)
@@ -358,8 +359,10 @@ namespace ImapX
 
                     if (tmp == null)
                     {
+#if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
+#endif
                         return false;
                     }
 
@@ -392,26 +395,29 @@ namespace ImapX
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
                     {
+#if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-                        
+#endif         
                         return true;
                     }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
                     {
+#if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-                        
+#endif         
                         return true;
                     }
 
                     if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
                         tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
                     {
+#if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-                        
+#endif         
                         var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
                         if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
                             throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
@@ -420,6 +426,8 @@ namespace ImapX
                 }
             }
         }
+
+#if !NETFX_CORE
 
         #region Idle support
 
@@ -628,5 +636,8 @@ namespace ImapX
         public event EventHandler<IdleEventArgs> OnIdleStopped;
 
         #endregion
+
+#endif
+
     }
 }

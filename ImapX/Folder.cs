@@ -400,10 +400,10 @@ namespace ImapX
 
             if (_client.SelectedFolder == this)
                 return true;
-
+#if !NETFX_CORE
             if (_client.IdleState == IdleState.On)
                 _client.StopIdling();
-
+#endif
             IList<string> data = new List<string>();
             if (!_client.SendAndReceive(string.Format(ImapCommands.Select, _path), ref data))
                 return false;
@@ -414,7 +414,7 @@ namespace ImapX
 
             return true;
         }
-
+#if !NETFX_CORE
         public bool StartIdling()
         {
             return _client.Capabilities.Idle && Select() && _client.StartIdling();
@@ -424,7 +424,7 @@ namespace ImapX
         {
             _client.StopIdling();
         }
-
+#endif
         internal Message[] Fetch(IEnumerable<long> uIds, MessageFetchMode mode = MessageFetchMode.ClientDefault)
         {
 
