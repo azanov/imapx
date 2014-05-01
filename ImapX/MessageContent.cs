@@ -79,7 +79,7 @@ namespace ImapX
                         //_contentBuilder.Append(data.TrimEnd(new[] {' ', '='}));
                         _contentBuilder.Append(data.TrimEnd('='));
                     }
-                    else if (string.IsNullOrWhiteSpace(data))
+                    else if (string.IsNullOrEmpty(data))
                     {
                         _contentBuilder.Append("=\r\n");
                     }
