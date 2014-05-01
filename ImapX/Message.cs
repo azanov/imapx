@@ -488,7 +488,7 @@ namespace ImapX
             var sb = new StringBuilder();
             for (var i = 1; i < data.Count; i++)
             {
-                if (data[i].StartsWith(")") && (i == data.Count - 1 || i == data.Count - 2))
+                if ((data[i].StartsWith(")") || data[i].Contains("UID")) && (i == data.Count - 1 || i == data.Count - 2))
                     break;
                 sb.AppendLine(data[i]);
             }

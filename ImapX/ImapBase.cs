@@ -561,7 +561,11 @@ namespace ImapX
                     }
                     _idleEvents.Enqueue(tmp);
 
-
+                    if (_idleProcessThread == null)
+                    {
+                        _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
+                        _idleProcessThread.Start();
+                    }
                 }
 
                 //Thread.Sleep(5000);
