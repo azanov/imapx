@@ -81,7 +81,7 @@ namespace ImapX.Parsing
                     sb.Append("charset=" + v + (i < tmp.Length - 1 ? "; " : ""));
             }
 
-            if (string.IsNullOrWhiteSpace(type))
+            if (string.IsNullOrEmpty(type))
                 return null;
             try
             {
