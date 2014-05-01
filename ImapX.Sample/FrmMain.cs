@@ -1185,8 +1185,8 @@ namespace ImapX.Sample
                 var args = new ServerCallCompletedEventArgs();
                 Program.ImapClient.Behavior.RequestedHeaders = null;
 
-                _selectedMessage.Download(MessageFetchMode.Full, true);
-                _selectedMessage.Save(path);
+                var data = _selectedMessage.DownloadRawMessage();
+                File.WriteAllText(path, data);
 
                 Invoke(new EventHandler<ServerCallCompletedEventArgs>(ExportMessageCompleted), Program.ImapClient, args);
             }
