@@ -554,7 +554,7 @@ namespace ImapX
                     if (IsDebug)
                         Debug.WriteLine(tmp);
 
-                    if (tmp.ToUpper().Contains("OK IDLE"))
+                    if (tmp.ToUpper().Contains("OK"))
                     {
                         _idleState = IdleState.Off;
                         return;
