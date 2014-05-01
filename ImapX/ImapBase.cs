@@ -456,9 +456,7 @@ namespace ImapX
                     if (SelectedFolder.UidNext == 0)
                         SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
 
-                    if (_lastIdleUId != SelectedFolder.UidNext)
-                        _idleEvents.Enqueue("* " + (SelectedFolder.UidNext - _lastIdleUId) + " EXISTS");
-
+                  
                     break;
             }
 
@@ -483,9 +481,6 @@ namespace ImapX
 
             _idleLoopThread = new Thread(WaitForIdleServerEvents) { IsBackground = true };
             _idleLoopThread.Start();
-
-            _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
-            _idleProcessThread.Start();
 
             if (OnIdleStarted != null)
                 OnIdleStarted(SelectedFolder, new IdleEventArgs
@@ -539,6 +534,11 @@ namespace ImapX
 
         private void WaitForIdleServerEvents()
         {
+            if (_idleProcessThread == null)
+            {
+                _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
+                _idleProcessThread.Start();
+            }
 
             while (_idleState == IdleState.On)
             {
@@ -573,7 +573,7 @@ namespace ImapX
         {
             if (_idleState != IdleState.On)
                 return;
-            StopIdling(false);
+            StopIdling(true);
             _idleState = IdleState.Paused;
 
             if (OnIdlePaused != null)
@@ -584,7 +584,7 @@ namespace ImapX
                 });
         }
 
-        internal void StopIdling(bool raiseEvent = true)
+        internal void StopIdling(bool pausing = false)
         {
             if (_idleState == IdleState.Off)
                 return;
@@ -597,12 +597,19 @@ namespace ImapX
 
             _ioStream.Write(bytes, 0, bytes.Length);
 
-            _idleProcessThread.Join();
-            _idleLoopThread.Join();
+            if (!pausing && _idleProcessThread != null)
+            {
+                _idleProcessThread.Join();
+                _idleProcessThread = null;
+            }
 
-            _idleLoopThread = _idleProcessThread = null;
+            if (_idleLoopThread != null)
+            {
+                _idleLoopThread.Join();
+                _idleLoopThread = null;
+            }
 
-            if (raiseEvent && OnIdleStopped != null)
+            if (!pausing && OnIdleStopped != null)
                 OnIdleStopped(SelectedFolder, new IdleEventArgs
                 {
                     Client = SelectedFolder.Client,
