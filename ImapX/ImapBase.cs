@@ -10,16 +10,17 @@ using System.Security.Cryptography.X509Certificates;
 #endif
 using System.Text;
 using System.Text.RegularExpressions;
-
+using ImapX.Enums;
 using ImapX.Constants;
 using ImapX.Exceptions;
 using ImapX.Parsing;
+using System.Threading;
 #if WINDOWS_PHONE || NETFX_CORE
 using SocketEx;
 #else
 using System.Net.Security;
-using ImapX.Enums;
-using System.Threading;
+
+
 #endif
 
 namespace ImapX
