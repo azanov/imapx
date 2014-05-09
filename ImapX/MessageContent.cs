@@ -72,7 +72,7 @@ namespace ImapX
             switch (ContentTransferEncoding)
             {
                 case ContentTransferEncoding.QuotedPrintable:
-                    // Fix by danbert2000 (if/else if/else statement is new to deal with missing quoted-printable line delimiters)
+                    // Fix by danbert2000 - 5/8/14
                     if (data.EndsWith("="))
                     {
                         // Fix by kirchik
@@ -81,11 +81,11 @@ namespace ImapX
                     }
                     else if (string.IsNullOrEmpty(data))
                     {
-                        _contentBuilder.Append("=\r\n");
+                        _contentBuilder.Append("\r\n");
                     }
                     else
                     {
-                        _contentBuilder.Append(data + " ");
+                        _contentBuilder.Append(data + "\r\n");
                     }
                     break;
                 case ContentTransferEncoding.EightBit:
