@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -25,8 +26,14 @@ namespace ImapX.Extensions
                 "dd MMM yyyy HH:mm",
                 "ddd, d MMM yyyy HH:mm:ss",
                 "ddd, d MMM yyyy HH:mm",
-                "d MMM yyyy HH:mm:ss" // ^ new date format added by danbert2000 5/8/14
-            
+                "d MMM yyyy HH:mm:ss", // ^ new date format added by danbert2000 5/8/14
+                "ddd, dd-MMM-yyyy HH:mm:ss",
+                "dd-MMM-yyyy HH:mm:ss",
+                "ddd, dd-MMM-yyyy HH:mm",
+                "dd-MMM-yyyy HH:mm",
+                "ddd, d-MMM-yyyy HH:mm:ss",
+                "ddd, d-MMM-yyyy HH:mm",
+                "d-MMM-yyyy HH:mm:ss"
             };
 
             timeZoneOffsetLookup = new Dictionary<string, TimeSpan>();
@@ -51,8 +58,11 @@ namespace ImapX.Extensions
             return date.ToString("dd-MMM-yyyy", new CultureInfo("en-US"));
         }
 
-        internal static DateTime? ParseDate(string value)
+        public static DateTime? ParseDate(string value)
         {
+
+            
+
             string timeZoneString = null;
             TimeSpan timeZone;
             var date = ParseValue(value, out timeZoneString);
