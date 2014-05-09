@@ -24,7 +24,9 @@ namespace ImapX.Extensions
                 "ddd, dd MMM yyyy HH:mm",
                 "dd MMM yyyy HH:mm",
                 "ddd, d MMM yyyy HH:mm:ss",
-                "ddd, d MMM yyyy HH:mm"
+                "ddd, d MMM yyyy HH:mm",
+                "d MMM yyyy HH:mm:ss" // ^ new date format added by danbert2000 5/8/14
+            
             };
 
             timeZoneOffsetLookup = new Dictionary<string, TimeSpan>();
