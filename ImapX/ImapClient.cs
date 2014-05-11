@@ -116,8 +116,10 @@ namespace ImapX
                 Capabilities.Update(capabilities);
 
             if (IsAuthenticated && Host.ToLower() == "imap.qq.com")
+            {
                 Behavior.SearchAllNotSupported = true;
-
+                Behavior.LazyFolderBrowsingNotSupported = true;
+            }
             return IsAuthenticated;
         }
 
@@ -159,7 +161,7 @@ namespace ImapX
         internal FolderCollection GetFolders(string path, CommonFolderCollection commonFolders, Folder parent = null, bool isFirstLevel = false)
         {
             var result = new FolderCollection(this, parent);
-            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
+            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full || (parent != null && Behavior.LazyFolderBrowsingNotSupported) ? "*" : "%");
             IList<string> data = new List<string>();
             if (!SendAndReceive(cmd, ref data)) return result;
 
