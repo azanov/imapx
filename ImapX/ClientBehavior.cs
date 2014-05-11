@@ -85,5 +85,10 @@ namespace ImapX
         ///     Some servers (e.g) imap.qq.com seem not give any response on SEARCH ALL, set this property to true to automatically replace this call by SEARCH SINCE 0000-00-00 in order to fix the issue
         /// </summary>
         public bool SearchAllNotSupported { get; set; }
+
+        /// <summary>
+        ///     Some servers (e.g) imap.qq.com seem not give any response on LIST "<folder-name>" %
+        /// </summary>
+        public bool LazyFolderBrowsingNotSupported { get; set; }
     }
 }
