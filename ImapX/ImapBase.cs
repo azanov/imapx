@@ -453,8 +453,8 @@ namespace ImapX
             {
                 case IdleState.Off:
 
-                    if (SelectedFolder.UidNext == 0)
-                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                    //if (SelectedFolder.UidNext == 0)
+                    //    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
                     _lastIdleUId = SelectedFolder.UidNext;
                     break;
                 case IdleState.On:
@@ -462,9 +462,9 @@ namespace ImapX
 
                 case IdleState.Paused:
 
-                    if (SelectedFolder.UidNext == 0)
-                        SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
-
+                    //if (SelectedFolder.UidNext == 0)
+                    //    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                    _lastIdleUId = SelectedFolder.UidNext;
                   
                     break;
             }
@@ -484,6 +484,9 @@ namespace ImapX
                     return false;
                 else
                     line = _streamReader.ReadLine();
+
+                if (IsDebug)
+                    Debug.WriteLine(line);
             }
 
             _idleState = IdleState.On;
