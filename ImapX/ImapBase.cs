@@ -42,6 +42,12 @@ namespace ImapX
         protected SslProtocols _sslProtocol = SslProtocols.None;
         protected StreamReader _streamReader;
         protected bool _validateServerCertificate = true;
+        protected DateTime _lastActivity;
+
+        /// <summary>
+        /// Basic client behavior settings like folder browse mode and message download mode
+        /// </summary>
+        public ClientBehavior Behavior { get; protected set; }
 
         /// <summary>
         ///     Gets whether the client is authenticated
@@ -238,6 +244,8 @@ namespace ImapX
 
                 string result = _streamReader.ReadLine();
 
+                _lastActivity = DateTime.Now;
+
                 if (result != null && result.StartsWith(ResponseType.ServerOk))
                 {
                     Capability();
@@ -353,6 +361,8 @@ namespace ImapX
 
                 _ioStream.Write(bytes, 0, bytes.Length);
 
+                _lastActivity = DateTime.Now;
+
                 while (true)
                 {
                     string tmp = reader.ReadLine();
@@ -441,6 +451,7 @@ namespace ImapX
         }
         private Thread _idleLoopThread;
         private Thread _idleProcessThread;
+        private Thread _idleNoopIssueThread;
         private long _lastIdleUId;
         private readonly Queue<string> _idleEvents = new Queue<string>();
 
@@ -505,6 +516,24 @@ namespace ImapX
 
         }
 
+        private void MaintainIdleConnection()
+        {
+            while (true)
+            {
+                if (_idleState == IdleState.On)
+                {
+                    var diff = DateTime.Now.Subtract(_lastActivity).TotalSeconds;
+
+                    if (diff >= Behavior.NoopIssueTimeout)
+                    {
+                        IList<string> data = new List<string>();
+                        if (!SendAndReceive(ImapCommands.Noop, ref data))
+                            return;
+                    }
+                }
+            }
+        }
+
         private void ProcessIdleServerEvents()
         {
             while (true)
@@ -550,6 +579,12 @@ namespace ImapX
             {
                 _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
                 _idleProcessThread.Start();
+            }
+
+            if (_idleNoopIssueThread == null)
+            {
+                _idleNoopIssueThread = new Thread(MaintainIdleConnection) { IsBackground = true };
+                _idleNoopIssueThread.Start();
             }
 
             while (_idleState == IdleState.On)
@@ -617,6 +652,12 @@ namespace ImapX
             {
                 _idleProcessThread.Join();
                 _idleProcessThread = null;
+            }
+
+            if (!pausing && _idleNoopIssueThread != null)
+            {
+                _idleNoopIssueThread.Join();
+                _idleNoopIssueThread = null;
             }
 
             if (_idleLoopThread != null)

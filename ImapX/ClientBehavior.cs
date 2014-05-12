@@ -23,6 +23,7 @@ namespace ImapX
             RequestedHeaders = MessageHeaderSets.Minimal;
             AutoGenerateMissingBody = false;
             SearchAllNotSupported = false;
+            NoopIssueTimeout = 840;
         }
 
         /// <summary>
@@ -90,5 +91,10 @@ namespace ImapX
         ///     Some servers (e.g) imap.qq.com seem not give any response on LIST "<folder-name>" %
         /// </summary>
         public bool LazyFolderBrowsingNotSupported { get; set; }
+
+        /// <summary>
+        /// Number of seconds after which a NOOP command is sent to the server if there is no activity
+        /// </summary>
+        public int NoopIssueTimeout { get; set; }
     }
 }

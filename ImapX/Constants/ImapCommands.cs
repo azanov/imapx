@@ -49,5 +49,7 @@ namespace ImapX.Constants
         public const string Append = "APPEND \"{0}\"";
 
         public const string Compress = "COMPRESS \"{0}\"";
+
+        public const string Noop = "NOOP";
     }
 }
