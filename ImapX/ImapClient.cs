@@ -19,11 +19,6 @@ namespace ImapX
         private CommonFolderCollection _folders;
 
         /// <summary>
-        /// Basic client behavior settings like folder browse mode and message download mode
-        /// </summary>
-        public ClientBehavior Behavior { get; private set; }
-
-        /// <summary>
         /// The folder structure
         /// </summary>
         public CommonFolderCollection Folders
