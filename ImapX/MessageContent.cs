@@ -279,6 +279,16 @@ namespace ImapX
                 catch
                 {
                 }
+            else if (_message.ContentType != null && _message.ContentType.CharSet != null)
+            {
+                try
+                {
+                    encoding = Encoding.GetEncoding(_message.ContentType.CharSet);
+                }
+                catch
+                {
+                }
+            }
 
             IList<string> data = new List<string>();
 
