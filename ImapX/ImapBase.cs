@@ -531,6 +531,8 @@ namespace ImapX
                             return;
                     }
                 }
+                else
+                    return;
             }
         }
 
@@ -654,7 +656,7 @@ namespace ImapX
                 _idleProcessThread = null;
             }
 
-            if (!pausing && _idleNoopIssueThread != null)
+            if (_idleNoopIssueThread != null)
             {
                 _idleNoopIssueThread.Join();
                 _idleNoopIssueThread = null;
