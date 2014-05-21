@@ -1,6 +1,7 @@
 ﻿using ImapX.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -37,13 +38,14 @@ namespace ImapX.Extensions
                     else
                     {
                         var eml = File.ReadAllText(tmpPath);
-                        File.Delete(eml);
+                        File.Delete(tmpPath);
                         return eml;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    throw;
+                    Debug.WriteLine(ex.ToString());
+                    return null;
                 }
                 finally
                 {
