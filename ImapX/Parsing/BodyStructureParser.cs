@@ -24,7 +24,8 @@ namespace ImapX.Parsing
             _message = message;
         }
 
-        public MessageContent[] Parse(int level = 0)
+        //public MessageContent[] Parse(int level = 0)
+        public MessageContent[] Parse(int level = 0, string contentNumber = "")
         {
             var parts = new List<MessageContent>();
             int partNumber = 1;
@@ -33,13 +34,20 @@ namespace ImapX.Parsing
             {
                 _reader.Read();
 
+                var curContentNumber = string.IsNullOrEmpty(contentNumber) ? partNumber.ToString()
+                                                                           : contentNumber + "." + partNumber;
+
                 if (_reader.Peek() == '(')
                 {
-                    parts.AddRange(Parse(level + 1));
+                    //parts.AddRange(Parse(level + 1));
+                    if (level == 0) curContentNumber = string.Empty;
+                    parts.AddRange(Parse(level + 1, curContentNumber));
+
                     DropExtensionData();
                 }
                 else
-                    parts.Add(ParsePart(partNumber, level));
+                    //parts.Add(ParsePart(partNumber, level));
+                    parts.Add(ParsePart(curContentNumber));
 
                 SkipSpaces();
 
@@ -48,16 +56,18 @@ namespace ImapX.Parsing
             return parts.ToArray();
         }
 
-        public MessageContent ParsePart(int number, int level)
+        //public MessageContent ParsePart(int number, int level)
+        public MessageContent ParsePart(string contentNumber)
         {
             
-            var part = new MessageContent(_client, _message);
+            var part = new MessageContent(_client, _message)
+            {
+                ContentNumber = contentNumber
+            };
 
-            var block = level > 2 ? level - 1 : 0;
-
-            if (block != 0) level = level - (level - 2);
-
-            part.ContentNumber = level < 2 ? number.ToString() : level - 1 + "." + (block == 0 ? "" : block + ".") + number;
+            //var block = level > 2 ? level - 1 : 0;
+            //if (block != 0) level = level - (level - 2);
+            //part.ContentNumber = level < 2 ? number.ToString() : level - 1 + "." + (block == 0 ? "" : block + ".") + number;
 
             var contentType = ReadString().ToLower();
             var contentSubType = ReadString().ToLower();
