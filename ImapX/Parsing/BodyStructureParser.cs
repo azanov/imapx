@@ -105,9 +105,9 @@ namespace ImapX.Parsing
             if (part.Parameters.ContainsKey("name") || part.Parameters.ContainsKey("filename"))
             {
                 var value =
-                    StringDecoder.Decode(part.Parameters.ContainsKey("name")
+                    part.Parameters.ContainsKey("name")
                         ? part.Parameters["name"]
-                        : part.Parameters["filename"], true);
+                        : part.Parameters["filename"];
 
                 if (part.ContentType == null)
                     part.ContentType = new ContentType();
