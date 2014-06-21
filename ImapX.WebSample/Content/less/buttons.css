@@ -1,0 +1,171 @@
+﻿input[type=submit],
+input[type=button],
+button,
+.button,
+.submit {
+  display: block;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0 0 10px;
+  padding: 10px 10px 9px;
+  outline: 0;
+  border: 0;
+  text-decoration: none;
+  line-height: 20px;
+  cursor: pointer;
+  -moz-transition: all ease 500ms;
+  -o-transition: all ease 500ms;
+  -webkit-transition: all ease 500ms;
+  transition: all ease 500ms;
+  -moz-transform-origin: right center;
+  -ms-transform-origin: right center;
+  -o-transform-origin: right center;
+  -webkit-transform-origin: right center;
+  transform-origin: right center;
+}
+input[type=submit] .base,
+input[type=button] .base,
+button .base,
+.button .base,
+.submit .base {
+  display: block;
+}
+input[type=submit] .notify,
+input[type=button] .notify,
+button .notify,
+.button .notify,
+.submit .notify {
+  display: none;
+  max-height: 20px;
+}
+input[type=submit][disabled],
+input[type=button][disabled],
+button[disabled],
+.button[disabled],
+.submit[disabled],
+input[type=submit].disabled,
+input[type=button].disabled,
+button.disabled,
+.button.disabled,
+.submit.disabled {
+  background: #cccccc !important;
+  color: #f2f2f2 !important;
+}
+input[type=submit].remove-bottom,
+input[type=button].remove-bottom,
+button.remove-bottom,
+.button.remove-bottom,
+.submit.remove-bottom {
+  margin-bottom: 0;
+}
+.invalid {
+  background: #da3610 !important;
+  color: #fff !important;
+  -moz-transform: rotateX(-360deg);
+  -ms-transform: rotateX(-360deg);
+  -o-transform: rotateX(-360deg);
+  -webkit-transform: rotateX(-360deg);
+  transform: rotateX(-360deg);
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+.invalid .base {
+  display: none;
+}
+.invalid .notify {
+  display: block;
+}
+.invalid .notify.notify-invalid {
+  display: block;
+}
+.invalid .notify.notify-success {
+  display: none;
+}
+.success {
+  background: #8dca35 !important;
+  color: #fff !important;
+  -moz-transform: rotateX(-360deg);
+  -ms-transform: rotateX(-360deg);
+  -o-transform: rotateX(-360deg);
+  -webkit-transform: rotateX(-360deg);
+  transform: rotateX(-360deg);
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+.success .base {
+  display: none;
+}
+.success .notify.notify-invalid {
+  display: none;
+}
+.success .notify.notify-success {
+  display: block;
+}
+input[type=submit].green,
+input[type=button].green,
+button.green,
+.button.green,
+.submit.green,
+.green {
+  background: #8dca35;
+  color: #fff;
+}
+input[type=submit].blue,
+input[type=button].blue,
+button.blue,
+.button.blue,
+.submit.blue,
+.blue {
+  background: #3cade7;
+  color: #fff;
+}
+input[type=submit].yellow,
+input[type=button].yellow,
+button.yellow,
+.button.yellow,
+.submit.yellow,
+.yellow {
+  background: #ffab00;
+  color: #000;
+}
+input[type=submit].red,
+input[type=button].red,
+button.red,
+.button.red,
+.submit.red,
+.red {
+  background: #da3610;
+  color: #fff;
+}
+input[type=submit].gray,
+input[type=button].gray,
+button.gray,
+.button.gray,
+.submit.gray,
+.gray {
+  color: #444;
+  border: solid 1px #DCDCDE;
+}
+input[type=submit].gray:hover,
+input[type=button].gray:hover,
+button.gray:hover,
+.button.gray:hover,
+.submit.gray:hover,
+.gray:hover {
+  background: #fafafa;
+}
+input[type=submit].light-blue,
+input[type=button].light-blue,
+button.light-blue,
+.button.light-blue,
+.submit.light-blue,
+.light-blue {
+  color: #444;
+  background: #c6e6fc;
+  border: solid 1px #DCDCDE;
+}
+.min-w {
+  width: 200px;
+}
+/*# sourceMappingURL=buttons.css.map */

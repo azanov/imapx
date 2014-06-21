@@ -9,7 +9,12 @@ namespace ImapX.WebSample.Models
     public class SessionModel
     {
 
-        public ImapClient Client
+        public static bool IsAuthenticated
+        {
+            get { return Client != null && Client.IsAuthenticated; }
+        }
+
+        public static ImapClient Client
         {
             get
             {
@@ -43,5 +48,7 @@ namespace ImapX.WebSample.Models
 
         #endregion
 
+
+        
     }
 }

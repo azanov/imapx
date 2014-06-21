@@ -1,0 +1,77 @@
+﻿@model ImapX.Collections.CommonFolderCollection
+
+<menu>
+    @if (Model.Inbox != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home")" @Html.Raw(Model.Inbox == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-inbox"></span> @Model.Inbox.Name
+            </a>
+        </li>
+    }
+    @if (Model.Sent != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Sent.Path })" @Html.Raw(Model.Sent == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-send"></span> @Model.Sent.Name
+            </a>
+        </li>
+    }
+    @if (Model.Drafts != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Drafts.Path })" @Html.Raw(Model.Drafts == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-pencil"></span> @Model.Drafts.Name
+            </a>
+        </li>
+    }
+    @if (Model.Important != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Important.Path })" @Html.Raw(Model.Important == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-star"></span> @Model.Important.Name
+            </a>
+        </li>
+    }
+    @if (Model.Flagged != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Flagged.Path })" @Html.Raw(Model.Flagged == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-flag"></span> @Model.Flagged.Name
+            </a>
+        </li>
+    }
+    @if (Model.Junk != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Junk.Path })" @Html.Raw(Model.Junk == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-eye-close"></span> @Model.Junk.Name
+            </a>
+        </li>
+    }
+    @if (Model.Trash != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Trash.Path })" @Html.Raw(Model.Trash == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-trash"></span> @Model.Trash.Name
+            </a>
+        </li>
+    }
+    @if (Model.All != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.All.Path })" @Html.Raw(Model.All == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-globe"></span> @Model.All.Name
+            </a>
+        </li>
+    }
+    @if (Model.Archive != null)
+    {
+        <li>
+            <a href="@Url.Action("index", "home", new { folder =  Model.Archive.Path })" @Html.Raw(Model.Archive == ViewBag.CurrentFolder ? "class=\"active\"" : "")>
+                <span class="icon icon-compressed"></span> @Model.Archive.Name
+            </a>
+        </li>
+    }
+</menu>
+<a class="button red" href="@Url.Action("signout","auth")"><span class="icon icon-log-out"></span> Sign out</a>

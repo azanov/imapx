@@ -1,0 +1,308 @@
+﻿@import "reset.less";
+@import "icons.less";
+@import "colors.less";
+@import "buttons.less";
+
+html {
+    height: 100%;
+    overflow: hidden;
+}
+
+*, body {
+    font-family: "Segoe UI", Helvetica, Arial, "Sans-Serif";
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+body {
+    background: url(../img/pattern8.png);
+    color: #666;
+    height: 100%;
+    overflow: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+.container {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1280px;
+    height: 100%;
+}
+
+.logo {
+    background: url(../img/imapx_logo.png) no-repeat 50% 0;
+    height: 60px;
+}
+
+.sidebar {
+    .fl;
+    width: 15%;
+    background: @sidebar-bg;
+    color: @sidebar-color;
+    height: 100%;
+
+    .logo {
+        margin-top: 30px;
+    }
+
+    menu {
+        margin: 30px 0;
+
+        li {
+            list-style-type: none;
+
+            a {
+                display: block;
+                color: @sidebar-color;
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+
+            a.active, a:hover {
+                background: @sidebar-highlight-bg;
+                color: @sidebar-highlight-color;
+            }
+        }
+    }
+}
+
+.messages {
+    .fl;
+    height: 100%;
+    width: 40%;
+    background: #fff;
+
+    h1 {
+        font-family: "Segoe UI Light", "Segoe UI", Helvetica, Arial, "Sans-Serif";
+        color: @h1-color;
+        font-size: 48px;
+        padding: 30px;
+    }
+
+    .message-list {
+        padding: 30px;
+
+        li {
+            background: @mail-list-item-bg;
+            border-left: solid 5px @mail-list-item-bg;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            color: @mail-list-item-color;
+
+            > a > div {
+                .fl;
+                padding: 10px;
+                -moz-box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+                -ms-text-overflow: ellipsis;
+                -o-text-overflow: ellipsis;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+
+            .sender {
+                width: 20%;
+                color: @mail-list-item-color-2;
+            }
+
+            .subject {
+                width: 80%;
+                text-align: left;
+                padding-right: 15px;
+                padding-left: 30px;
+            }
+
+            .date {
+                width: 24%;
+                display: none;
+                text-align: right;
+                padding-right: 15px;
+            }
+        }
+
+        li:nth-child(odd) {
+            background: @mail-list-item-bg-2;
+            border-left: solid 5px @mail-list-item-bg-2;
+        }
+
+        li.unread {
+            border-left: solid 5px @yellow;
+            color: @mail-list-item-color-2;
+            font-weight: 600;
+        }
+    }
+}
+
+.paging {
+    padding: 0 30px;
+    float: left;
+    li{
+        float: left;
+        margin-left: 10px;
+        
+        a{
+            color: @dots-color;
+        }
+    }
+    li:hover a{
+        color: @dots-color-2;
+    }
+    li.active a {
+        color: @dots-color-3;
+    }
+    li:first-child {
+        margin-left: 0;
+    }
+}
+
+.reader {
+    .fl;
+    width: 45%;
+    height: 100%;
+    background: #ddd;
+
+    header {
+        background: @red;
+        height: 20%;
+        padding: 20px;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        
+        h2 {
+            color: #fff;
+            font-size: 30px;
+            line-height: 40px;
+                
+        }
+    }
+
+    iframe {
+        width: 100%;
+        height: 80%;
+    }
+}
+
+.fl {
+    float: left;
+}
+
+.fr {
+    float: right;
+}
+
+.box {
+    background: @sidebar-bg;
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    margin-left: -200px;
+    width: 400px;
+
+    header {
+        padding: 30px;
+    }
+
+    .content {
+        padding: 0 30px;
+        margin: 30px 0;
+        overflow: hidden;
+    }
+
+    .server, .port, .ssl {
+        .fl;
+        width: 60px;
+        margin-right: 10px;
+    }
+
+    .ssl {
+        margin-right: 0;
+        width: 90px;
+    }
+
+    .server {
+        width: 170px;
+    }
+}
+
+input[type=text],
+input[type=email],
+input[type=password],
+input[type=number],
+textarea,
+select {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0 0 10px;
+    padding: 9px 10px 11px;
+    width: 100%;
+    outline: 0;
+    border: solid 1px #c9c9c9;
+    font-size: 13px;
+    line-height: 19px;
+}
+
+select {
+    padding-bottom: 9px;
+}
+
+input[type=text]:focus,
+input[type=email]:focus,
+input[type=password]:focus,
+textarea:focus,
+input[type=number]:focus {
+    box-shadow: 0 0 5px @shadow-color;
+}
+
+input::-ms-clear, input::-ms-reveal,
+textarea::-ms-clear, textarea::-ms-reveal {
+    display: none;
+}
+
+.container:after {
+    content: "\0020";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.clearfix:before,
+.clearfix:after,
+.row:before,
+.row:after {
+    content: '\0020';
+    display: block;
+    overflow: hidden;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+
+.row:after,
+.clearfix:after {
+    clear: both;
+}
+
+.row,
+.clearfix {
+    zoom: 1;
+}
+
+.clear, .cl {
+    clear: both;
+    display: block;
+    overflow: hidden;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
