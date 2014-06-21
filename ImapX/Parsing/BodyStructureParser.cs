@@ -419,7 +419,17 @@ namespace ImapX.Parsing
             }
             var type = ReadString().ToLower();
             var paramaters = ReadParameterList();
-            var disposition = new ContentDisposition(type);
+
+            ContentDisposition disposition;
+
+            try
+            {
+                disposition = new ContentDisposition(type);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed on: " + type, ex);    
+            }
 
             foreach (var paramater in paramaters)
             {

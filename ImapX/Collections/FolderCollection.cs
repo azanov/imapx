@@ -80,5 +80,21 @@ namespace ImapX.Collections
             return Remove(List[index]);
         }
 
+        public Folder Find(string path)
+        {
+            foreach (var folder in this)
+            {
+                if (folder.Path == path)
+                    return folder;
+
+                if (!folder.HasChildren) continue;
+
+                var result = folder.SubFolders.Find(path);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
     }
 }

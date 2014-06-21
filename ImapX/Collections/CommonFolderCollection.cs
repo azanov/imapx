@@ -163,7 +163,6 @@ namespace ImapX.Collections
             }
         }
 
-
-
+        
     }
 }
