@@ -69,7 +69,7 @@ namespace ImapX.Sample
 
         private void btnSignIn_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtServer.Text))
+            if (string.IsNullOrEmpty(cmbServer.Text))
                 MessageBox.Show("Server cannot be empty", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else if (string.IsNullOrEmpty(cmbPort.Text))
                 MessageBox.Show("Port cannot be empty", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -111,7 +111,7 @@ namespace ImapX.Sample
                     ? SslProtocols.None
                     : (cmbEncryption.SelectedIndex == 1 ? SslProtocols.Default : SslProtocols.Tls);
 
-                Program.ImapClient.Host = txtServer.Text;
+                Program.ImapClient.Host = cmbServer.Text;
                 Program.ImapClient.Port = int.Parse(cmbPort.Text);
                 Program.ImapClient.SslProtocol = ssl;
                 Program.ImapClient.ValidateServerCertificate = !chkValidateCertificate.Enabled ||

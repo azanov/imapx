@@ -45,11 +45,11 @@
             this.lblLogin = new System.Windows.Forms.Label();
             this.txtLogin = new System.Windows.Forms.TextBox();
             this.lblServer = new System.Windows.Forms.Label();
-            this.txtServer = new System.Windows.Forms.TextBox();
             this.lblWait = new System.Windows.Forms.Label();
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.lblTitle = new System.Windows.Forms.Label();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
+            this.cmbServer = new System.Windows.Forms.ComboBox();
             this.pnlTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
@@ -112,6 +112,7 @@
             // pnlLogin
             // 
             this.pnlLogin.BackColor = System.Drawing.Color.Transparent;
+            this.pnlLogin.Controls.Add(this.cmbServer);
             this.pnlLogin.Controls.Add(this.chkValidateCertificate);
             this.pnlLogin.Controls.Add(this.btnSignIn);
             this.pnlLogin.Controls.Add(this.lblPassword);
@@ -122,7 +123,6 @@
             this.pnlLogin.Controls.Add(this.lblLogin);
             this.pnlLogin.Controls.Add(this.txtLogin);
             this.pnlLogin.Controls.Add(this.lblServer);
-            this.pnlLogin.Controls.Add(this.txtServer);
             this.pnlLogin.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlLogin.Location = new System.Drawing.Point(0, 84);
             this.pnlLogin.Name = "pnlLogin";
@@ -232,15 +232,6 @@
             this.lblServer.TabIndex = 3;
             this.lblServer.Text = "Server";
             // 
-            // txtServer
-            // 
-            this.txtServer.Location = new System.Drawing.Point(208, 89);
-            this.txtServer.Name = "txtServer";
-            this.txtServer.Size = new System.Drawing.Size(210, 25);
-            this.txtServer.TabIndex = 0;
-            this.txtServer.Text = "imap.gmail.com";
-            this.txtServer.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmLogin_KeyDown);
-            // 
             // lblWait
             // 
             this.lblWait.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(223)))), ((int)(((byte)(74)))), ((int)(((byte)(50)))));
@@ -276,6 +267,20 @@
             this.lblTitle.Size = new System.Drawing.Size(544, 49);
             this.lblTitle.TabIndex = 3;
             this.lblTitle.Text = "Sign in";
+            // 
+            // cmbServer
+            // 
+            this.cmbServer.FormattingEnabled = true;
+            this.cmbServer.Items.AddRange(new object[] {
+            "imap.gmail.com",
+            "imap-mail.outlook.com",
+            "imap.yandex.ru",
+            "imap.mail.yahoo.com"});
+            this.cmbServer.Location = new System.Drawing.Point(208, 89);
+            this.cmbServer.Name = "cmbServer";
+            this.cmbServer.Size = new System.Drawing.Size(210, 25);
+            this.cmbServer.TabIndex = 13;
+            this.cmbServer.Text = "imap.gmail.com";
             // 
             // FrmConnect
             // 
@@ -314,7 +319,6 @@
         private System.Windows.Forms.Label lblLogin;
         private System.Windows.Forms.TextBox txtLogin;
         private System.Windows.Forms.Label lblServer;
-        private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.ComboBox cmbPort;
         private System.Windows.Forms.ComboBox cmbEncryption;
         private System.Windows.Forms.Label lblPort;
@@ -328,5 +332,6 @@
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.CheckBox chkValidateCertificate;
         private System.Windows.Forms.ToolTip tltMain;
+        private System.Windows.Forms.ComboBox cmbServer;
     }
 }

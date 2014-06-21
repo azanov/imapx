@@ -26,7 +26,10 @@ namespace ImapX.Parsing
                 {
                 }
             }
+            
+
             return list;
+
         }
 
         public static MailAddress ParseMailAddress(string value)
