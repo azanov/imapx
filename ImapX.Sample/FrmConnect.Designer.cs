@@ -35,6 +35,7 @@
             this.picGMailLogin = new System.Windows.Forms.PictureBox();
             this.picLogo = new System.Windows.Forms.PictureBox();
             this.pnlLogin = new System.Windows.Forms.Panel();
+            this.cmbServer = new System.Windows.Forms.ComboBox();
             this.chkValidateCertificate = new System.Windows.Forms.CheckBox();
             this.btnSignIn = new System.Windows.Forms.Button();
             this.lblPassword = new System.Windows.Forms.Label();
@@ -49,7 +50,6 @@
             this.wbrMain = new System.Windows.Forms.WebBrowser();
             this.lblTitle = new System.Windows.Forms.Label();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
-            this.cmbServer = new System.Windows.Forms.ComboBox();
             this.pnlTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
@@ -128,6 +128,21 @@
             this.pnlLogin.Name = "pnlLogin";
             this.pnlLogin.Size = new System.Drawing.Size(544, 357);
             this.pnlLogin.TabIndex = 2;
+            // 
+            // cmbServer
+            // 
+            this.cmbServer.FormattingEnabled = true;
+            this.cmbServer.Items.AddRange(new object[] {
+            "imap.gmail.com",
+            "imap-mail.outlook.com",
+            "imap.yandex.ru",
+            "imap.mail.yahoo.com",
+            "imap.aol.com"});
+            this.cmbServer.Location = new System.Drawing.Point(208, 89);
+            this.cmbServer.Name = "cmbServer";
+            this.cmbServer.Size = new System.Drawing.Size(210, 25);
+            this.cmbServer.TabIndex = 13;
+            this.cmbServer.Text = "imap.gmail.com";
             // 
             // chkValidateCertificate
             // 
@@ -267,20 +282,6 @@
             this.lblTitle.Size = new System.Drawing.Size(544, 49);
             this.lblTitle.TabIndex = 3;
             this.lblTitle.Text = "Sign in";
-            // 
-            // cmbServer
-            // 
-            this.cmbServer.FormattingEnabled = true;
-            this.cmbServer.Items.AddRange(new object[] {
-            "imap.gmail.com",
-            "imap-mail.outlook.com",
-            "imap.yandex.ru",
-            "imap.mail.yahoo.com"});
-            this.cmbServer.Location = new System.Drawing.Point(208, 89);
-            this.cmbServer.Name = "cmbServer";
-            this.cmbServer.Size = new System.Drawing.Size(210, 25);
-            this.cmbServer.TabIndex = 13;
-            this.cmbServer.Text = "imap.gmail.com";
             // 
             // FrmConnect
             // 

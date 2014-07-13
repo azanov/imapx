@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
-using System.Security.Authentication;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using ImapX.Constants;
+using ImapX.Enums;
+using ImapX.Exceptions;
+using ImapX.Parsing;
+using ThreadState = System.Threading.ThreadState;
+using Timer = System.Timers.Timer;
 #if !NETFX_CORE
 using System.Security.Cryptography.X509Certificates;
 #endif
-using System.Text;
-using System.Text.RegularExpressions;
-using ImapX.Enums;
-using ImapX.Constants;
-using ImapX.Exceptions;
-using ImapX.Parsing;
-using System.Threading;
 #if WINDOWS_PHONE || NETFX_CORE
 using SocketEx;
 #else
 using System.Net.Security;
-
 
 #endif
 
@@ -45,7 +45,7 @@ namespace ImapX
         protected DateTime _lastActivity;
 
         /// <summary>
-        /// Basic client behavior settings like folder browse mode and message download mode
+        ///     Basic client behavior settings like folder browse mode and message download mode
         /// </summary>
         public ClientBehavior Behavior { get; protected set; }
 
@@ -230,13 +230,12 @@ namespace ImapX
                 }
                 else
                 {
-
                     _ioStream = new SslStream(_client.GetStream(), false, CertificateValidationCallback, null);
                     (_ioStream as SslStream).AuthenticateAsClient(_host, null, _sslProtocol, false);
                     _streamReader = new StreamReader(_ioStream);
                 }
 #else
-                //TODO: Add support for Tls
+    //TODO: Add support for Tls
                 _client = _sslProtocol == SslProtocols.None ? new TcpClient(_host, _port) : new SecureTcpClient(_host, _port);
                 _ioStream = _client.GetStream();
                 _streamReader = new StreamReader(_ioStream);
@@ -260,7 +259,7 @@ namespace ImapX
                 else
                     return false;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -307,7 +306,6 @@ namespace ImapX
 #else
                 _client.Dispose();
 #endif
-            
         }
 
 
@@ -334,7 +332,6 @@ namespace ImapX
         public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
             Encoding encoding = null, bool pushResultToDatadespiteProcessor = false)
         {
-
 #if !NETFX_CORE
             if (_idleState == IdleState.On)
                 PauseIdling();
@@ -408,7 +405,7 @@ namespace ImapX
 #if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-#endif         
+#endif
                         return true;
                     }
 
@@ -417,7 +414,7 @@ namespace ImapX
 #if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-#endif         
+#endif
                         return true;
                     }
 
@@ -427,8 +424,8 @@ namespace ImapX
 #if !NETFX_CORE
                         if (_idleState == IdleState.Paused)
                             StartIdling();
-#endif         
-                        var serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
+#endif
+                        Match serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
                         if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
                             throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
                         return false;
@@ -442,18 +439,18 @@ namespace ImapX
         #region Idle support
 
         private IdleState _idleState;
+
         internal IdleState IdleState
         {
-            get
-            {
-                return _idleState;
-            }
+            get { return _idleState; }
         }
+
         private Thread _idleLoopThread;
         private Thread _idleProcessThread;
-        private Thread _idleNoopIssueThread;
         private long _lastIdleUId;
         private readonly Queue<string> _idleEvents = new Queue<string>();
+        private readonly AutoResetEvent _idleEventsResetEvent = new AutoResetEvent(false);
+        private Timer _maintainIdleConnectionTimer;
 
         internal bool StartIdling()
         {
@@ -476,7 +473,7 @@ namespace ImapX
                     //if (SelectedFolder.UidNext == 0)
                     //    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
                     _lastIdleUId = SelectedFolder.UidNext;
-                  
+
                     break;
             }
 
@@ -490,19 +487,17 @@ namespace ImapX
                     Debug.WriteLine(text);
 
                 _ioStream.Write(bytes, 0, bytes.Length);
-                string line = "";
                 if (_ioStream.ReadByte() != '+')
                     return false;
-                else
-                    line = _streamReader.ReadLine();
+                var line = _streamReader.ReadLine();
 
-                if (IsDebug)
+                if (IsDebug && !string.IsNullOrEmpty(line))
                     Debug.WriteLine(line);
             }
 
             _idleState = IdleState.On;
 
-            _idleLoopThread = new Thread(WaitForIdleServerEvents) { IsBackground = true };
+            _idleLoopThread = new Thread(WaitForIdleServerEvents) {IsBackground = true};
             _idleLoopThread.Start();
 
             if (OnIdleStarted != null)
@@ -513,27 +508,27 @@ namespace ImapX
                 });
 
             return true;
-
         }
 
         private void MaintainIdleConnection()
         {
-            while (true)
+            if (_maintainIdleConnectionTimer == null)
             {
-                if (_idleState == IdleState.On)
-                {
-                    var diff = DateTime.Now.Subtract(_lastActivity).TotalSeconds;
 
-                    if (diff >= Behavior.NoopIssueTimeout)
+                _maintainIdleConnectionTimer = new Timer(Behavior.NoopIssueTimeout*1000) {AutoReset = true};
+                _maintainIdleConnectionTimer.Elapsed += (sender, e) =>
+                {
+                    if (_idleState != IdleState.On) return;
+
+                    IList<string> data = new List<string>();
+                    if (!SendAndReceive(ImapCommands.Noop, ref data))
                     {
-                        IList<string> data = new List<string>();
-                        if (!SendAndReceive(ImapCommands.Noop, ref data))
-                            return;
+                        // that should not be the final solution. we need a fallback
+                        _maintainIdleConnectionTimer.Enabled = false;
                     }
-                }
-                else
-                    return;
+                };
             }
+            _maintainIdleConnectionTimer.Enabled = true;
         }
 
         private void ProcessIdleServerEvents()
@@ -543,23 +538,27 @@ namespace ImapX
                 if (_idleEvents.Count == 0)
                 {
                     if (_idleState == IdleState.On)
+                    {
+                        // instead of an instant retry: wait for a signal that will be emitted after a new value was put into the queue
+                        _idleEventsResetEvent.WaitOne();
                         continue;
-                    else
-                        return;
+                    }
+                    return;
                 }
-                var tmp = _idleEvents.Dequeue();
-                var match = Expressions.IdleResponseRex.Match(tmp);
+                string tmp = _idleEvents.Dequeue();
+                Match match = Expressions.IdleResponseRex.Match(tmp);
 
                 if (!match.Success)
                     continue;
 
                 if (match.Groups[2].Value == "EXISTS")
                 {
-                    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
+                    SelectedFolder.Status(new[] {FolderStatusFields.UIdNext});
 
                     if (_lastIdleUId != SelectedFolder.UidNext)
                     {
-                        var msgs = SelectedFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, SelectedFolder.UidNext));
+                        var msgs =
+                            SelectedFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, SelectedFolder.UidNext));
                         var args = new IdleEventArgs
                         {
                             Folder = SelectedFolder,
@@ -571,7 +570,6 @@ namespace ImapX
                         _lastIdleUId = SelectedFolder.UidNext;
                     }
                 }
-
             }
         }
 
@@ -579,22 +577,17 @@ namespace ImapX
         {
             if (_idleProcessThread == null)
             {
-                _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
+                _idleProcessThread = new Thread(ProcessIdleServerEvents) {IsBackground = true};
                 _idleProcessThread.Start();
             }
 
-            if (_idleNoopIssueThread == null)
-            {
-                _idleNoopIssueThread = new Thread(MaintainIdleConnection) { IsBackground = true };
-                _idleNoopIssueThread.Start();
-            }
+            // a silent voice tells me to call that function from outside, but who cares
+            MaintainIdleConnection();
 
             while (_idleState == IdleState.On)
             {
-
                 if (_ioStream.ReadByte() != -1)
                 {
-
                     string tmp = _streamReader.ReadLine();
 
                     if (tmp == null)
@@ -606,20 +599,27 @@ namespace ImapX
                     if (tmp.ToUpper().Contains("OK"))
                     {
                         _idleState = IdleState.Off;
+                        // unblock the processing thread, it will end itself because _idleState is Off
+                        _idleEventsResetEvent.Set();
                         return;
                     }
                     _idleEvents.Enqueue(tmp);
+                    // signal the waiting event processing thread to continue
+                    _idleEventsResetEvent.Set();
+
+                    if (_idleProcessThread != null && _idleProcessThread.ThreadState == ThreadState.Stopped)
+                        _idleProcessThread = null;
 
                     if (_idleProcessThread == null)
                     {
-                        _idleProcessThread = new Thread(ProcessIdleServerEvents) { IsBackground = true };
+                        _idleProcessThread = new Thread(ProcessIdleServerEvents) {IsBackground = true};
                         _idleProcessThread.Start();
                     }
+                   
                 }
 
                 //Thread.Sleep(5000);
             }
-
         }
 
         internal void PauseIdling()
@@ -650,16 +650,17 @@ namespace ImapX
 
             _ioStream.Write(bytes, 0, bytes.Length);
 
-            if (!pausing && _idleProcessThread != null)
+            if (_maintainIdleConnectionTimer != null)
             {
-                _idleProcessThread.Join();
-                _idleProcessThread = null;
+                // we could call Stop() alternatively (according to MSDN)
+                _maintainIdleConnectionTimer.Enabled = false;
             }
 
-            if (_idleNoopIssueThread != null)
+            if (!pausing && _maintainIdleConnectionTimer != null)
             {
-                _idleNoopIssueThread.Join();
-                _idleNoopIssueThread = null;
+                // Close() is like Dispose()... but closing a connection sounds better
+                _maintainIdleConnectionTimer.Close();
+                _maintainIdleConnectionTimer = null;
             }
 
             if (_idleLoopThread != null)
@@ -684,6 +685,5 @@ namespace ImapX
         #endregion
 
 #endif
-
     }
 }
