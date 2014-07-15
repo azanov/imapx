@@ -11,6 +11,7 @@ using ImapX.Extensions;
 using ImapX.Flags;
 using System.Collections;
 using ImapX.Parsing;
+using System.ComponentModel;
 
 namespace ImapX
 {
@@ -131,7 +132,10 @@ namespace ImapX
             get { return _path; }
             internal set { _path = value; }
         }
-        
+
+        [DefaultValue(true)]
+        public bool ReadOnly { get; internal set; }
+
         /// <summary>
         ///     Flags of current folder. Determine the type of the folder.
         /// </summary>
@@ -261,7 +265,7 @@ namespace ImapX
         {
             Folder selectedFolder = _client.SelectedFolder;
 
-            if (selectedFolder != null && !Equals(selectedFolder))
+            if (ReadOnly)
                 Select();
 
             IList<string> data = new List<string>();
@@ -331,7 +335,13 @@ namespace ImapX
                 //    if (m.Success)
                 //        UpdateFlags(m.Groups[1].Value.Split(' '));
                 //}
+
+                
             }
+
+            if (data.Count > 0 && data[data.Count - 1].Contains(ResponseType.Ok))
+                ReadOnly = !data[data.Count - 1].ToUpper().Contains("READ-WRITE");
+
         }
 
         public bool Examine()
@@ -398,7 +408,7 @@ namespace ImapX
             if (!Selectable)
                 throw new InvalidOperationException("A non-selectable folder cannot be selected.");
 
-            if (_client.SelectedFolder == this)
+            if (_client.SelectedFolder == this && !ReadOnly)
                 return true;
 #if !NETFX_CORE
             if (_client.IdleState == IdleState.On)
@@ -409,6 +419,9 @@ namespace ImapX
                 return false;
 
             ProcessSelectOrExamineResult(data);
+
+            if (_client.SelectedFolder != null)
+                _client.SelectedFolder.ReadOnly = true;
 
             _client.SelectedFolder = this;
 
@@ -506,7 +519,10 @@ namespace ImapX
         public bool AppendMessage(string eml, IEnumerable<string> flags = null, DateTime? date = null)
         {
             if(string.IsNullOrEmpty(eml))
-                throw new ArgumentException("eml cannot be empty");
+                throw new ArgumentException("eml cannot be empty"); 
+            
+            if (ReadOnly)
+                Select();
 
             IList<string> data = new List<string>();
 
@@ -552,6 +568,9 @@ namespace ImapX
 
             if (!ids.Any())
                 return true;
+
+            if (ReadOnly)
+                Select();
 
             foreach (string group in ids)
             {

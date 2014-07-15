@@ -619,6 +619,9 @@ namespace ImapX
             if (folder == null)
                 throw new ArgumentNullException("folder");
 
+            if (Folder.ReadOnly)
+                Folder.Select();
+
             IList<string> data = new List<string>();
             if (
                 !_client.SendAndReceive(string.Format(ImapCommands.Copy, UId, folder.Path), ref data,
@@ -640,6 +643,7 @@ namespace ImapX
         public bool Remove()
         {
             if (!Flags.Add(MessageFlags.Deleted) || !Folder.Expunge()) return false;
+
             Folder.Messages.RemoveInternal(this);
             return true;
         }
