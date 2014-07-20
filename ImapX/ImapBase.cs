@@ -7,14 +7,16 @@ using System.Security.Authentication;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ImapX.Collections;
 using ImapX.Constants;
 using ImapX.Enums;
 using ImapX.Exceptions;
 using ImapX.Parsing;
-using ThreadState = System.Threading.ThreadState;
-using Timer = System.Timers.Timer;
+
 #if !NETFX_CORE
 using System.Security.Cryptography.X509Certificates;
+using ThreadState = System.Threading.ThreadState;
+using Timer = System.Timers.Timer;
 #endif
 #if WINDOWS_PHONE || NETFX_CORE
 using SocketEx;
@@ -448,7 +450,7 @@ namespace ImapX
         private Thread _idleLoopThread;
         private Thread _idleProcessThread;
         private long _lastIdleUId;
-        private readonly Queue<string> _idleEvents = new Queue<string>();
+        private readonly ThreadSafeQueue<string> _idleEvents = new ThreadSafeQueue<string>();
         private readonly AutoResetEvent _idleEventsResetEvent = new AutoResetEvent(false);
         private Timer _maintainIdleConnectionTimer;
 
@@ -535,7 +537,8 @@ namespace ImapX
         {
             while (true)
             {
-                if (_idleEvents.Count == 0)
+                string tmp;
+                if (!_idleEvents.TryDequeue(out tmp))
                 {
                     if (_idleState == IdleState.On)
                     {
@@ -545,7 +548,8 @@ namespace ImapX
                     }
                     return;
                 }
-                string tmp = _idleEvents.Dequeue();
+                
+
                 Match match = Expressions.IdleResponseRex.Match(tmp);
 
                 if (!match.Success)
