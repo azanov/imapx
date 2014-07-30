@@ -12,7 +12,7 @@ namespace ImapX.Parsing
         /// <summary>
         /// Used to parse the information from a string like <code>* LIST (\\HasNoChildren) "/" Folder name</code>, where folder name can also be quoted
         /// </summary>
-        public static readonly Regex FolderParseRex = new Regex(@".*\((\\.*)+\)\s[""]?(.|[NIL]{3})[""]?\s[""]?([^""]*)[""]?", RegexOptions.IgnoreCase);
+        public static readonly Regex FolderParseRex = new Regex(@".*\((\\.*){0,}\)\s[""]?(.|[NIL]{3})[""]?\s[""]?([^""]*)[""]?", RegexOptions.IgnoreCase);
 
         public static readonly Regex ExistsRex = new Regex(@"\* (\d{1,}) EXISTS");
         public static readonly Regex RecentRex = new Regex(@"\* (\d{1,}) RECENT");
