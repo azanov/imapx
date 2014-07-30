@@ -167,7 +167,7 @@ namespace ImapX
 
             if (match.Success && match.Groups.Count == 4)
             {
-                string[] flags = match.Groups[1].Value.Split(' ');
+                string[] flags = string.IsNullOrEmpty(match.Groups[1].Value) ? new string[0] : match.Groups[1].Value.Split(' ');
 
                 string path = match.Groups[3].Value;
 
