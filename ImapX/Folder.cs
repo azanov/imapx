@@ -479,9 +479,11 @@ namespace ImapX
                 //throw new OperationFailedException("The data returned from the server doesn't match the requirements");
                 return new long[0];
 
+
+
             return count < 0
-                ? result.Groups[1].Value.Trim().Split(' ').Select(long.Parse).ToArray()
-                : result.Groups[1].Value.Trim().Split(' ').OrderByDescending(_ => _).Take(count).Select(long.Parse).ToArray();
+                ? result.Groups[1].Value.Trim().Split(' ').Select(long.Parse).OrderByDescending(_ => _).ToArray()
+                : result.Groups[1].Value.Trim().Split(' ').Select(long.Parse).OrderByDescending(_ => _).Take(count).ToArray();
         }
 
         /// <summary>
