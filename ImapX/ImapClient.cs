@@ -63,7 +63,7 @@ namespace ImapX
         /// <summary>
         /// Creates a new IMAP client, specifies the server and the port to connect to. 
         /// </summary>
-        public ImapClient(string host, int port, SslProtocols sslProtocol = SslProtocols.None, bool validateServerCertificate = true)
+        public ImapClient(string host, int port, SslProtocols sslProtocol, bool validateServerCertificate = true)
             : this()
         {
             Host = host;
