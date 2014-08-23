@@ -106,7 +106,7 @@ namespace ImapX
 
             var boundary = message.BodyParts.Length > 1
                 ? (message.ContentType == null || string.IsNullOrEmpty(message.ContentType.Boundary)
-                    ? (new Guid().ToString("N"))
+                    ? (Guid.NewGuid().ToString("N"))
                     : message.ContentType.Boundary)
                 : null;
 

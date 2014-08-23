@@ -116,6 +116,7 @@ namespace ImapX.Collections
                     case "gesendet":
                     case "gönderildi":
                     case "inviati":
+                    case "posta inviata":
                     case "odeslaná pošta":
                     case "sendt":
                     case "skickat":
