@@ -53,7 +53,7 @@ namespace ImapX
         ///     The number of messages with the \Recent flag set.
         /// </summary>
         public long Recent { get; private set; }
-        
+
         /// <summary>
         ///     The message sequence number of the first unseen message in the mailbox.
         /// </summary>
@@ -336,7 +336,7 @@ namespace ImapX
                 //        UpdateFlags(m.Groups[1].Value.Split(' '));
                 //}
 
-                
+
             }
 
             if (data.Count > 0 && data[data.Count - 1].Contains(ResponseType.Ok))
@@ -375,7 +375,7 @@ namespace ImapX
                 var value = m.Groups[2].Value;
 
                 switch (name)
-                { 
+                {
                     case FolderStatusFields.Messages:
                         Exists = long.Parse(value);
                         break;
@@ -510,7 +510,7 @@ namespace ImapX
         {
             return Fetch(uIds, mode);
         }
-        
+
         /// <summary>
         /// Appends a new message to the end of specified folder
         /// </summary>
@@ -520,9 +520,9 @@ namespace ImapX
         /// <returns><code>true</code> if the message was appended, otherwise <code>false</code></returns>
         public bool AppendMessage(string eml, IEnumerable<string> flags = null, DateTime? date = null)
         {
-            if(string.IsNullOrEmpty(eml))
-                throw new ArgumentException("eml cannot be empty"); 
-            
+            if (string.IsNullOrEmpty(eml))
+                throw new ArgumentException("eml cannot be empty");
+
             if (ReadOnly)
                 Select();
 
@@ -530,14 +530,14 @@ namespace ImapX
 
             var msgUploader = new MessageUploader(eml);
 
-            var dateStr = date.HasValue ? date.Value.ToString("dd-MM-yyyy") : "";
-
-            if (dateStr.StartsWith("0"))
-                dateStr = " " + dateStr.Substring(1, dateStr.Length - 1);
+            var dateStr = date.HasValue ? " \"" + date.Value.ToImapInternalDate() + "\"" : "";
 
             return _client.SendAndReceive(
                 string.Format(ImapCommands.Append,
-                _path) + " {" + eml.Length + "}",
+                _path) + 
+                (flags != null && flags.Any() ? 
+                    " (" + string.Join(" ", flags.ToArray()) + ")" : "") 
+                    + dateStr + " {" + eml.Length + "}",
                 ref data, msgUploader);
         }
 
@@ -552,14 +552,15 @@ namespace ImapX
             {
                 return AppendMessage(mailMessage.ToEml());
             }
-            catch {
+            catch
+            {
                 return false;
             }
 
         }
 
 #endif
-        
+
         /// <summary>
         ///     Removes all messages from current folder
         /// </summary>
@@ -580,7 +581,7 @@ namespace ImapX
                 if (
                     !_client.SendAndReceive(
                         string.Format(ImapCommands.Store, group, "+FLAGS",
-                            MessageFlags.Deleted), ref data)) 
+                            MessageFlags.Deleted), ref data))
                     return false;
             }
 

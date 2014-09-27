@@ -58,6 +58,17 @@ namespace ImapX.Extensions
             return date.ToString("dd-MMM-yyyy", new CultureInfo("en-US"));
         }
 
+        public static string ToImapInternalDate(this DateTime date)
+        {
+            var dateTime = date.ToString("dd-MMM-yyyy hh:mm:ss", new CultureInfo("en-US"));
+            var timeZone = date.ToString("zzz").Replace(":", "");
+
+            if (dateTime[0] == '0')
+                dateTime = " " + dateTime.Substring(1);
+
+            return dateTime + " " + timeZone;
+        }
+
         public static DateTime? ParseDate(string value)
         {
 
