@@ -461,10 +461,14 @@ namespace ImapX
             return result.ToArray();
         }
 
+        /// <exception cref="ImapX.Exceptions.OperationFailedException"></exception>
         internal long[] SearchMessageIds(string query = "ALL", int count = -1)
         {
             if (_client.SelectedFolder != this && !Select())
                 throw new OperationFailedException("The folder couldn't be selected for search.");
+
+            // Examine the folder before searching
+            Examine();
 
             if (query.ToUpper() == "ALL" && _client.Behavior.SearchAllNotSupported)
                 query = "SINCE 0000-00-00";
