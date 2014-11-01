@@ -233,7 +233,7 @@ namespace ImapX.Parsing
                 else if (tmp == ')')
                 {
                     braces--;
-                    if (braces < 0)
+                    if (braces <= 0)
                         break;
                     
                 }
@@ -308,29 +308,33 @@ namespace ImapX.Parsing
             if (trimSpaces)
                 SkipSpaces();
 
-            char prevChar = '\0', currentChar;
-
+            var quote = 0;
+            var checkNil = true;
+            char currentChar = '\0', prevChar;
             var sb = new StringBuilder();
 
-            while ((currentChar = (char)_reader.Read()) != '"')
-            {
-                sb.Append(currentChar);
-                if (sb.ToString() == "NIL")
-                    return string.Empty;
-                if (currentChar == Convert.ToChar(65535)) return string.Empty;
-
-            }
-
-            while ((currentChar = (char)_reader.Read()) != '"' || prevChar == '\\')
+            //danbert2000 - refactored, fixed missing check for end of string 10/21/14
+            while (quote < 2 && _reader.Peek() != -1)
             {
                 prevChar = currentChar;
-                sb.Append(currentChar);
+                currentChar = (char)_reader.Read();
+
+                if (currentChar == '"' && prevChar != '\\')
+                    quote++;
+                else
+                {
+                    sb.Append(currentChar);
+                    if (!checkNil || sb.Length != 3) continue;
+                    if (sb.ToString() == "NIL")
+                        return string.Empty;
+                    checkNil = false;
+                }
             }
 
             if (trimSpaces)
                 SkipSpaces();
 
-            return sb.ToString();
+            return quote < 1 ? string.Empty : sb.ToString();
         }
 
         #endregion
