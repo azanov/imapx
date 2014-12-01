@@ -149,6 +149,7 @@ namespace ImapX.Parsing
 
                 if (_reader.Peek() == '(')
                 {
+					_reader.Read(); // Read '(' of envelope
                     part.Envelope = ReadEnvelope();
                     _reader.Read(); // Read ')' of envelope
 
