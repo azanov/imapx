@@ -5,12 +5,27 @@ using System.Threading;
 using System.Windows.Forms;
 using ImapX.Authentication;
 using ImapX.Sample.Google;
+using System.ComponentModel;
+using ImapX.Sample.Outlook;
+using System.Text.RegularExpressions;
 
 namespace ImapX.Sample
 {
+    [DefaultValue(Simple)]
+    public enum AuthMode
+    {
+        Simple,
+        Google,
+        Outlook
+    }
+
     public partial class FrmConnect : Form
     {
-        private string _googleOAuth2Key;
+
+        private AuthMode _authMode = AuthMode.Simple;
+        private Regex _rexOutlookCode = new Regex(@"code=([^&]+)", RegexOptions.IgnoreCase);
+
+        private string _oAuth2Code;
 
         public FrmConnect()
         {
@@ -27,10 +42,14 @@ namespace ImapX.Sample
 
         private void picGMailLogin_Click(object sender, EventArgs e)
         {
+            _authMode = AuthMode.Google;
+
             wbrMain.Show();
             pnlLogin.Hide();
             btnDefaultAuth.Show();
             picGMailLogin.Hide();
+            pnlLogin.Hide();
+            picOutlook.Hide();
             wbrMain.Navigate(GoogleOAuth2Provider.BuildAuthenticationUri());
         }
 
@@ -38,19 +57,34 @@ namespace ImapX.Sample
         {
             try
             {
-                HtmlElement element = wbrMain.Document.GetElementById("code");
+                _oAuth2Code = "";
 
-                if (element == null) return;
+                if (_authMode == AuthMode.Google)
+                {
+                    HtmlElement element = wbrMain.Document.GetElementById("code");
+                    if (element == null) return;
+                    _oAuth2Code = element.GetAttribute("value");
+                }
+                else if (_authMode == AuthMode.Outlook && wbrMain.Url.ToString().StartsWith(OutlookOAuth2Provider.REDIRECT_URI)) {
+                    var match = _rexOutlookCode.Match(wbrMain.Url.Query);
+                    if (match.Success)
+                    {
+                        _oAuth2Code = match.Groups[1].Value;
+                    }
+                }
 
-                _googleOAuth2Key = element.GetAttribute("value");
-                wbrMain.Hide();
-                lblWait.Text = "Connecting...";
-                lblWait.Show();
-                btnDefaultAuth.Hide();
+                if (!string.IsNullOrWhiteSpace(_oAuth2Code))
+                {
+                    wbrMain.Hide();
+                    lblWait.Text = "Connecting...";
+                    lblWait.Show();
+                    btnDefaultAuth.Hide();
 
-                InitClient(true);
+                    InitClient();
 
-                (new Thread(Connect)).Start(true);
+                    (new Thread(Connect)).Start(true);
+                }
+
             }
             catch
             {
@@ -59,8 +93,10 @@ namespace ImapX.Sample
 
         private void btnDefaultAuth_Click(object sender, EventArgs e)
         {
+            _authMode = AuthMode.Simple;
             btnDefaultAuth.Hide();
             picGMailLogin.Show();
+            picOutlook.Show();
             wbrMain.Navigate("about:blank");
             wbrMain.Hide();
 
@@ -84,6 +120,7 @@ namespace ImapX.Sample
                 lblWait.Text = "Connecting...";
                 lblWait.Show();
                 picGMailLogin.Hide();
+                picOutlook.Hide();
                 btnDefaultAuth.Hide();
 
                 InitClient();
@@ -92,15 +129,22 @@ namespace ImapX.Sample
             }
         }
 
-        private void InitClient(bool isGMail = false)
+        private void InitClient()
         {
             if (Program.ImapClient == null)
                 Program.ImapClient = new ImapClient();
 
-            if (isGMail)
+            if (_authMode == AuthMode.Google)
             {
                
                 Program.ImapClient.Host = "imap.gmail.com";
+                Program.ImapClient.Port = 993;
+                Program.ImapClient.SslProtocol = SslProtocols.Default;
+                Program.ImapClient.ValidateServerCertificate = true;
+            }
+            else if (_authMode == AuthMode.Outlook)
+            {
+                Program.ImapClient.Host = "imap-mail.outlook.com";
                 Program.ImapClient.Port = 993;
                 Program.ImapClient.SslProtocol = SslProtocols.Default;
                 Program.ImapClient.ValidateServerCertificate = true;
@@ -125,13 +169,13 @@ namespace ImapX.Sample
             try
             {
                 if (Program.ImapClient.Connect())
-                    Invoke(new SuccessDelegate(OnConnectSuccessful), new[] {arg});
+                    Invoke(new SuccessDelegate(OnConnectSuccessful));
                 else
-                    Invoke(new FailedDelegate(OnConnectFailed), new[] {null, arg});
+                    Invoke(new FailedDelegate(OnConnectFailed));
             }
             catch (Exception ex)
             {
-                Invoke(new FailedDelegate(OnConnectFailed), new[] {ex, arg});
+                Invoke(new FailedDelegate(OnConnectFailed));
             }
         }
 
@@ -139,81 +183,92 @@ namespace ImapX.Sample
         {
             try
             {
-                if ((bool) arg)
+                if (_authMode == AuthMode.Google)
                 {
-                    GoogleAccessToken token = GoogleOAuth2Provider.GetAccessToken(_googleOAuth2Key);
+                    GoogleAccessToken token = GoogleOAuth2Provider.GetAccessToken(_oAuth2Code);
                     GoogleProfile profile = GoogleOAuth2Provider.GetUserProfile(token);
 
                     Program.ImapClient.Credentials = new OAuth2Credentials(profile.email, token.access_token);
                 }
+                else if (_authMode == AuthMode.Outlook)
+                {
+                    var token = OutlookOAuth2Provider.GetAccessToken(_oAuth2Code);
+                    var profile = OutlookOAuth2Provider.GetUserProfile(token.access_token);
+                    Program.ImapClient.Credentials = new OAuth2Credentials(profile.emails.account, token.access_token);
+                }
 
 
                 if (Program.ImapClient.Login())
-                    Invoke(new SuccessDelegate(OnAuthenticateSuccessful), new[] {arg});
+                    Invoke(new SuccessDelegate(OnAuthenticateSuccessful));
                 else
-                    Invoke(new FailedDelegate(OnAuthenticateFailed), new[] {null, arg});
+                    Invoke(new FailedDelegate(OnAuthenticateFailed));
             }
             catch (Exception ex)
             {
-                Invoke(new FailedDelegate(OnAuthenticateFailed), new[] {ex, arg});
+                Invoke(new FailedDelegate(OnAuthenticateFailed), new[] {ex});
             }
         }
 
-        private void OnAuthenticateSuccessful(bool isOAuth2)
+        private void OnAuthenticateSuccessful()
         {
             DialogResult = DialogResult.OK;
             Close();
         }
 
-        private void OnAuthenticateFailed(Exception ex, bool isOAuth2)
+        private void OnAuthenticateFailed()
         {
-            MessageBox.Show("Authentication failed" + (ex == null ? "" : (Environment.NewLine + ex)),
+            MessageBox.Show("Authentication failed",
                 "Authentication failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             lblWait.Hide();
 
             Program.ImapClient.Disconnect();
 
-            if (isOAuth2)
-            {
-                picGMailLogin_Click(null, null);
-                btnDefaultAuth.Show();
-            }
-            else
+            if (_authMode == AuthMode.Simple)
             {
                 pnlLogin.Show();
                 picGMailLogin.Show();
+                return;
             }
+
+            btnDefaultAuth.Show();
+
+            if (_authMode == AuthMode.Google)
+                picGMailLogin_Click(null, null);
+            else if (_authMode == AuthMode.Outlook)
+                picOutlook_Click(null, null);
         }
 
-        private void OnConnectSuccessful(bool isOAuth2)
+        private void OnConnectSuccessful()
         {
             lblWait.Text = "Connected. Authenticating...";
 
-            if (!isOAuth2)
+            if (_authMode == AuthMode.Simple)
                 Program.ImapClient.Credentials = new PlainCredentials(txtLogin.Text, txtPassword.Text);
 
-            (new Thread(Authenticate)).Start(isOAuth2);
+            (new Thread(Authenticate)).Start();
         }
 
-        private void OnConnectFailed(Exception ex, bool isOAuth2)
+        private void OnConnectFailed()
         {
-            MessageBox.Show("Connection failed" + (ex == null ? "" : (Environment.NewLine + ex)),
+            MessageBox.Show("Connection failed" ,
                 "Connection failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             lblWait.Hide();
 
-
-            if (isOAuth2)
-            {
-                picGMailLogin_Click(null, null);
-                btnDefaultAuth.Show();
-            }
-            else
+            if (_authMode == AuthMode.Simple)
             {
                 pnlLogin.Show();
                 picGMailLogin.Show();
+                return;
             }
+
+            btnDefaultAuth.Show();
+
+            if (_authMode == AuthMode.Google)
+                picGMailLogin_Click(null, null);
+            else if (_authMode == AuthMode.Outlook)
+                picOutlook_Click(null, null);
         }
 
         private void cmbPort_KeyDown(object sender, KeyEventArgs e)
@@ -231,14 +286,26 @@ namespace ImapX.Sample
             cmbPort.SelectedIndex = cmbEncryption.SelectedIndex;
         }
 
-        private delegate void FailedDelegate(Exception ex, bool isOAuth2);
+        private delegate void FailedDelegate();
 
-        private delegate void SuccessDelegate(bool isOAuth2);
+        private delegate void SuccessDelegate();
 
         private void frmLogin_KeyDown(object sender, KeyEventArgs e)
         {
             if(e.KeyCode == Keys.Enter)
                 btnSignIn_Click(null, null);
+        }
+
+        private void picOutlook_Click(object sender, EventArgs e)
+        {
+            _authMode = AuthMode.Outlook;
+
+            wbrMain.Show();
+            pnlLogin.Hide();
+            btnDefaultAuth.Show();
+            picGMailLogin.Hide();
+            picOutlook.Hide();
+            wbrMain.Navigate(OutlookOAuth2Provider.BuildAuthenticationUri());
         }
     }
 }
