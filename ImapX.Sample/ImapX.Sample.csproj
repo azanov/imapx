@@ -100,6 +100,10 @@
     <Compile Include="JsonHelper.cs" />
     <Compile Include="Native\NativeMethods.cs" />
     <Compile Include="Native\SHFILEINFO.cs" />
+    <Compile Include="Outlook\OutlookAccessToken.cs" />
+    <Compile Include="Outlook\OutlookEmail.cs" />
+    <Compile Include="Outlook\OutlookOAuth2Provider.cs" />
+    <Compile Include="Outlook\OutlookProfile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerCallCompletedEventArgs.cs" />
@@ -190,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <Content Include="Resources\outlook.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

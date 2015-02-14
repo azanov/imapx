@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmConnect));
             this.pnlTop = new System.Windows.Forms.Panel();
+            this.picOutlook = new System.Windows.Forms.PictureBox();
             this.btnDefaultAuth = new System.Windows.Forms.Button();
             this.picGMailLogin = new System.Windows.Forms.PictureBox();
             this.picLogo = new System.Windows.Forms.PictureBox();
@@ -51,6 +52,7 @@
             this.lblTitle = new System.Windows.Forms.Label();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
             this.pnlTop.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picOutlook)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.pnlLogin.SuspendLayout();
@@ -59,6 +61,7 @@
             // pnlTop
             // 
             this.pnlTop.BackColor = System.Drawing.Color.White;
+            this.pnlTop.Controls.Add(this.picOutlook);
             this.pnlTop.Controls.Add(this.btnDefaultAuth);
             this.pnlTop.Controls.Add(this.picGMailLogin);
             this.pnlTop.Controls.Add(this.picLogo);
@@ -69,17 +72,30 @@
             this.pnlTop.Size = new System.Drawing.Size(544, 84);
             this.pnlTop.TabIndex = 1;
             // 
+            // picOutlook
+            // 
+            this.picOutlook.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picOutlook.Image = global::ImapX.Sample.Properties.Resources.outlook;
+            this.picOutlook.Location = new System.Drawing.Point(284, 26);
+            this.picOutlook.Name = "picOutlook";
+            this.picOutlook.Size = new System.Drawing.Size(32, 32);
+            this.picOutlook.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.picOutlook.TabIndex = 3;
+            this.picOutlook.TabStop = false;
+            this.tltMain.SetToolTip(this.picOutlook, "Sign in using Outlook.com");
+            this.picOutlook.Click += new System.EventHandler(this.picOutlook_Click);
+            // 
             // btnDefaultAuth
             // 
             this.btnDefaultAuth.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(223)))), ((int)(((byte)(74)))), ((int)(((byte)(50)))));
             this.btnDefaultAuth.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDefaultAuth.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDefaultAuth.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(247)))), ((int)(((byte)(246)))));
-            this.btnDefaultAuth.Location = new System.Drawing.Point(337, 22);
+            this.btnDefaultAuth.Location = new System.Drawing.Point(291, 22);
             this.btnDefaultAuth.Name = "btnDefaultAuth";
-            this.btnDefaultAuth.Size = new System.Drawing.Size(182, 40);
+            this.btnDefaultAuth.Size = new System.Drawing.Size(228, 40);
             this.btnDefaultAuth.TabIndex = 2;
-            this.btnDefaultAuth.Text = "Default authentication";
+            this.btnDefaultAuth.Text = "Other authetntication method";
             this.btnDefaultAuth.UseVisualStyleBackColor = false;
             this.btnDefaultAuth.Visible = false;
             this.btnDefaultAuth.Click += new System.EventHandler(this.btnDefaultAuth_Click);
@@ -126,7 +142,7 @@
             this.pnlLogin.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlLogin.Location = new System.Drawing.Point(0, 84);
             this.pnlLogin.Name = "pnlLogin";
-            this.pnlLogin.Size = new System.Drawing.Size(544, 357);
+            this.pnlLogin.Size = new System.Drawing.Size(544, 461);
             this.pnlLogin.TabIndex = 2;
             // 
             // cmbServer
@@ -263,10 +279,11 @@
             // wbrMain
             // 
             this.wbrMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.wbrMain.Location = new System.Drawing.Point(0, 0);
+            this.wbrMain.Location = new System.Drawing.Point(0, 84);
+            this.wbrMain.Margin = new System.Windows.Forms.Padding(3, 49, 3, 3);
             this.wbrMain.MinimumSize = new System.Drawing.Size(20, 20);
             this.wbrMain.Name = "wbrMain";
-            this.wbrMain.Size = new System.Drawing.Size(544, 441);
+            this.wbrMain.Size = new System.Drawing.Size(544, 461);
             this.wbrMain.TabIndex = 14;
             this.wbrMain.Visible = false;
             this.wbrMain.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.wbrMain_DocumentCompleted);
@@ -288,12 +305,13 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(544, 441);
+            this.ClientSize = new System.Drawing.Size(544, 545);
+            
             this.Controls.Add(this.lblWait);
-            this.Controls.Add(this.lblTitle);
             this.Controls.Add(this.pnlLogin);
-            this.Controls.Add(this.pnlTop);
             this.Controls.Add(this.wbrMain);
+            this.Controls.Add(this.lblTitle);
+            this.Controls.Add(this.pnlTop);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -304,6 +322,7 @@
             this.Text = "ImapX";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picOutlook)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
             this.pnlLogin.ResumeLayout(false);
@@ -334,5 +353,6 @@
         private System.Windows.Forms.CheckBox chkValidateCertificate;
         private System.Windows.Forms.ToolTip tltMain;
         private System.Windows.Forms.ComboBox cmbServer;
+        private System.Windows.Forms.PictureBox picOutlook;
     }
 }
