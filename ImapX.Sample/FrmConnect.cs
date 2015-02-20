@@ -8,6 +8,7 @@ using ImapX.Sample.Google;
 using System.ComponentModel;
 using ImapX.Sample.Outlook;
 using System.Text.RegularExpressions;
+using ImapX.Sample.Yahoo;
 
 namespace ImapX.Sample
 {
@@ -16,14 +17,15 @@ namespace ImapX.Sample
     {
         Simple,
         Google,
-        Outlook
+        Outlook,
+        Yahoo
     }
 
     public partial class FrmConnect : Form
     {
 
         private AuthMode _authMode = AuthMode.Simple;
-        private Regex _rexOutlookCode = new Regex(@"code=([^&]+)", RegexOptions.IgnoreCase);
+        private Regex _rexCode = new Regex(@"code=([^&]+)", RegexOptions.IgnoreCase);
 
         private string _oAuth2Code;
 
@@ -50,6 +52,7 @@ namespace ImapX.Sample
             picGMailLogin.Hide();
             pnlLogin.Hide();
             picOutlook.Hide();
+            picYahoo.Hide();
             wbrMain.Navigate(GoogleOAuth2Provider.BuildAuthenticationUri());
         }
 
@@ -66,7 +69,15 @@ namespace ImapX.Sample
                     _oAuth2Code = element.GetAttribute("value");
                 }
                 else if (_authMode == AuthMode.Outlook && wbrMain.Url.ToString().StartsWith(OutlookOAuth2Provider.REDIRECT_URI)) {
-                    var match = _rexOutlookCode.Match(wbrMain.Url.Query);
+                    var match = _rexCode.Match(wbrMain.Url.Query);
+                    if (match.Success)
+                    {
+                        _oAuth2Code = match.Groups[1].Value;
+                    }
+                }
+                else if (_authMode == AuthMode.Yahoo && wbrMain.Url.ToString().StartsWith(YahooOAuth2Provider.REDIRECT_URI))
+                {
+                    var match = _rexCode.Match(wbrMain.Url.Query);
                     if (match.Success)
                     {
                         _oAuth2Code = match.Groups[1].Value;
@@ -97,6 +108,7 @@ namespace ImapX.Sample
             btnDefaultAuth.Hide();
             picGMailLogin.Show();
             picOutlook.Show();
+            picYahoo.Show();
             wbrMain.Navigate("about:blank");
             wbrMain.Hide();
 
@@ -121,6 +133,7 @@ namespace ImapX.Sample
                 lblWait.Show();
                 picGMailLogin.Hide();
                 picOutlook.Hide();
+                picYahoo.Hide();
                 btnDefaultAuth.Hide();
 
                 InitClient();
@@ -145,6 +158,13 @@ namespace ImapX.Sample
             else if (_authMode == AuthMode.Outlook)
             {
                 Program.ImapClient.Host = "imap-mail.outlook.com";
+                Program.ImapClient.Port = 993;
+                Program.ImapClient.SslProtocol = SslProtocols.Default;
+                Program.ImapClient.ValidateServerCertificate = true;
+            }
+            else if (_authMode == AuthMode.Yahoo)
+            {
+                Program.ImapClient.Host = "imap.mail.yahoo.com";
                 Program.ImapClient.Port = 993;
                 Program.ImapClient.SslProtocol = SslProtocols.Default;
                 Program.ImapClient.ValidateServerCertificate = true;
@@ -196,7 +216,11 @@ namespace ImapX.Sample
                     var profile = OutlookOAuth2Provider.GetUserProfile(token.access_token);
                     Program.ImapClient.Credentials = new OAuth2Credentials(profile.emails.account, token.access_token);
                 }
-
+                else if (_authMode == AuthMode.Yahoo)
+                {
+                    var token = YahooOAuth2Provider.GetAccessToken(_oAuth2Code);
+                    Program.ImapClient.Credentials = new OAuth2Credentials(token.xoauth_yahoo_guid, token.access_token, "ImapX");
+                }
 
                 if (Program.ImapClient.Login())
                     Invoke(new SuccessDelegate(OnAuthenticateSuccessful));
@@ -228,6 +252,8 @@ namespace ImapX.Sample
             {
                 pnlLogin.Show();
                 picGMailLogin.Show();
+                picOutlook.Show();
+                picYahoo.Show();
                 return;
             }
 
@@ -237,6 +263,8 @@ namespace ImapX.Sample
                 picGMailLogin_Click(null, null);
             else if (_authMode == AuthMode.Outlook)
                 picOutlook_Click(null, null);
+            else if (_authMode == AuthMode.Yahoo)
+                picYahoo_Click(null, null);
         }
 
         private void OnConnectSuccessful()
@@ -260,6 +288,8 @@ namespace ImapX.Sample
             {
                 pnlLogin.Show();
                 picGMailLogin.Show();
+                picOutlook.Show();
+                picYahoo.Show();
                 return;
             }
 
@@ -269,6 +299,8 @@ namespace ImapX.Sample
                 picGMailLogin_Click(null, null);
             else if (_authMode == AuthMode.Outlook)
                 picOutlook_Click(null, null);
+            else if (_authMode == AuthMode.Yahoo)
+                picYahoo_Click(null, null);
         }
 
         private void cmbPort_KeyDown(object sender, KeyEventArgs e)
@@ -305,7 +337,22 @@ namespace ImapX.Sample
             btnDefaultAuth.Show();
             picGMailLogin.Hide();
             picOutlook.Hide();
+            picYahoo.Hide();
             wbrMain.Navigate(OutlookOAuth2Provider.BuildAuthenticationUri());
+        }
+
+        private void picYahoo_Click(object sender, EventArgs e)
+        {
+            _authMode = AuthMode.Yahoo;
+
+            wbrMain.Show();
+            pnlLogin.Hide();
+            btnDefaultAuth.Show();
+            picGMailLogin.Hide();
+            pnlLogin.Hide();
+            picOutlook.Hide();
+            picYahoo.Hide();
+            wbrMain.Navigate(YahooOAuth2Provider.BuildAuthenticationUri());
         }
     }
 }

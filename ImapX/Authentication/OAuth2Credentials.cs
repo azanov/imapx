@@ -11,7 +11,7 @@ namespace ImapX.Authentication
     /// </summary>
     public class OAuth2Credentials : ImapCredentials
     {
-        public OAuth2Credentials(string login, string authToken)
+        public OAuth2Credentials(string login, string authToken, string vendor = null)
         {
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(authToken))
                 throw new ArgumentException("Login and auth token cannot be empty");
@@ -20,6 +20,7 @@ namespace ImapX.Authentication
 
             Login = login;
             AuthToken = authToken;
+            Vendor = vendor;
         }
 
         /// <summary>
@@ -32,13 +33,18 @@ namespace ImapX.Authentication
         /// </summary>
         public string AuthToken { get; set; }
 
+        /// <summary>
+        /// The vendor
+        /// </summary>
+        public string Vendor { get; set; }
+
         public override string ToCommand(Capability capabilities)
         {
             if (!IsSupported(capabilities))
                 throw new NotSupportedException("The selected authentication mechanism is not supported");
 
             return string.Format(ImapCommands.Authenticate + " {1}", "XOAUTH2",
-                PrepareOAuthCredentials(Login, AuthToken));
+                PrepareOAuthCredentials(Login, AuthToken, Vendor));
         }
 
         public override bool IsSupported(Capability capabilities)
@@ -46,11 +52,12 @@ namespace ImapX.Authentication
             return capabilities.XoAuth2;
         }
 
-        private string PrepareOAuthCredentials(string login, string token)
+        private string PrepareOAuthCredentials(string login, string token, string vendor = null)
         {
             byte[] userData = Encoding.UTF8.GetBytes("user=" + login);
             byte[] tokenLabelData = Encoding.UTF8.GetBytes("auth=Bearer ");
-            byte[] tokenData = Encoding.UTF8.GetBytes(token + "\n");
+            byte[] vendorData = string.IsNullOrWhiteSpace(vendor) ? null : Encoding.UTF8.GetBytes("vendor=" + vendor + "\n");
+            byte[] tokenData = Encoding.UTF8.GetBytes(token + (vendorData == null ? "\n" : ""));
 
             using (var stream = new MemoryStream())
             {
@@ -59,6 +66,11 @@ namespace ImapX.Authentication
                 stream.Write(tokenLabelData, 0, tokenLabelData.Length);
                 stream.Write(tokenData, 0, tokenData.Length);
                 stream.WriteByte(1);
+                if (vendorData != null)
+                {
+                    stream.Write(vendorData, 0, vendorData.Length);
+                    stream.WriteByte(1);
+                }
                 stream.WriteByte(1);
                 return Convert.ToBase64String(stream.ToArray());
             }
