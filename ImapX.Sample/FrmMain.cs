@@ -12,6 +12,7 @@ using ImapX.Constants;
 using ImapX.Enums;
 using ImapX.Sample.Native;
 using System.Web;
+using ImapX.Extensions;
 
 namespace ImapX.Sample
 {

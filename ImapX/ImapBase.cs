@@ -600,7 +600,7 @@ namespace ImapX
                     if (IsDebug)
                         Debug.WriteLine(tmp);
 
-                    if (tmp.ToUpper().Contains("OK"))
+                    if (tmp.ToUpper().Contains("OK IDLE COMPLETED"))
                     {
                         _idleState = IdleState.Off;
                         // unblock the processing thread, it will end itself because _idleState is Off
