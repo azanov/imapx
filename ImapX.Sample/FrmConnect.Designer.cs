@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmConnect));
             this.pnlTop = new System.Windows.Forms.Panel();
+            this.picYahoo = new System.Windows.Forms.PictureBox();
             this.picOutlook = new System.Windows.Forms.PictureBox();
             this.btnDefaultAuth = new System.Windows.Forms.Button();
             this.picGMailLogin = new System.Windows.Forms.PictureBox();
@@ -52,6 +53,7 @@
             this.lblTitle = new System.Windows.Forms.Label();
             this.tltMain = new System.Windows.Forms.ToolTip(this.components);
             this.pnlTop.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picYahoo)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picOutlook)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
@@ -61,6 +63,7 @@
             // pnlTop
             // 
             this.pnlTop.BackColor = System.Drawing.Color.White;
+            this.pnlTop.Controls.Add(this.picYahoo);
             this.pnlTop.Controls.Add(this.picOutlook);
             this.pnlTop.Controls.Add(this.btnDefaultAuth);
             this.pnlTop.Controls.Add(this.picGMailLogin);
@@ -69,14 +72,26 @@
             this.pnlTop.Location = new System.Drawing.Point(0, 0);
             this.pnlTop.Name = "pnlTop";
             this.pnlTop.Padding = new System.Windows.Forms.Padding(24, 12, 12, 12);
-            this.pnlTop.Size = new System.Drawing.Size(544, 84);
+            this.pnlTop.Size = new System.Drawing.Size(627, 84);
             this.pnlTop.TabIndex = 1;
+            // 
+            // picYahoo
+            // 
+            this.picYahoo.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picYahoo.Image = global::ImapX.Sample.Properties.Resources.yahoo;
+            this.picYahoo.Location = new System.Drawing.Point(316, 26);
+            this.picYahoo.Name = "picYahoo";
+            this.picYahoo.Size = new System.Drawing.Size(32, 32);
+            this.picYahoo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.picYahoo.TabIndex = 4;
+            this.picYahoo.TabStop = false;
+            this.picYahoo.Click += new System.EventHandler(this.picYahoo_Click);
             // 
             // picOutlook
             // 
             this.picOutlook.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picOutlook.Image = global::ImapX.Sample.Properties.Resources.outlook;
-            this.picOutlook.Location = new System.Drawing.Point(284, 26);
+            this.picOutlook.Location = new System.Drawing.Point(367, 26);
             this.picOutlook.Name = "picOutlook";
             this.picOutlook.Size = new System.Drawing.Size(32, 32);
             this.picOutlook.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -91,11 +106,11 @@
             this.btnDefaultAuth.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDefaultAuth.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDefaultAuth.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(247)))), ((int)(((byte)(246)))));
-            this.btnDefaultAuth.Location = new System.Drawing.Point(291, 22);
+            this.btnDefaultAuth.Location = new System.Drawing.Point(374, 22);
             this.btnDefaultAuth.Name = "btnDefaultAuth";
             this.btnDefaultAuth.Size = new System.Drawing.Size(228, 40);
             this.btnDefaultAuth.TabIndex = 2;
-            this.btnDefaultAuth.Text = "Other authetntication method";
+            this.btnDefaultAuth.Text = "Other authentication method";
             this.btnDefaultAuth.UseVisualStyleBackColor = false;
             this.btnDefaultAuth.Visible = false;
             this.btnDefaultAuth.Click += new System.EventHandler(this.btnDefaultAuth_Click);
@@ -104,7 +119,7 @@
             // 
             this.picGMailLogin.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picGMailLogin.Image = global::ImapX.Sample.Properties.Resources.sign_in_with_google;
-            this.picGMailLogin.Location = new System.Drawing.Point(337, 22);
+            this.picGMailLogin.Location = new System.Drawing.Point(420, 22);
             this.picGMailLogin.Name = "picGMailLogin";
             this.picGMailLogin.Size = new System.Drawing.Size(182, 40);
             this.picGMailLogin.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -140,9 +155,9 @@
             this.pnlLogin.Controls.Add(this.txtLogin);
             this.pnlLogin.Controls.Add(this.lblServer);
             this.pnlLogin.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlLogin.Location = new System.Drawing.Point(0, 84);
+            this.pnlLogin.Location = new System.Drawing.Point(0, 133);
             this.pnlLogin.Name = "pnlLogin";
-            this.pnlLogin.Size = new System.Drawing.Size(544, 461);
+            this.pnlLogin.Size = new System.Drawing.Size(627, 412);
             this.pnlLogin.TabIndex = 2;
             // 
             // cmbServer
@@ -154,7 +169,7 @@
             "imap.yandex.ru",
             "imap.mail.yahoo.com",
             "imap.aol.com"});
-            this.cmbServer.Location = new System.Drawing.Point(208, 89);
+            this.cmbServer.Location = new System.Drawing.Point(240, 94);
             this.cmbServer.Name = "cmbServer";
             this.cmbServer.Size = new System.Drawing.Size(210, 25);
             this.cmbServer.TabIndex = 13;
@@ -165,7 +180,7 @@
             this.chkValidateCertificate.AutoSize = true;
             this.chkValidateCertificate.Checked = true;
             this.chkValidateCertificate.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkValidateCertificate.Location = new System.Drawing.Point(403, 126);
+            this.chkValidateCertificate.Location = new System.Drawing.Point(435, 131);
             this.chkValidateCertificate.Name = "chkValidateCertificate";
             this.chkValidateCertificate.Size = new System.Drawing.Size(15, 14);
             this.chkValidateCertificate.TabIndex = 3;
@@ -175,7 +190,7 @@
             // 
             // btnSignIn
             // 
-            this.btnSignIn.Location = new System.Drawing.Point(208, 213);
+            this.btnSignIn.Location = new System.Drawing.Point(240, 218);
             this.btnSignIn.Name = "btnSignIn";
             this.btnSignIn.Size = new System.Drawing.Size(210, 30);
             this.btnSignIn.TabIndex = 6;
@@ -186,7 +201,7 @@
             // lblPassword
             // 
             this.lblPassword.AutoSize = true;
-            this.lblPassword.Location = new System.Drawing.Point(114, 185);
+            this.lblPassword.Location = new System.Drawing.Point(146, 190);
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(64, 17);
             this.lblPassword.TabIndex = 12;
@@ -194,7 +209,7 @@
             // 
             // txtPassword
             // 
-            this.txtPassword.Location = new System.Drawing.Point(208, 182);
+            this.txtPassword.Location = new System.Drawing.Point(240, 187);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '●';
             this.txtPassword.Size = new System.Drawing.Size(210, 25);
@@ -209,7 +224,7 @@
             "None",
             "SSL",
             "TLS"});
-            this.cmbEncryption.Location = new System.Drawing.Point(316, 120);
+            this.cmbEncryption.Location = new System.Drawing.Point(348, 125);
             this.cmbEncryption.Name = "cmbEncryption";
             this.cmbEncryption.Size = new System.Drawing.Size(79, 25);
             this.cmbEncryption.TabIndex = 2;
@@ -219,7 +234,7 @@
             // lblPort
             // 
             this.lblPort.AutoSize = true;
-            this.lblPort.Location = new System.Drawing.Point(114, 123);
+            this.lblPort.Location = new System.Drawing.Point(146, 128);
             this.lblPort.Name = "lblPort";
             this.lblPort.Size = new System.Drawing.Size(32, 17);
             this.lblPort.TabIndex = 9;
@@ -231,7 +246,7 @@
             this.cmbPort.Items.AddRange(new object[] {
             "143",
             "993"});
-            this.cmbPort.Location = new System.Drawing.Point(208, 120);
+            this.cmbPort.Location = new System.Drawing.Point(240, 125);
             this.cmbPort.Name = "cmbPort";
             this.cmbPort.Size = new System.Drawing.Size(102, 25);
             this.cmbPort.TabIndex = 1;
@@ -240,7 +255,7 @@
             // lblLogin
             // 
             this.lblLogin.AutoSize = true;
-            this.lblLogin.Location = new System.Drawing.Point(114, 154);
+            this.lblLogin.Location = new System.Drawing.Point(146, 159);
             this.lblLogin.Name = "lblLogin";
             this.lblLogin.Size = new System.Drawing.Size(40, 17);
             this.lblLogin.TabIndex = 7;
@@ -248,7 +263,7 @@
             // 
             // txtLogin
             // 
-            this.txtLogin.Location = new System.Drawing.Point(208, 151);
+            this.txtLogin.Location = new System.Drawing.Point(240, 156);
             this.txtLogin.Name = "txtLogin";
             this.txtLogin.Size = new System.Drawing.Size(210, 25);
             this.txtLogin.TabIndex = 4;
@@ -257,7 +272,7 @@
             // lblServer
             // 
             this.lblServer.AutoSize = true;
-            this.lblServer.Location = new System.Drawing.Point(114, 92);
+            this.lblServer.Location = new System.Drawing.Point(146, 97);
             this.lblServer.Name = "lblServer";
             this.lblServer.Size = new System.Drawing.Size(45, 17);
             this.lblServer.TabIndex = 3;
@@ -267,7 +282,7 @@
             // 
             this.lblWait.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(223)))), ((int)(((byte)(74)))), ((int)(((byte)(50)))));
             this.lblWait.ForeColor = System.Drawing.Color.White;
-            this.lblWait.Location = new System.Drawing.Point(169, 255);
+            this.lblWait.Location = new System.Drawing.Point(200, 255);
             this.lblWait.Name = "lblWait";
             this.lblWait.Padding = new System.Windows.Forms.Padding(15, 10, 15, 10);
             this.lblWait.Size = new System.Drawing.Size(212, 37);
@@ -279,11 +294,11 @@
             // wbrMain
             // 
             this.wbrMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.wbrMain.Location = new System.Drawing.Point(0, 84);
+            this.wbrMain.Location = new System.Drawing.Point(0, 133);
             this.wbrMain.Margin = new System.Windows.Forms.Padding(3, 49, 3, 3);
             this.wbrMain.MinimumSize = new System.Drawing.Size(20, 20);
             this.wbrMain.Name = "wbrMain";
-            this.wbrMain.Size = new System.Drawing.Size(544, 461);
+            this.wbrMain.Size = new System.Drawing.Size(627, 412);
             this.wbrMain.TabIndex = 14;
             this.wbrMain.Visible = false;
             this.wbrMain.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.wbrMain_DocumentCompleted);
@@ -296,7 +311,7 @@
             this.lblTitle.Location = new System.Drawing.Point(0, 84);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Padding = new System.Windows.Forms.Padding(12);
-            this.lblTitle.Size = new System.Drawing.Size(544, 49);
+            this.lblTitle.Size = new System.Drawing.Size(627, 49);
             this.lblTitle.TabIndex = 3;
             this.lblTitle.Text = "Sign in";
             // 
@@ -305,8 +320,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(544, 545);
-            
+            this.ClientSize = new System.Drawing.Size(627, 545);
             this.Controls.Add(this.lblWait);
             this.Controls.Add(this.pnlLogin);
             this.Controls.Add(this.wbrMain);
@@ -322,6 +336,7 @@
             this.Text = "ImapX";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picYahoo)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picOutlook)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picGMailLogin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
@@ -354,5 +369,6 @@
         private System.Windows.Forms.ToolTip tltMain;
         private System.Windows.Forms.ComboBox cmbServer;
         private System.Windows.Forms.PictureBox picOutlook;
+        private System.Windows.Forms.PictureBox picYahoo;
     }
 }
