@@ -109,6 +109,8 @@
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
+            this.mnuExportAllMessages = new System.Windows.Forms.ToolStripMenuItem();
+            this.fbdExportMessages = new System.Windows.Forms.FolderBrowserDialog();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.panel9.SuspendLayout();
@@ -928,57 +930,58 @@
             this.toolStripMenuItem2,
             this.importMessageToolStripMenuItem,
             this.toolStripMenuItem5,
-            this.emptyToolStripMenuItem});
+            this.emptyToolStripMenuItem,
+            this.mnuExportAllMessages});
             this.mnuFolder.Name = "mnuFolder";
-            this.mnuFolder.Size = new System.Drawing.Size(160, 132);
+            this.mnuFolder.Size = new System.Drawing.Size(177, 154);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.renameToolStripMenuItem.Text = "&Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.deleteToolStripMenuItem.Text = "&Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(156, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(173, 6);
             // 
             // addSubfolderToolStripMenuItem
             // 
             this.addSubfolderToolStripMenuItem.Name = "addSubfolderToolStripMenuItem";
-            this.addSubfolderToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.addSubfolderToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.addSubfolderToolStripMenuItem.Text = "&Add subfolder";
             this.addSubfolderToolStripMenuItem.Click += new System.EventHandler(this.addSubfolderToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(173, 6);
             // 
             // importMessageToolStripMenuItem
             // 
             this.importMessageToolStripMenuItem.Name = "importMessageToolStripMenuItem";
-            this.importMessageToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.importMessageToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.importMessageToolStripMenuItem.Text = "&Import message";
             this.importMessageToolStripMenuItem.Click += new System.EventHandler(this.importMessageToolStripMenuItem_Click);
             // 
             // toolStripMenuItem5
             // 
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(156, 6);
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(173, 6);
             // 
             // emptyToolStripMenuItem
             // 
             this.emptyToolStripMenuItem.Name = "emptyToolStripMenuItem";
-            this.emptyToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.emptyToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.emptyToolStripMenuItem.Text = "&Empty folder";
             this.emptyToolStripMenuItem.Click += new System.EventHandler(this.emptyToolStripMenuItem_Click);
             // 
@@ -996,6 +999,13 @@
             // 
             this.sfdSaveAttachment.Filter = "All files|*.*";
             this.sfdSaveAttachment.Title = "Save attachment";
+            // 
+            // mnuExportAllMessages
+            // 
+            this.mnuExportAllMessages.Name = "mnuExportAllMessages";
+            this.mnuExportAllMessages.Size = new System.Drawing.Size(176, 22);
+            this.mnuExportAllMessages.Text = "&Export all messages";
+            this.mnuExportAllMessages.Click += new System.EventHandler(this.mnuExportAllMessages_Click);
             // 
             // FrmMain
             // 
@@ -1122,5 +1132,7 @@
         private System.Windows.Forms.Panel panel12;
         private System.Windows.Forms.Panel panel11;
         private System.Windows.Forms.Panel panel10;
+        private System.Windows.Forms.ToolStripMenuItem mnuExportAllMessages;
+        private System.Windows.Forms.FolderBrowserDialog fbdExportMessages;
     }
 }

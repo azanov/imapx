@@ -1214,5 +1214,55 @@ namespace ImapX.Sample
         }
 
         #endregion
+
+        private void mnuExportAllMessages_Click(object sender, EventArgs e)
+        {
+            if (fbdExportMessages.ShowDialog(this) != DialogResult.OK) return;
+
+            trwFolders.Enabled = false;
+
+            (new Thread(_ => ExportMessages(fbdExportMessages.SelectedPath))).Start();
+        }
+
+        private void ExportMessages(string path)
+        {
+            string[] headers = Program.ImapClient.Behavior.RequestedHeaders;
+            try
+            {
+                var args = new ServerCallCompletedEventArgs();
+                Program.ImapClient.Behavior.RequestedHeaders = null;
+
+                var i = 1;
+
+                foreach (var message in _selectedFolder.Messages.OrderBy(_=>_.InternalDate))
+                {
+                    var data = message.DownloadRawMessage();
+                    File.WriteAllText(Path.Combine(path, i+".eml"), data);
+                    i++;
+                }
+
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ExportMessagesCompleted), Program.ImapClient, args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ServerCallCompletedEventArgs(false, ex);
+                Invoke(new EventHandler<ServerCallCompletedEventArgs>(ExportMessagesCompleted), Program.ImapClient, args);
+            }
+            finally
+            {
+                Program.ImapClient.Behavior.RequestedHeaders = headers;
+            }
+        }
+
+        private void ExportMessagesCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            trwFolders.Enabled = true;
+            if (e.Result)
+            {
+                MessageBox.Show("Message exported!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            else
+                MessageBox.Show("Failed to export message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 }
