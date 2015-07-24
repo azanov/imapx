@@ -128,7 +128,7 @@
         AAEAAAD/////AQAAAAAAAAAMAgAAAFdTeXN0ZW0uV2luZG93cy5Gb3JtcywgVmVyc2lvbj00LjAuMC4w
         LCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkFAQAAACZTeXN0
         ZW0uV2luZG93cy5Gb3Jtcy5JbWFnZUxpc3RTdHJlYW1lcgEAAAAERGF0YQcCAgAAAAkDAAAADwMAAACO
-        AwAAAk1TRnQBSQFMAwEBAAGAAQABgAEAASABAAEgAQAE/wEhAQAI/wFCAU0BNgcAATYDAAEoAwABgAMA
+        AwAAAk1TRnQBSQFMAwEBAAGIAQABiAEAASABAAEgAQAE/wEhAQAI/wFCAU0BNgcAATYDAAEoAwABgAMA
         ASADAAEBAQABIAYAAUD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AEYAAyIBMQJZAVYBvgJc
         AVkByQM/AW3/AO0AAywBRAJeAVoB2AMNARIEAANMAZACVwFVAbf/AOkAAl4BXAHOAwcBCQwAA0MBeAJX
         AVUBuv8A5QACXgFaAdUUAANBAXICWAFWAbn/AOEAA0UBfQNIAYYIAANSAakCXgFcAc4CWgFXAb0DRgF+
@@ -163,6 +163,9 @@
   </metadata>
   <metadata name="sfdSaveAttachment.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>964, 18</value>
+  </metadata>
+  <metadata name="fbdExportMessages.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>294, 41</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
