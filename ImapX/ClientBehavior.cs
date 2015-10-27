@@ -73,6 +73,11 @@ namespace ImapX
         internal char FolderDelimeter { get; set; }
 
         /// <summary>
+        /// In some cases, the server returns two characters for delimiter, which is weird @"\\"
+        /// </summary>
+        internal string FolderDelimeterString { get; set; }
+
+        /// <summary>
         ///     The path where the special use metadata information for folders is stored
         /// </summary>
         public string SpecialUseMetadataPath { get; set; }

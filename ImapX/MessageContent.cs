@@ -241,6 +241,12 @@ namespace ImapX
 
                 }
             }
+            else if ((index = data.IndexOf("UID")) != -1)
+            {
+                data = CommandJunkUID.Replace(data, "");
+                AppendDataToContentStream(data);
+                return;
+            }
             else if (CommandEndRex.IsMatch(data))
             {
                 for (var i = _contentBuilder.Length - 1; i >= 0; i--)

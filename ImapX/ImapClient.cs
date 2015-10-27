@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-
-using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Authentication;
+using System.Text;
 using ImapX.Authentication;
 using ImapX.Collections;
 using ImapX.Constants;
 using ImapX.Enums;
-using System.Threading;
+using ImapX.Exceptions;
 using ImapX.Parsing;
 
 namespace ImapX
@@ -156,13 +156,54 @@ namespace ImapX
         internal FolderCollection GetFolders(string path, CommonFolderCollection commonFolders, Folder parent = null, bool isFirstLevel = false)
         {
             var result = new FolderCollection(this, parent);
-            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, path, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full || (parent != null && Behavior.LazyFolderBrowsingNotSupported) ? "*" : "%");
+            string rewritePath = path.Replace(Behavior.FolderDelimeter.ToString(),
+                    Behavior.FolderDelimeterString);
+
+            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, rewritePath, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
             IList<string> data = new List<string>();
             if (!SendAndReceive(cmd, ref data)) return result;
 
             for (var i = 0; i < data.Count - 1; i++)
             {
-                var folder = Folder.Parse(data[i], ref parent, this);
+                string checkLiteralString = data[i];
+                // RZ 10/23/2015 detect literal
+                var literalMatch = Expressions.LiteralRex.Match(checkLiteralString);
+                if (literalMatch.Success && literalMatch.Groups.Count == 2)
+                {
+                    // read more lines until the number of characters are received.
+                    // get the number of characters first
+                    int iLength, iCumulate = 0;
+                    if (!int.TryParse(literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Value, out iLength))
+                    {
+                        throw new OperationFailedException(string.Format("Invalid literal length detected from server:{0}", literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Value));
+                    }
+                    int iStartIndex = literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Index;
+
+                    // truncate input to the start of literal
+                    checkLiteralString = checkLiteralString.Substring(0, iStartIndex - 1);
+                    if (iLength > 0)
+                    {
+                        var sb = new StringBuilder();
+                        while (iCumulate < iLength)
+                        {
+                            // read more
+                            i++;        // NOTE: increase i to the next line
+                            string moreLine = data[i];
+                            iCumulate += moreLine.Length;
+                            sb.Append(moreLine);
+                        }
+                        if (IsDebug)
+                            Debug.WriteLine("ImapX string Literal:{0}", sb.ToString());
+
+                        checkLiteralString += sb.ToString();
+                    }
+                    else
+                        checkLiteralString += " \"\"";  // add empty string
+
+                    if (IsDebug)
+                        Debug.WriteLine("ImapX Rewrite return into:{0}", checkLiteralString);
+                }
+                var folder = Folder.Parse(checkLiteralString, ref parent, this);
                 commonFolders.TryBind(ref folder);
 
                 if (Behavior.ExamineFolders)
