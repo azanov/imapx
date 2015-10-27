@@ -21,6 +21,8 @@ namespace ImapX.Extensions
             validDateTimeFormats = new string[]
             {
                 "ddd, dd MMM yyyy HH:mm:ss",
+                "ddd, dd MMM yy HH:mm:ss",
+                "ddd, d MMM yy HH:mm:ss",
                 "dd MMM yyyy HH:mm:ss",
                 "ddd, dd MMM yyyy HH:mm",
                 "dd MMM yyyy HH:mm",
