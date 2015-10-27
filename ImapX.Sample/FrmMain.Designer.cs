@@ -106,11 +106,12 @@
             this.importMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             this.emptyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuExportAllMessages = new System.Windows.Forms.ToolStripMenuItem();
             this.ofdImportMessage = new System.Windows.Forms.OpenFileDialog();
             this.sfdExportMessage = new System.Windows.Forms.SaveFileDialog();
             this.sfdSaveAttachment = new System.Windows.Forms.SaveFileDialog();
-            this.mnuExportAllMessages = new System.Windows.Forms.ToolStripMenuItem();
             this.fbdExportMessages = new System.Windows.Forms.FolderBrowserDialog();
+            this.bulkImportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlFolders.SuspendLayout();
             this.pnlFavorites.SuspendLayout();
             this.panel9.SuspendLayout();
@@ -929,11 +930,12 @@
             this.addSubfolderToolStripMenuItem,
             this.toolStripMenuItem2,
             this.importMessageToolStripMenuItem,
+            this.bulkImportToolStripMenuItem,
             this.toolStripMenuItem5,
             this.emptyToolStripMenuItem,
             this.mnuExportAllMessages});
             this.mnuFolder.Name = "mnuFolder";
-            this.mnuFolder.Size = new System.Drawing.Size(177, 154);
+            this.mnuFolder.Size = new System.Drawing.Size(177, 198);
             // 
             // renameToolStripMenuItem
             // 
@@ -985,6 +987,13 @@
             this.emptyToolStripMenuItem.Text = "&Empty folder";
             this.emptyToolStripMenuItem.Click += new System.EventHandler(this.emptyToolStripMenuItem_Click);
             // 
+            // mnuExportAllMessages
+            // 
+            this.mnuExportAllMessages.Name = "mnuExportAllMessages";
+            this.mnuExportAllMessages.Size = new System.Drawing.Size(176, 22);
+            this.mnuExportAllMessages.Text = "&Export all messages";
+            this.mnuExportAllMessages.Click += new System.EventHandler(this.mnuExportAllMessages_Click);
+            // 
             // ofdImportMessage
             // 
             this.ofdImportMessage.Filter = "Message files|*.eml|All files|*.*";
@@ -1000,12 +1009,12 @@
             this.sfdSaveAttachment.Filter = "All files|*.*";
             this.sfdSaveAttachment.Title = "Save attachment";
             // 
-            // mnuExportAllMessages
+            // bulkImportToolStripMenuItem
             // 
-            this.mnuExportAllMessages.Name = "mnuExportAllMessages";
-            this.mnuExportAllMessages.Size = new System.Drawing.Size(176, 22);
-            this.mnuExportAllMessages.Text = "&Export all messages";
-            this.mnuExportAllMessages.Click += new System.EventHandler(this.mnuExportAllMessages_Click);
+            this.bulkImportToolStripMenuItem.Name = "bulkImportToolStripMenuItem";
+            this.bulkImportToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.bulkImportToolStripMenuItem.Text = "&Bulk import";
+            this.bulkImportToolStripMenuItem.Click += new System.EventHandler(this.bulkImportToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -1134,5 +1143,6 @@
         private System.Windows.Forms.Panel panel10;
         private System.Windows.Forms.ToolStripMenuItem mnuExportAllMessages;
         private System.Windows.Forms.FolderBrowserDialog fbdExportMessages;
+        private System.Windows.Forms.ToolStripMenuItem bulkImportToolStripMenuItem;
     }
 }
