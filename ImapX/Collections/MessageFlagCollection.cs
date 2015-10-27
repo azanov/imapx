@@ -117,7 +117,7 @@ namespace ImapX.Collections
                 return true;
             }
 
-            if (_message.Folder.ReadOnly)
+            if (_message.Folder.ReadOnly || Client.SelectedFolder != _message.Folder)
                 _message.Folder.Select();
 
             IList<string> data = new List<string>();

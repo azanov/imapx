@@ -49,7 +49,9 @@ namespace ImapX.Collections
 
             IList<string> data = new List<string>();
 
-            if (!Client.SendAndReceive(string.Format(ImapCommands.Create, path), ref data)) return null;
+            string rewritePath = path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!Client.SendAndReceive(string.Format(ImapCommands.Create, rewritePath), ref data)) return null;
             
             var folder = new Folder(path, new string[0], ref _parentFolder, Client);
 

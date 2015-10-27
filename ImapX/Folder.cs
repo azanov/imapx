@@ -167,14 +167,23 @@ namespace ImapX
 
             if (match.Success && match.Groups.Count == 4)
             {
-                string[] flags = string.IsNullOrEmpty(match.Groups[1].Value) ? new string[0] : match.Groups[1].Value.Split(' ');
+                string[] flags = match.Groups[1].Value.Split(' ');
 
                 string path = match.Groups[3].Value;
 
                 if (client.Behavior.FolderDelimeter == '\0')
-                    client.Behavior.FolderDelimeter = string.IsNullOrEmpty(match.Groups[2].Value)
-                        ? '"'
-                        : match.Groups[2].Value.ToCharArray()[0];
+                {
+                    if (string.IsNullOrEmpty(match.Groups[2].Value))
+                    {
+                        client.Behavior.FolderDelimeter = '"';
+                        client.Behavior.FolderDelimeterString = "\"";
+                    }
+                    else
+                    {
+                        client.Behavior.FolderDelimeterString = match.Groups[2].Value;
+                        client.Behavior.FolderDelimeter = client.Behavior.FolderDelimeterString[0];
+                    }
+                }
 
                 return new Folder(path, flags, ref parent, client);
             }
@@ -223,7 +232,11 @@ namespace ImapX
 
             string newPath = i < 1 ? encodedName : _path.Substring(0, i + 1) + encodedName;
 
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Rename, _path, newPath), ref data)) return false;
+            string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            string rewriteNewPath = newPath.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Rename, rewritePath, rewriteNewPath), ref data)) return false;
 
             _name = name;
             _path = newPath;
@@ -246,7 +259,9 @@ namespace ImapX
                     "A non-selectable folder cannot be deleted. This error may occur if the folder has subfolders.");
 
             IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Delete, _path), ref data))
+            string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Delete, rewritePath), ref data))
                 return false;
 
             if (_parent != null)
@@ -265,7 +280,7 @@ namespace ImapX
         {
             Folder selectedFolder = _client.SelectedFolder;
 
-            if (ReadOnly)
+            if (ReadOnly || (selectedFolder != null && !Equals(selectedFolder)))
                 Select();
 
             IList<string> data = new List<string>();
@@ -347,7 +362,9 @@ namespace ImapX
         public bool Examine()
         {
             IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Examine, _path), ref data))
+            string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Examine, rewritePath), ref data))
                 return false;
 
             ProcessSelectOrExamineResult(data);
@@ -359,7 +376,9 @@ namespace ImapX
         public bool Status(string[] statusFields)
         {
             IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Status, _path, string.Join(" ", statusFields)), ref data))
+            string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Status, rewritePath, string.Join(" ", statusFields)), ref data))
                 return false;
 
             var result = data.FirstOrDefault(_ => _.ToUpper().StartsWith("* STATUS"));
@@ -415,7 +434,9 @@ namespace ImapX
                 _client.StopIdling();
 #endif
             IList<string> data = new List<string>();
-            if (!_client.SendAndReceive(string.Format(ImapCommands.Select, _path), ref data))
+            string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
+                Client.Behavior.FolderDelimeterString);
+            if (!_client.SendAndReceive(string.Format(ImapCommands.Select, rewritePath), ref data))
                 return false;
 
             ProcessSelectOrExamineResult(data);
