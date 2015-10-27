@@ -933,6 +933,27 @@ namespace ImapX.Sample
             }
         }
 
+        private void ImportMessage(Folder folder, string[] paths)
+        {
+            foreach (var path in paths)
+            {
+                try
+                {
+                    var eml = File.ReadAllText(path);
+                    var args = new ServerCallCompletedEventArgs { Arg = folder, Result = folder.AppendMessage(eml) };
+
+                    Invoke(new EventHandler<ServerCallCompletedEventArgs>(ImportPartCompleted), Program.ImapClient, args);
+                }
+                catch (Exception ex)
+                {
+                    var args = new ServerCallCompletedEventArgs(false, ex);
+                    Invoke(new EventHandler<ServerCallCompletedEventArgs>(ImportPartCompleted), Program.ImapClient, args);
+                }   
+            }
+
+            Invoke(new EventHandler<ServerCallCompletedEventArgs>(ImportMessageCompleted), Program.ImapClient, new ServerCallCompletedEventArgs { Arg = folder, Result = true });
+        }
+
         private void ImportMessageCompleted(object sender, ServerCallCompletedEventArgs e)
         {
             trwFolders.Enabled = true;
@@ -942,6 +963,17 @@ namespace ImapX.Sample
             }
             else
                 MessageBox.Show("Failed to import message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void ImportPartCompleted(object sender, ServerCallCompletedEventArgs e)
+        {
+            
+            if (e.Result)
+            {
+               Console.WriteLine("Message imported!");
+            }
+            else
+                Console.WriteLine("Failed to import message");
         }
 
         #endregion
@@ -1263,6 +1295,20 @@ namespace ImapX.Sample
             }
             else
                 MessageBox.Show("Failed to export message", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void bulkImportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var folder = _lastClickedNode.Tag as Folder;
+
+            if (folder == null)
+                return;
+            ofdImportMessage.Multiselect = true;
+            if (ofdImportMessage.ShowDialog() != DialogResult.OK) return;
+            ofdImportMessage.Multiselect = false;
+            trwFolders.Enabled = false;
+
+            (new Thread(_ => ImportMessage(folder, ofdImportMessage.FileNames))).Start();
         }
     }
 }
