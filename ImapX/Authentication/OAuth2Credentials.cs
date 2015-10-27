@@ -56,7 +56,7 @@ namespace ImapX.Authentication
         {
             byte[] userData = Encoding.UTF8.GetBytes("user=" + login);
             byte[] tokenLabelData = Encoding.UTF8.GetBytes("auth=Bearer ");
-            byte[] vendorData = string.IsNullOrWhiteSpace(vendor) ? null : Encoding.UTF8.GetBytes("vendor=" + vendor + "\n");
+            byte[] vendorData = string.IsNullOrEmpty(vendor) ? null : Encoding.UTF8.GetBytes("vendor=" + vendor + "\n");
             byte[] tokenData = Encoding.UTF8.GetBytes(token + (vendorData == null ? "\n" : ""));
 
             using (var stream = new MemoryStream())
