@@ -600,7 +600,7 @@ namespace ImapX
                     if (IsDebug)
                         Debug.WriteLine(tmp);
 
-                    if (tmp.ToUpper().Contains("OK IDLE COMPLETED"))
+                    if (tmp.ToUpper().Contains("OK IDLE COMPLETED") || tmp.ToUpper().Contains("TERMINATED"))
                     {
                         _idleState = IdleState.Off;
                         // unblock the processing thread, it will end itself because _idleState is Off
@@ -653,6 +653,7 @@ namespace ImapX
                 Debug.WriteLine(text);
 
             _ioStream.Write(bytes, 0, bytes.Length);
+            _idleState = IdleState.Stopping;
 
             if (_maintainIdleConnectionTimer != null)
             {
