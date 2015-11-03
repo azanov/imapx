@@ -1,20 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX", "ImapX\ImapX.csproj", "{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.Sample", "ImapX.Sample\ImapX.Sample.csproj", "{EEEE832C-B72C-430C-91CC-DFBF2859A22B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.WindowsPhone", "ImapX\ImapX.WindowsPhone.csproj", "{FB03902F-6ACB-445B-994B-4B160FB3458D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{22315FA9-F10F-4D0B-873A-1719BE77E86B}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		..\EY\.nuget\NuGet.exe = ..\EY\.nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX", "ImapX\ImapX.csproj", "{FDB65A6E-DD65-4D17-B522-E59CE7DE5E00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.Sample", "ImapX.Sample\ImapX.Sample.csproj", "{EEEE832C-B72C-430C-91CC-DFBF2859A22B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.WindowsPhone", "ImapX\ImapX.WindowsPhone.csproj", "{FB03902F-6ACB-445B-994B-4B160FB3458D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.WindowsPhone.Sample", "ImapX.WindowsPhone.Sample\ImapX.WindowsPhone.Sample.csproj", "{22EA0A39-65E8-4328-AFF3-E73B00985E77}"
 EndProject
