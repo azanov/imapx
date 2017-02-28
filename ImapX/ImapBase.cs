@@ -66,6 +66,8 @@ namespace ImapX
 
         public bool IsDebug { get; set; }
 
+        public bool ThrowConnectExceptions { get; set; }
+
         /// <summary>
         ///     The server address to connect to
         /// </summary>
@@ -261,9 +263,14 @@ namespace ImapX
                 else
                     return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                if (ThrowConnectExceptions)
+                {
+                    throw ex;
+                }
+                else
+                    return false;
             }
             finally
             {
@@ -548,7 +555,7 @@ namespace ImapX
                     }
                     return;
                 }
-                
+
 
                 Match match = Expressions.IdleResponseRex.Match(tmp);
 
@@ -619,7 +626,7 @@ namespace ImapX
                         _idleProcessThread = new Thread(ProcessIdleServerEvents) {IsBackground = true};
                         _idleProcessThread.Start();
                     }
-                   
+
                 }
 
                 //Thread.Sleep(5000);
