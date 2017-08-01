@@ -364,8 +364,20 @@ namespace ImapX
             IList<string> data = new List<string>();
             string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
                 Client.Behavior.FolderDelimeterString);
+
+
+
             if (!_client.SendAndReceive(string.Format(ImapCommands.Examine, rewritePath), ref data))
+            {
+                if (Flags.Any())
+                {
+                    data.Clear();
+                    if (!_client.SendAndReceive(string.Format(ImapCommands.Examine, Flags[0].Trim('\\')), ref data))
+                        return false;
+                }
+                else
                 return false;
+            }
 
             ProcessSelectOrExamineResult(data);
 
@@ -436,8 +448,18 @@ namespace ImapX
             IList<string> data = new List<string>();
             string rewritePath = _path.Replace(Client.Behavior.FolderDelimeter.ToString(),
                 Client.Behavior.FolderDelimeterString);
+
             if (!_client.SendAndReceive(string.Format(ImapCommands.Select, rewritePath), ref data))
+            {
+                if (Flags.Any())
+                {
+                    data.Clear();
+                    if (!_client.SendAndReceive(string.Format(ImapCommands.Select, Flags[0].Trim('\\')), ref data))
                 return false;
+                }
+                else
+                    return false;
+            }
 
             ProcessSelectOrExamineResult(data);
 
