@@ -1,6 +1,6 @@
-﻿using System;
-using ImapX.Constants;
+﻿using ImapX.Constants;
 using ImapX.Enums;
+using System;
 
 namespace ImapX
 {
@@ -14,10 +14,10 @@ namespace ImapX
         public ClientBehavior()
         {
             FolderTreeBrowseMode = FolderTreeBrowseMode.Lazy;
-            MessageFetchMode = MessageFetchMode.Basic;
-            ExamineFolders = true;
+            MessageFetchMode = MessageFetchMode.Minimal;
+            ExamineFolders = false;
             AutoPopulateFolderMessages = false;
-            FolderDelimeter = '\0';
+            FolderDelimeter = "/";
             SpecialUseMetadataPath = "/private/specialuse";
             AutoDownloadBodyOnAccess = true;
             RequestedHeaders = MessageHeaderSets.Minimal;
@@ -25,7 +25,7 @@ namespace ImapX
             SearchAllNotSupported = false;
             NoopIssueTimeout = 840;
         }
-
+        
         /// <summary>
         ///     Get or set the folder tree loading mode
         /// </summary>
@@ -68,15 +68,15 @@ namespace ImapX
         public bool ExamineFolders { get; set; }
 
         /// <summary>
-        ///     A char used as delimeter for folders
+        ///     Gets or sets whether the LIST-STATUS extension should be used when available
         /// </summary>
-        internal char FolderDelimeter { get; set; }
+        public FolderStatusType ListFolderStatusType { get; set; }
 
         /// <summary>
-        /// In some cases, the server returns two characters for delimiter, which is weird @"\\"
+        ///     A string used as delimeter for folders
         /// </summary>
-        internal string FolderDelimeterString { get; set; }
-
+        internal string FolderDelimeter { get; set; }
+        
         /// <summary>
         ///     The path where the special use metadata information for folders is stored
         /// </summary>

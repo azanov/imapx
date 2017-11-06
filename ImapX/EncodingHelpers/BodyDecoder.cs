@@ -1,36 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ImapX.Enums;
+using System.Net.Mime;
 using System.Text;
-using ImapX.Enums;
-using ImapX.Parsing;
 
 namespace ImapX.EncodingHelpers
 {
     internal class BodyDecoder
     {
-        public static string DecodeMessageContent(MessageContent content)
+        public static string DecodeMessageContent(string value, ContentTransferEncoding contentTransferEncoding, string charset)
         {
             Encoding encoding = Encoding.UTF8;
-            try
+            if (!string.IsNullOrWhiteSpace(charset))
             {
-                encoding = Encoding.GetEncoding(content.ContentType.CharSet);
-            }
-            catch
-            {
+                try
+                {
+                    encoding = Encoding.GetEncoding(charset);
+                }
+                catch
+                {
+                }
             }
 
-            switch (content.ContentTransferEncoding)
+            switch (contentTransferEncoding)
             {
                 case ContentTransferEncoding.Base64:
-                    return StringDecoder.DecodeBase64(content.ContentStream, encoding);
+                    return StringDecoder.DecodeBase64(value, encoding);
 
                 case ContentTransferEncoding.QuotedPrintable:
-                    return StringDecoder.DecodeQuotedPrintable(content.ContentStream, encoding);
+                    return StringDecoder.DecodeQuotedPrintable(value, encoding);
 
                 default:
-                    return content.ContentStream;
+                    return value;
             }
         }
+        
     }
 }

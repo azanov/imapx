@@ -1,60 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Sockets;
-using System.Security.Authentication;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using ImapX.Collections;
-using ImapX.Constants;
+﻿using ImapX.Commands;
 using ImapX.Enums;
 using ImapX.Exceptions;
-using ImapX.Parsing;
-
-#if !NETFX_CORE
-using System.Security.Cryptography.X509Certificates;
-using ThreadState = System.Threading.ThreadState;
-using Timer = System.Timers.Timer;
-#endif
-#if WINDOWS_PHONE || NETFX_CORE
-using SocketEx;
-#else
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Security;
-
-#endif
+using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace ImapX
 {
-    public class ImapBase : IDisposable
+    public class ImapBase
     {
         public const int DefaultImapPort = 143;
         public const int DefaultImapSslPort = 993;
-        protected static readonly Regex NewLineRex = new Regex(@"\r\n");
 
-        protected TcpClient _client;
-        protected long _counter;
+        protected ImapBaseState _state = ImapBaseState.Idle;
 
         protected string _host;
-        protected Stream _ioStream;
-        protected object _lock = 0;
-        protected int _port = DefaultImapPort;
-
-        protected SslProtocols _sslProtocol = SslProtocols.None;
-        protected StreamReader _streamReader;
+        protected int _port;
+        protected ImapConnectionSecurity _connectionSecurity = ImapConnectionSecurity.None;
         protected bool _validateServerCertificate = true;
-        protected DateTime _lastActivity;
 
-        /// <summary>
-        ///     Basic client behavior settings like folder browse mode and message download mode
-        /// </summary>
-        public ClientBehavior Behavior { get; protected set; }
+        protected TcpClient _client;
+        protected Stream _ioStream;
+        protected ImapParser _io;
 
-        /// <summary>
-        ///     Gets whether the client is authenticated
-        /// </summary>
-        public bool IsAuthenticated { get; protected set; }
+        protected long _cmdCount = -1;
+        protected string[] _supportedLanguages;
+
+        protected List<ImapCommand> _commandQueue;
+
+        public object Lock = 0;
 
         /// <summary>
         ///     Gets whether the client is connected to the server
@@ -64,9 +44,24 @@ namespace ImapX
             get { return _client != null && _client.Connected; }
         }
 
+        /// <summary>
+        ///     Basic client behavior settings like folder browse mode and message download mode
+        /// </summary>
+        public ClientBehavior Behavior { get; protected set; }
+
+        /// <summary>
+        ///     Gets whether the client is authenticated
+        /// </summary>
+        public bool IsAuthenticated { get; internal set; }
+
+        /// <summary>
+        ///     The server capabilities
+        /// </summary>
+        public Capability Capabilities { get; internal set; }
+
         public bool IsDebug { get; set; }
 
-        public bool ThrowConnectExceptions { get; set; }
+        public ImapEncodingMode EncodingMode { get; internal set; }
 
         /// <summary>
         ///     The server address to connect to
@@ -100,33 +95,43 @@ namespace ImapX
             }
         }
 
-        internal Folder SelectedFolder { get; set; }
-
         /// <summary>
         ///     The SSL protocol used. <code>SslProtocols.None</code> by default
         /// </summary>
         /// <exception cref="Exceptions.InvalidStateException">On set, if the client is connected.</exception>
-        public SslProtocols SslProtocol
+        public ImapConnectionSecurity ConnectionSecurity
         {
-            get { return _sslProtocol; }
+            get { return _connectionSecurity; }
             set
             {
                 if (IsConnected)
                     throw new InvalidStateException(
                         "The SSL protocol cannot be changed after the connection has been established. Please disconnect first.");
-                _sslProtocol = value;
+                _connectionSecurity = value;
             }
         }
+
 
         /// <summary>
         ///     Get or set if SSL should be used. <code>false</code> by default.  If set to <code>true</code>, the
         ///     <code>SslProtocol</code> will be set to <code>SslProtocols.Default</code>
         /// </summary>
-        /// <exception cref="Exceptions.InvalidStateException">On set, if the client is connected.</exception>
+        [Obsolete("Use the ConnectionSecurity property instead", true)]
         public bool UseSsl
         {
-            get { return _sslProtocol != SslProtocols.None; }
-            set { _sslProtocol = value ? SslProtocols.Default : SslProtocols.None; }
+            get { return _connectionSecurity != ImapConnectionSecurity.None; }
+            set { _connectionSecurity = value ? ImapConnectionSecurity.SSL : ImapConnectionSecurity.None; }
+        }
+
+
+        public string[] SupportedLanguages
+        {
+            get
+            {
+                if (_supportedLanguages == null)
+                    _supportedLanguages = GetSupportedLanguages();
+                return _supportedLanguages;
+            }
         }
 
         /// <summary>
@@ -146,179 +151,11 @@ namespace ImapX
             }
         }
 
-        /// <summary>
-        ///     The server capabilities
-        /// </summary>
-        public Capability Capabilities { get; protected set; }
-
-        /// <summary>
-        ///     Disconnects from server and disposes the objects
-        /// </summary>
-        public void Dispose()
+        public ImapBase()
         {
-            CleanUp();
+            _commandQueue = new List<ImapCommand>();
+            Capabilities = new Capability();
         }
-
-        /// <summary>
-        ///     Connect using set values.
-        /// </summary>
-        /// <returns><code>true</code> if the connection was successful</returns>
-        /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect()
-        {
-            return Connect(_host, _port, _sslProtocol, _validateServerCertificate);
-        }
-
-        /// <summary>
-        ///     Connects to an IMAP server on the default port (143; 993 if SSL is used)
-        /// </summary>
-        /// <param name="host">Server address</param>
-        /// <param name="useSsl">Defines whether SSL should be used.</param>
-        /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
-        /// <returns><code>true</code> if the connection was successful</returns>
-        /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect(string host, bool useSsl = false, bool validateServerCertificate = true)
-        {
-            return Connect(host,
-                useSsl ? DefaultImapSslPort : DefaultImapPort,
-                useSsl ? SslProtocols.Default : SslProtocols.None,
-                validateServerCertificate);
-        }
-
-        /// <summary>
-        ///     Connects to an IMAP server on the specified port
-        /// </summary>
-        /// <param name="host">Server address</param>
-        /// <param name="port">Server port</param>
-        /// <param name="useSsl">Defines whether SSL should be used</param>
-        /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
-        /// <returns><code>true</code> if the connection was successful</returns>
-        /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect(string host, int port, bool useSsl = false, bool validateServerCertificate = true)
-        {
-            return Connect(host,
-                port,
-                useSsl ? SslProtocols.Default : SslProtocols.None,
-                validateServerCertificate);
-        }
-
-        /// <summary>
-        ///     Connects to an IMAP server on the specified port
-        /// </summary>
-        /// <param name="host">Server address</param>
-        /// <param name="port">Server port</param>
-        /// <param name="sslProtocol">SSL protocol to use, <code>SslProtocols.None</code> by default</param>
-        /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
-        /// <returns><code>true</code> if the connection was successful</returns>
-        /// <exception cref="Exceptions.InvalidStateException">If the client is already connected.</exception>
-        public bool Connect(string host, int port, SslProtocols sslProtocol = SslProtocols.None,
-            bool validateServerCertificate = true)
-        {
-            _host = host;
-            _port = port;
-            _sslProtocol = sslProtocol;
-            _validateServerCertificate = validateServerCertificate;
-
-            if (IsConnected)
-                throw new InvalidStateException("The client is already connected. Please disconnect first.");
-
-            try
-            {
-#if !WINDOWS_PHONE && !NETFX_CORE
-                _client = new TcpClient(_host, _port);
-
-                if (_sslProtocol == SslProtocols.None)
-                {
-                    _ioStream = _client.GetStream();
-                    _streamReader = new StreamReader(_ioStream);
-                }
-                else
-                {
-                    _ioStream = new SslStream(_client.GetStream(), false, CertificateValidationCallback, null);
-                    (_ioStream as SslStream).AuthenticateAsClient(_host, null, _sslProtocol, false);
-                    _streamReader = new StreamReader(_ioStream);
-                }
-#else
-    //TODO: Add support for Tls
-                _client = _sslProtocol == SslProtocols.None ? new TcpClient(_host, _port) : new SecureTcpClient(_host, _port);
-                _ioStream = _client.GetStream();
-                _streamReader = new StreamReader(_ioStream);
-#endif
-
-                string result = _streamReader.ReadLine();
-
-                _lastActivity = DateTime.Now;
-
-                if (result != null && result.StartsWith(ResponseType.ServerOk))
-                {
-                    Capability();
-                    return true;
-                }
-                else if (result != null && result.StartsWith(ResponseType.ServerPreAuth))
-                {
-                    IsAuthenticated = true;
-                    Capability();
-                    return true;
-                }
-                else
-                    return false;
-            }
-            catch (Exception ex)
-            {
-                if (ThrowConnectExceptions)
-                {
-                    throw ex;
-                }
-                else
-                    return false;
-            }
-            finally
-            {
-                if (!IsConnected)
-                    CleanUp();
-            }
-        }
-
-
-        /// <summary>
-        ///     Disconnects from server
-        /// </summary>
-        public void Disconnect()
-        {
-            //if (_idleState != IdleState.Off)
-            //    PauseIdling();
-            CleanUp();
-        }
-
-        /// <summary>
-        ///     Disconnects from server and disposes the objects
-        /// </summary>
-        protected void CleanUp()
-        {
-            _counter = 0;
-
-            if (!IsConnected)
-                return;
-
-#if !NETFX_CORE
-            StopIdling();
-#endif
-            if (_streamReader != null)
-                _streamReader.Dispose();
-
-            if (_ioStream != null)
-                _ioStream.Dispose();
-
-            if (_client != null)
-#if !WINDOWS_PHONE && !NETFX_CORE
-                _client.Close();
-#else
-                _client.Dispose();
-#endif
-        }
-
-
-#if !WINDOWS_PHONE && !NETFX_CORE
 
         /// <summary>
         ///     The certificate validation callback
@@ -329,373 +166,305 @@ namespace ImapX
             return sslPolicyErrors == SslPolicyErrors.None || !_validateServerCertificate;
         }
 
-#endif
-
-        protected void Capability()
+        /// <summary>
+        ///     Connect using set values.
+        /// </summary>
+        public SafeResult Connect()
         {
-            IList<string> data = new List<string>();
-            if (SendAndReceive(ImapCommands.Capability, ref data) && data.Count > 0)
-                Capabilities = new Capability(data[0]);
+            return Connect(_host, _port, _connectionSecurity, _validateServerCertificate);
         }
 
-        public bool SendAndReceive(string command, ref IList<string> data, CommandProcessor processor = null,
-            Encoding encoding = null, bool pushResultToDatadespiteProcessor = false)
+
+        /// <summary>
+        /// Connects to an IMAP server on port 993 using SSL
+        /// </summary>
+        /// <param name="host">Server address</param>
+        public SafeResult Connect(string host)
         {
-#if !NETFX_CORE
-            if (_idleState == IdleState.On)
-                PauseIdling();
-#endif
-            lock (_lock)
+            return Connect(host, DefaultImapSslPort, ImapConnectionSecurity.SSL, ValidateServerCertificate);
+        }
+
+        /// <summary>
+        ///     Connects to an IMAP server on the specified port
+        /// </summary>
+        /// <param name="host">Server address</param>
+        /// <param name="port">Server port</param>
+        /// <param name="connectionSecuity">SSL protocol to use, <code>SslProtocols.None</code> by default</param>
+        /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
+        public SafeResult Connect(string host, int port, ImapConnectionSecurity connectionSecuity = ImapConnectionSecurity.None,
+            bool validateServerCertificate = true)
+        {
+            _host = host;
+            _port = port;
+            _connectionSecurity = connectionSecuity;
+            _validateServerCertificate = validateServerCertificate;
             {
-                if (_client == null || !_client.Connected)
-                    throw new SocketException((int) SocketError.NotConnected);
+                if (IsConnected)
+                    return new SafeResult(exception: new InvalidStateException("The client is already connected. Please disconnect first."));
 
-                const string tmpl = "IMAPX{0} {1}";
-                _counter++;
-
-                StreamReader reader = encoding == null || Equals(encoding, Encoding.UTF8)
-                    ? _streamReader
-                    : new StreamReader(_ioStream, encoding);
-
-                var parts = new Queue<string>(NewLineRex.Split(command));
-
-                string text = string.Format(tmpl, _counter, parts.Dequeue().Trim()) + "\r\n";
-                byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-
-                if (IsDebug)
-                    Debug.WriteLine(text);
-
-                _ioStream.Write(bytes, 0, bytes.Length);
-
-                _lastActivity = DateTime.Now;
-
-                while (true)
+                try
                 {
-                    string tmp = reader.ReadLine();
+                    _client = new TcpClient(_host, _port);
+                    _ioStream = _client.GetStream();
 
-                    if (tmp == null)
+                    if (_connectionSecurity == ImapConnectionSecurity.SSL)
                     {
-#if !NETFX_CORE
-                        if (_idleState == IdleState.Paused)
-                            StartIdling();
-#endif
-                        return false;
+                        _ioStream = new SslStream(_ioStream, false, CertificateValidationCallback, null);
+                        (_ioStream as SslStream).AuthenticateAsClient(_host, null, SslProtocols.Tls12, false);
                     }
 
-                    if (IsDebug)
-                        Debug.WriteLine(tmp);
+                    _io = new ImapParser(this, _ioStream);
 
-                    if (processor == null || pushResultToDatadespiteProcessor)
-                        data.Add(tmp);
+                    RunCommand(new ConnectCommand(this, GetNextCommandId()));
 
-                    if (processor != null)
-                        processor.ProcessCommandResult(tmp);
+                    if (!Capabilities.Loaded)
+                        Capability();
 
-                    if (tmp.StartsWith("+ ") && (parts.Count > 0 || (processor != null && processor.TwoWayProcessing)))
+                    if (
+                        connectionSecuity == ImapConnectionSecurity.StartTLS ||
+                        (Capabilities.LoginDisabled && connectionSecuity == ImapConnectionSecurity.StartTLSIfLoginDisabled))
                     {
-                        if (parts.Count > 0)
-                        {
-                            text = parts.Dequeue().Trim() + "\r\n";
+                        StartTLS();
 
-                            if (IsDebug)
-                                Debug.WriteLine(text);
+                        _ioStream = new SslStream(_ioStream, false, CertificateValidationCallback, null);
+                        (_ioStream as SslStream).AuthenticateAsClient(_host, null, SslProtocols.Tls12, false);
 
-                            bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-                        }
-                        else if (processor != null)
-                            bytes = processor.AppendCommandData(tmp);
+                        _io.BindStream(_ioStream);
 
-                        _ioStream.Write(bytes, 0, bytes.Length);
-                        continue;
+                        Capability();
                     }
 
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Ok)))
-                    {
-#if !NETFX_CORE
-                        if (_idleState == IdleState.Paused)
-                            StartIdling();
-#endif
-                        return true;
-                    }
+                    return SafeResult.True;
+                }
+                catch (Exception ex)
+                {
+                    Disconnect();
+                    return new SafeResult(exception: ex);
+                }
+                finally
+                {
 
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.PreAuth)))
-                    {
-#if !NETFX_CORE
-                        if (_idleState == IdleState.Paused)
-                            StartIdling();
-#endif
-                        return true;
-                    }
-
-                    if (tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.No)) ||
-                        tmp.StartsWith(string.Format(tmpl, _counter, ResponseType.Bad)))
-                    {
-#if !NETFX_CORE
-                        if (_idleState == IdleState.Paused)
-                            StartIdling();
-#endif
-                        Match serverAlertMatch = Expressions.ServerAlertRex.Match(tmp);
-                        if (serverAlertMatch.Success && tmp.Contains("IMAP") && tmp.Contains("abled"))
-                            throw new ServerAlertException(serverAlertMatch.Groups[1].Value);
-                        return false;
-                    }
                 }
             }
         }
 
-#if !NETFX_CORE
-
-        #region Idle support
-
-        private IdleState _idleState;
-
-        internal IdleState IdleState
+        public void Disconnect()
         {
-            get { return _idleState; }
+            try
+            {
+                if (_client != null)
+                    _client.Close();
+
+                _cmdCount = -1;
+
+                if (_commandQueue.Count > 0)
+                    _commandQueue.Clear();
+
+                if (_ioStream != null)
+                    _ioStream.Dispose();
+
+                _client = null;
+                _ioStream = null;
+            }
+            catch { }
         }
 
-        private Thread _idleLoopThread;
-        private Thread _idleProcessThread;
-        private long _lastIdleUId;
-        private readonly ThreadSafeQueue<string> _idleEvents = new ThreadSafeQueue<string>();
-        private readonly AutoResetEvent _idleEventsResetEvent = new AutoResetEvent(false);
-        private Timer _maintainIdleConnectionTimer;
-
-        internal bool StartIdling()
+        public void Capability()
         {
-            if (SelectedFolder == null)
-                return false;
+            var cmd = RunCommand(new CapabilityCommand(this, GetNextCommandId()));
 
-            switch (_idleState)
+            if (cmd.State != CommandState.Ok)
+                throw new InvalidOperationException();
+        }
+
+        protected void StartTLS()
+        {
+            if (!Capabilities.StartTLS)
+                throw new UnsupportedCapabilityException();
+
+            var cmd = RunCommand(new StartTLSCommand(this, GetNextCommandId()));
+
+            if (cmd.State != CommandState.Ok)
+                throw new CommandFailedException("Failed to negotiate STARTTLS. Details: {0}", cmd.StateDetails);
+        }
+
+        public SafeResult Enable(string capability)
+        {
+            if (!Capabilities.Enable)
+                return new SafeResult(exception: new UnsupportedCapabilityException());
+
+            var cmd = RunCommand(new EnableCommand(this, GetNextCommandId(), capability));
+
+            if (cmd.State != CommandState.Ok)
             {
-                case IdleState.Off:
-
-                    //if (SelectedFolder.UidNext == 0)
-                    //    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
-                    _lastIdleUId = SelectedFolder.UidNext;
-                    break;
-                case IdleState.On:
-                    return true;
-
-                case IdleState.Paused:
-
-                    //if (SelectedFolder.UidNext == 0)
-                    //    SelectedFolder.Status(new[] { FolderStatusFields.UIdNext });
-                    _lastIdleUId = SelectedFolder.UidNext;
-
-                    break;
+                EncodingMode = ImapEncodingMode.ImapUTF7;
+                return new SafeResult(exception: new CommandFailedException("Failed to enable the capability '{0}'. Details: {1}", capability, cmd.StateDetails));
             }
 
-            lock (_lock)
-            {
-                const string tmpl = "IMAPX{0} {1}";
-                _counter++;
-                string text = string.Format(tmpl, _counter, "IDLE") + "\r\n";
-                byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-                if (IsDebug)
-                    Debug.WriteLine(text);
-
-                _ioStream.Write(bytes, 0, bytes.Length);
-                if (_ioStream.ReadByte() != '+')
-                    return false;
-                var line = _streamReader.ReadLine();
-
-                if (IsDebug && !string.IsNullOrEmpty(line))
-                    Debug.WriteLine(line);
-            }
-
-            _idleState = IdleState.On;
-
-            _idleLoopThread = new Thread(WaitForIdleServerEvents) {IsBackground = true};
-            _idleLoopThread.Start();
-
-            if (OnIdleStarted != null)
-                OnIdleStarted(SelectedFolder, new IdleEventArgs
-                {
-                    Client = SelectedFolder.Client,
-                    Folder = SelectedFolder
-                });
+            EncodingMode = ImapEncodingMode.UTF8;
 
             return true;
         }
 
-        private void MaintainIdleConnection()
+        public virtual void ScheduleCommand(ImapCommand cmd)
         {
-            if (_maintainIdleConnectionTimer == null)
-            {
-
-                _maintainIdleConnectionTimer = new Timer(Behavior.NoopIssueTimeout*1000) {AutoReset = true};
-                _maintainIdleConnectionTimer.Elapsed += (sender, e) =>
-                {
-                    if (_idleState != IdleState.On) return;
-
-                    IList<string> data = new List<string>();
-                    if (!SendAndReceive(ImapCommands.Noop, ref data))
-                    {
-                        // that should not be the final solution. we need a fallback
-                        _maintainIdleConnectionTimer.Enabled = false;
-                    }
-                };
-            }
-            _maintainIdleConnectionTimer.Enabled = true;
+            _commandQueue.Add(cmd);
         }
 
-        private void ProcessIdleServerEvents()
+        public ImapCommand RunCommand(ImapCommand cmd)
         {
-            while (true)
+            ScheduleCommand(cmd);
+            while (ProcessNextCommand() != cmd.Id) ;
+            return cmd;
+        }
+
+        public ImapCommand<T> RunCommand<T>(ImapCommand<T> cmd)
+        {
+            ScheduleCommand(cmd);
+            while (ProcessNextCommand() != cmd.Id) ;
+            return cmd;
+        }
+
+        public ClientImapCommand RunCommand(ClientImapCommand cmd)
+        {
+            ScheduleCommand(cmd);
+            while (ProcessNextCommand() != cmd.Id) ;
+            return cmd;
+        }
+
+        public ClientImapCommand<T> RunCommand<T>(ClientImapCommand<T> cmd)
+        {
+            ScheduleCommand(cmd);
+            while (ProcessNextCommand() != cmd.Id) ;
+            return cmd;
+        }
+
+        internal long ProcessNextCommand()
+        {
+            if (_state == ImapBaseState.CommandInProgress)
+                return -1;
+
+            _state = ImapBaseState.CommandInProgress;
+
+            var cmd = _commandQueue.FirstOrDefault();
+            cmd.State = CommandState.Active;
+
+            string commandPart;
+
+            try
             {
-                string tmp;
-                if (!_idleEvents.TryDequeue(out tmp))
+                while ((commandPart = cmd.GetNextPart()) != null)
                 {
-                    if (_idleState == IdleState.On)
+                    if (!string.IsNullOrWhiteSpace(commandPart))
+                        _io.Write(Encoding.UTF8.GetBytes(commandPart));
+
+                    while (true)
                     {
-                        // instead of an instant retry: wait for a signal that will be emitted after a new value was put into the queue
-                        _idleEventsResetEvent.WaitOne();
-                        continue;
-                    }
-                    return;
-                }
+                        var token = _io.ReadToken();
 
-
-                Match match = Expressions.IdleResponseRex.Match(tmp);
-
-                if (!match.Success)
-                    continue;
-
-                if (match.Groups[2].Value == "EXISTS")
-                {
-                    SelectedFolder.Status(new[] {FolderStatusFields.UIdNext});
-
-                    if (_lastIdleUId != SelectedFolder.UidNext)
-                    {
-                        var msgs =
-                            SelectedFolder.Search(string.Format("UID {0}:{1}", _lastIdleUId, SelectedFolder.UidNext));
-                        var args = new IdleEventArgs
+                        if (token.Type == TokenType.Eos)
+                            break;
+                        else if (token.Type == TokenType.Atom)
                         {
-                            Folder = SelectedFolder,
-                            Messages = msgs
-                        };
-                        if (OnNewMessagesArrived != null)
-                            OnNewMessagesArrived(SelectedFolder, args);
-                        SelectedFolder.RaiseNewMessagesArrived(args);
-                        _lastIdleUId = SelectedFolder.UidNext;
+                            if (token.Value == "+")
+                            {
+                                cmd.Continue(_io.ReadLine());
+                                break;
+                            }
+                            else if (cmd.MatchesTag(token.Value))
+                            {
+                                cmd.HandleTaggedResponse(_io);
+                                break;
+                            }
+                        }
+                        else if (token.Type == TokenType.Asterisk)
+                        {
+                            cmd.HandleUntaggedResponse(_io);
+                            if (cmd.BreakAfterUntagged)
+                                break;
+                        }
+
                     }
                 }
             }
+            catch (BadCommandException)
+            {
+                cmd.State = CommandState.Bad;
+            }
+            catch(Exception ex)
+            {
+                cmd.State = CommandState.CriticalFailure;
+                cmd.StateDetails = ex.ToString();
+            }
+
+            _state = ImapBaseState.Idle;
+            _commandQueue.RemoveAt(0);
+
+            if (cmd.State == CommandState.Ok)
+                cmd.OnCommandComplete();
+            
+            return cmd.Id;
+
         }
 
-        private void WaitForIdleServerEvents()
+        internal void HandleCapabilityResponse(ImapParser io)
         {
-            if (_idleProcessThread == null)
+            ImapToken token;
+            Capabilities = new Capability();
+
+            while ((token = io.PeekToken()).Type == TokenType.Atom)
             {
-                _idleProcessThread = new Thread(ProcessIdleServerEvents) {IsBackground = true};
-                _idleProcessThread.Start();
-            }
-
-            // a silent voice tells me to call that function from outside, but who cares
-            MaintainIdleConnection();
-
-            while (_idleState == IdleState.On)
-            {
-                if (_ioStream.ReadByte() != -1)
-                {
-                    string tmp = _streamReader.ReadLine();
-
-                    if (tmp == null)
-                        continue;
-
-                    if (IsDebug)
-                        Debug.WriteLine(tmp);
-
-                    if (tmp.ToUpper().Contains("OK IDLE COMPLETED") || tmp.ToUpper().Contains("TERMINATED"))
-                    {
-                        _idleState = IdleState.Off;
-                        // unblock the processing thread, it will end itself because _idleState is Off
-                        _idleEventsResetEvent.Set();
-                        return;
-                    }
-                    _idleEvents.Enqueue(tmp);
-                    // signal the waiting event processing thread to continue
-                    _idleEventsResetEvent.Set();
-
-                    if (_idleProcessThread != null && _idleProcessThread.ThreadState == ThreadState.Stopped)
-                        _idleProcessThread = null;
-
-                    if (_idleProcessThread == null)
-                    {
-                        _idleProcessThread = new Thread(ProcessIdleServerEvents) {IsBackground = true};
-                        _idleProcessThread.Start();
-                    }
-
-                }
-
-                //Thread.Sleep(5000);
+                io.ReadToken();
+                Capabilities.Add(token.Value);
             }
         }
 
-        internal void PauseIdling()
+        internal void HandlePreAuthenticate()
         {
-            if (_idleState != IdleState.On)
-                return;
-            StopIdling(true);
-            _idleState = IdleState.Paused;
-
-            if (OnIdlePaused != null)
-                OnIdlePaused(SelectedFolder, new IdleEventArgs
-                {
-                    Client = SelectedFolder.Client,
-                    Folder = SelectedFolder
-                });
+            IsAuthenticated = true;
         }
 
-        internal void StopIdling(bool pausing = false)
+        internal void HandleAlert(string message)
         {
-            if (_idleState == IdleState.Off)
-                return;
-
-            _counter++;
-            const string text = "DONE" + "\r\n";
-            byte[] bytes = Encoding.UTF8.GetBytes(text.ToCharArray());
-            if (IsDebug)
-                Debug.WriteLine(text);
-
-            _ioStream.Write(bytes, 0, bytes.Length);
-            _idleState = IdleState.Stopping;
-
-            if (_maintainIdleConnectionTimer != null)
-            {
-                // we could call Stop() alternatively (according to MSDN)
-                _maintainIdleConnectionTimer.Enabled = false;
-            }
-
-            if (!pausing && _maintainIdleConnectionTimer != null)
-            {
-                // Close() is like Dispose()... but closing a connection sounds better
-                _maintainIdleConnectionTimer.Close();
-                _maintainIdleConnectionTimer = null;
-            }
-
-            if (_idleLoopThread != null)
-            {
-                _idleLoopThread.Join();
-                _idleLoopThread = null;
-            }
-
-            if (!pausing && OnIdleStopped != null)
-                OnIdleStopped(SelectedFolder, new IdleEventArgs
-                {
-                    Client = SelectedFolder.Client,
-                    Folder = SelectedFolder
-                });
+            // TODO
         }
 
-        public event EventHandler<IdleEventArgs> OnNewMessagesArrived;
-        public event EventHandler<IdleEventArgs> OnIdleStarted;
-        public event EventHandler<IdleEventArgs> OnIdlePaused;
-        public event EventHandler<IdleEventArgs> OnIdleStopped;
+        internal string[] GetSupportedLanguages()
+        {
+            if (!Capabilities.Language)
+                return new[] { "i-default" };
 
-        #endregion
+            var cmd = RunCommand(new LanguageCommand(this, GetNextCommandId()));
 
-#endif
+            if (cmd.State != CommandState.Ok)
+                throw new OperationFailedException("Failed to get the supported languages. Details: {0}", cmd.StateDetails);
+
+            return cmd.Response;
+        }
+
+        internal SafeResult SetLanguage(string language)
+        {
+            if (string.IsNullOrWhiteSpace(language))
+                return new SafeResult(exception: new ArgumentException("A valid language is required", nameof(language)));
+
+            if (Capabilities.Language)
+            {
+
+                var cmd = RunCommand(new LanguageCommand(this, GetNextCommandId(), language));
+
+                return new SafeResult(cmd.State == CommandState.Ok, cmd.State != CommandState.Ok
+                    ? new OperationFailedException("Failed to get the supported languages. Details: {0}", cmd.StateDetails)
+                    : null);
+            }
+            else if (language == "i-default")
+                return true;
+
+            return new SafeResult(exception: new NotSupportedException("The server does not support any languages except i-default"));
+        }
+
+        public long GetNextCommandId()
+        {
+            return _cmdCount++;
+        }
     }
 }

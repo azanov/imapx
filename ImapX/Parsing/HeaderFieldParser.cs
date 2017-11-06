@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ImapX.EncodingHelpers;
+using ImapX.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using ImapX.EncodingHelpers;
 using System.Net.Mime;
 using System.Text;
-using ImapX.Extensions;
 
 namespace ImapX.Parsing
 {

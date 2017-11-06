@@ -23,6 +23,8 @@ namespace ImapX.Collections
             List = new List<T>(items);
         }
 
+        public long Count { get { return List.Count; } }
+
         public T this[int index]
         {
             get

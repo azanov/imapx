@@ -1,10 +1,9 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ImapX.EncodingHelpers;
+using ImapX.Enums;
+using ImapX.Extensions;
 using System.IO;
 using System.Net.Mime;
 using System.Text;
-using ImapX.EncodingHelpers;
-using ImapX.Enums;
 
 namespace ImapX
 {
@@ -37,31 +36,8 @@ namespace ImapX
         {
             get
             {
-                if (_fileData == null)
-                {
-                    if (_content.Downloaded && _content.ContentStream != null)
-                    {
-                        switch (ContentTransferEncoding)
-                        {
-                            case ContentTransferEncoding.Base64:
-                                _fileData = Base64.FromBase64(_content.ContentStream);
-                                break;
-                            default:
-                                Encoding encoding = Encoding.UTF8;
-                                try
-                                {
-                                    encoding = Encoding.GetEncoding(ContentType.CharSet);
-                                }
-                                catch
-                                {
-                                }
+                return _content.BinaryData;
 
-                                _fileData = encoding.GetBytes(_content.ContentStream);
-                                break;
-                        }
-                    }
-                }
-                return _fileData;
             }
         }
 
@@ -71,15 +47,39 @@ namespace ImapX
             {
                 if (_fileName == null)
                 {
-                    if (string.IsNullOrEmpty(_content.ContentDisposition.FileName))
+                    if (_content.ContentDisposition != null)
+                        if (!string.IsNullOrWhiteSpace(_content.ContentDisposition.FileName))
+                            _fileName = _content.ContentDisposition.FileName;
+
+                    if (string.IsNullOrWhiteSpace(_fileName) && _content.ContentType!=null)
                     {
-                        if (string.IsNullOrEmpty(_content.ContentType.Name))
-                            _fileName = "unnamed";
-                        else if (_content.ContentType.Parameters.ContainsKey("name"))
-                            _fileName = _content.ContentType.Name;
+                        _fileName = _content.ContentType.Name;
+
+                        if (string.IsNullOrWhiteSpace(_fileName) && _content.ContentType.Parameters != null)
+                        {
+                            if (string.IsNullOrWhiteSpace(_fileName) && _content.ContentType.Parameters.ContainsKey("name"))
+                                _fileName = _content.ContentType.Parameters["name"];
+
+                            if (string.IsNullOrWhiteSpace(_fileName) && _content.ContentType.Parameters.ContainsKey("filename"))
+                                _fileName = _content.ContentType.Parameters["filename"];
+                        }
                     }
-                    else
-                        _fileName = _content.ContentDisposition.FileName;
+
+                    if (string.IsNullOrWhiteSpace(_fileName) && _content.Parameters != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(_fileName) && _content.Parameters.ContainsKey("name"))
+                            _fileName = _content.Parameters["name"];
+
+                        if (string.IsNullOrWhiteSpace(_fileName) && _content.Parameters.ContainsKey("filename"))
+                            _fileName = _content.Parameters["filename"];
+
+                    }
+
+                    if (string.IsNullOrWhiteSpace(_fileName))
+                        _fileName = (_content.ContentId ?? "").Replace(Path.GetInvalidFileNameChars(), "");
+
+                    if (string.IsNullOrWhiteSpace(_fileName))
+                        _fileName = "unnamed";
 
                     _fileName = StringDecoder.Decode(_fileName, true);
                 }
@@ -149,10 +149,10 @@ namespace ImapX
             }
         }
 
-        public string GetTextData()
-        {
-            return _content.ContentStream;
-        }
+        //public string GetTextData()
+        //{
+        //    return _content.ContentStream;
+        //}
 
     }
 }

@@ -1,245 +1,116 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ImapX
 {
     public class Capability
     {
-        public Capability(string commandResult)
-        {
-            Update(commandResult);
-        }
 
-        /// <summary>
-        ///     Gets whether the server supports the ACL extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc4314" />
-        public bool Acl { get; private set; }
+        internal bool Loaded { get; set; }
 
         /// <summary>
         ///     Contains a list of all capabilities supported by the server
         /// </summary>
-        public string[] All { get; private set; }
+        public List<string> All { get; private set; }
+
+        public bool IMAP4 { get; set; }
+
+        public bool IMAP4rev1 { get; set; }
 
         /// <summary>
         ///     A list of additional authentication mechanisms the server supports
         /// </summary>
-        public string[] AuthenticationMechanisms { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the BINARY extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc3516" />
-        public bool Binary { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the CATENATE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc4469" />
-        public bool Catenate { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the CHILD extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc3348" />
-        public bool Children { get; private set; }
-
-        /// <summary>
-        ///     Contains a list of compression mechanisms supported by the server
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc4978" />
-        public string[] CompressionMechanisms { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the CONDSTORE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc4551" />
-        public bool CondStore { get; private set; }
-
-        /// <summary>
-        ///     Contains a list of contexts supported by the server
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5267" />
-        public string[] Contexts { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the CONVERT extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5259" />
-        public bool Convert { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the CREATE-SPECIAL-USE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc6154" />
-        public bool CreateSpecialUse { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the ENABLE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5161" />
-        public bool Enable { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the ESEARCH extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc4731" />
-        public bool ESearch { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the ESORT extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5267" />
-        public bool ESort { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the FILTERS extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5466" />
-        public bool Filters { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the ID extension
-        /// </summary>
-        public bool Id { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the IDLE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc2177" />
-        public bool Idle { get; private set; }
+        public List<string> AuthenticationMechanisms { get; internal set; }
 
         /// <summary>
         ///     Gets whether the LOGIN command is disabled on the server
         /// </summary>
         /// <see cref="http://tools.ietf.org/html/rfc2595" />
-        public bool LoginDisabled { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the METADATA extension is supported
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc5464" />
-        public bool Metadata { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the NAMESPACE extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc2342" />
-        public bool Namespace { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports authentication through OAuth
-        /// </summary>
-        public bool XoAuth { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports authentication through OAuth2
-        /// </summary>
-        public bool XoAuth2 { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the QUOTA extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc2087" />
-        public bool Quota { get; private set; }
-
-        /// <summary>
-        ///     Gets whether the server supports the UNSELECT extension
-        /// </summary>
-        /// <see cref="http://tools.ietf.org/html/rfc3691" />
-        public bool Unselect { get; private set; }
-
+        public bool LoginDisabled { get; internal set; }
+        
+        public bool StartTLS { get; internal set; }
+        public bool Id { get; internal set; }
         public bool XList { get; private set; }
 
-        public bool XGMExt1 { get; private set; }
+        public bool UTF8Accept { get; internal set; }
 
-        internal void Update(string commandResult)
+        public bool Enable { get; internal set; }
+
+        public bool UIdPlus { get; set; }
+
+        public bool CompressDeflate { get; set; }
+
+        public bool ListStatus { get; set; }
+
+        public bool SpecialUse { get; set; }
+
+        public bool Language { get; set; }
+
+        public long AppendLimit { get; set; }
+
+        public bool Idle { get; set; }
+
+        internal Capability()
         {
-            if (string.IsNullOrEmpty(commandResult))
-                return;
+            All = new List<string>();
+            AuthenticationMechanisms = new List<string>();
+            AppendLimit = -1;
+        }
 
-            commandResult = commandResult.Replace("* CAPABILITY IMAP4rev1 ", "");
+        internal void Add(string value)
+        {
+            All.Add(value);
 
-            All = (All ?? new string[0]).Concat(commandResult.Split(' ').Where(_ => !string.IsNullOrEmpty(_.Trim()))).Distinct().ToArray();
-
-            AuthenticationMechanisms = (AuthenticationMechanisms ?? new string[0]).Concat(All.Where(_ => _.StartsWith("AUTH="))
-                .Select(_ => _.Substring(5, _.Length - 5))).Distinct().ToArray();
-
-            CompressionMechanisms = (CompressionMechanisms ?? new string[0]).Concat(All.Where(_ => _.StartsWith("COMPRESS="))
-                .Select(_ => _.Substring(9, _.Length - 9))).Distinct().ToArray();
-
-            Contexts = (Contexts ?? new string[0]).Concat(All.Where(_ => _.StartsWith("CONTEXT="))
-                .Select(_ => _.Substring(8, _.Length - 8))).Distinct().ToArray();
-
-            foreach (string s in All)
+            if (value.StartsWith("AUTH="))
+                AuthenticationMechanisms.Add(value.Substring(5));
+            else if (value.StartsWith("APPENDLIMIT="))
             {
-                switch (s)
+                long.TryParse(value.Substring(12), out long limit);
+                AppendLimit = limit;
+            }
+            else
+            {
+                switch (value)
                 {
-                    case "X-GM-EXT-1":
-                        XGMExt1 = true;
+                    case "IMAP4":
+                        IMAP4 = true;
                         break;
-                    case "XLIST":
-                        XList = true;
-                        break;
-                    case "UNSELECT":
-                        Unselect = true;
-                        break;
-                    case "QUOTA":
-                        Quota = true;
-                        break;
-                    case "AUTH=XOAUTH2":
-                        XoAuth2 = true;
-                        break;
-                    case "AUTH=XOAUTH":
-                        XoAuth = true;
-                        break;
-                    case "NAMESPACE":
-                        Namespace = true;
-                        break;
-                    case "METADATA":
-                        Metadata = true;
+                    case "IMAP4rev1":
+                        IMAP4rev1 = true;
                         break;
                     case "LOGINDISABLED":
                         LoginDisabled = true;
                         break;
-                    case "IDLE":
-                        Idle = true;
+                    case "STARTTLS":
+                        StartTLS = true;
                         break;
                     case "ID":
                         Id = true;
                         break;
-                    case "FILTERS":
-                        Filters = true;
+                    case "XLIST":
+                        XList = true;
                         break;
-                    case "ESORT":
-                        ESort = true;
-                        break;
-                    case "ESEARCH":
-                        ESearch = true;
+                    case "UTF8=ACCEPT":
+                        UTF8Accept = true;
                         break;
                     case "ENABLE":
                         Enable = true;
                         break;
-                    case "CREATE-SPECIAL-USE":
-                        CreateSpecialUse = true;
+                    case "UIDPLUS":
+                        UIdPlus = true;
                         break;
-                    case "CONVERT":
-                        Convert = true;
+                    case "COMPRESS=DEFLATE":
+                        CompressDeflate = true;
                         break;
-                    case "CONDSTORE":
-                        CondStore = true;
+                    case "LIST-STATUS":
+                        ListStatus = true;
                         break;
-                    case "CHILDREN":
-                        Children = true;
+                    case "SPECIAL-USE":
+                        SpecialUse = true;
                         break;
-                    case "CATENATE":
-                        Catenate = true;
-                        break;
-                    case "BINARY":
-                        Binary = true;
-                        break;
-                    case "ACL":
-                        Acl = true;
+                    case "IDLE":
+                        Idle = true;
                         break;
                 }
             }

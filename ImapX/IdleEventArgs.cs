@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ImapX
 {
@@ -9,6 +7,6 @@ namespace ImapX
     {
         public ImapClient Client { get; set; }
         public Folder Folder { get; set; }
-        public Message[] Messages { get; set; }
+        public IEnumerable<Message> Messages { get; set; }
     }
 }

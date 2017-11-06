@@ -1,34 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using ImapX.Constants;
+using System.Collections.Generic;
+using ImapX.Enums;
 using ImapX.EncodingHelpers;
 
 namespace ImapX.Collections
 {
     public class FolderCollection : ImapObjectCollection<Folder>
     {
+        internal Folder Parent { get; set; }
 
-        Folder _parentFolder;
-
-        public FolderCollection(ImapClient client, Folder parentFolder = null)
-            : base(client)
+        internal FolderCollection(ImapClient client, Folder parent, IEnumerable<Folder> items) : base(client, items)
         {
-            _parentFolder = parentFolder;
+            Parent = parent;
         }
 
-        public FolderCollection(IEnumerable<Folder> items, ImapClient client, Folder parentFolder = null)
-            : base(client, items)
-        {
-            _parentFolder = parentFolder;
-        }
-
-        public Folder this[string name]
+        public Folder this[string path]
         {
             get
             {
-                var result = List.FirstOrDefault(_ => _.Name.Equals(name));
-                return result;
+                var buffer = path;
+                Folder folder = null;
+
+                while(buffer.Length > 0)
+                {
+                    folder = this.FirstOrDefault(_ => _.Path == buffer);
+                    if (folder == null)
+                        buffer = path.Substring(0, Math.Max(0, path.LastIndexOf(Client.Behavior.FolderDelimeter)));
+                    else
+                        break;
+                }
+
+                return folder != null && buffer.Length < path.Length ? folder.SubFolders[path] : folder;
             }
         }
 
@@ -40,63 +43,7 @@ namespace ImapX.Collections
         /// <exception cref="System.ArgumentException">If the folder name is empty</exception>
         public Folder Add(string folderName)
         {
-            if (string.IsNullOrEmpty(folderName))
-                throw new ArgumentException("The folder name cannot be empty");
-
-            folderName = ImapUTF7.Encode(folderName);
-
-            var path = _parentFolder == null ? folderName : _parentFolder.Path + Client.Behavior.FolderDelimeter + folderName;
-
-            IList<string> data = new List<string>();
-
-            string rewritePath = path.Replace(Client.Behavior.FolderDelimeter.ToString(),
-                Client.Behavior.FolderDelimeterString);
-            if (!Client.SendAndReceive(string.Format(ImapCommands.Create, rewritePath), ref data)) return null;
-            
-            var folder = new Folder(path, new string[0], ref _parentFolder, Client);
-
-            if (Client.Behavior.ExamineFolders)
-                folder.Examine();
-
-            AddInternal(folder);
-
-            return folder;
+            return Client.CreateFolder(folderName, Parent);
         }
-
-        /// <summary>
-        /// Removes a folder
-        /// </summary>
-        /// <param name="item">The folder to remove</param>
-        /// <returns><code>true</code> if the folder could be removed</returns>
-        public bool Remove(Folder item)
-        {
-            return item.Remove();
-        }
-
-        /// <summary>
-        /// Removes a folder at the specified index
-        /// </summary>
-        /// <returns><code>true</code> if the folder could be removed</returns>
-        public bool RemoveAt(int index)
-        {
-            return Remove(List[index]);
-        }
-
-        public Folder Find(string path)
-        {
-            foreach (var folder in this)
-            {
-                if (folder.Path == path)
-                    return folder;
-
-                if (!folder.HasChildren) continue;
-
-                var result = folder.SubFolders.Find(path);
-                if (result != null)
-                    return result;
-            }
-            return null;
-        }
-
     }
 }

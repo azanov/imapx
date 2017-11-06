@@ -1,19 +1,14 @@
-﻿using System;
+﻿using ImapX.Enums;
+using ImapX.Flags;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using ImapX.Constants;
-using ImapX.EncodingHelpers;
 
 namespace ImapX.Collections
 {
     public class MessageFlagCollection : ImapObjectCollection<string>
     {
-        private readonly Message _message;
-
-        protected string AddType = "+FLAGS";
-        protected string RemoveType = "-FLAGS";
-        protected bool IsUTF7 = false;
-        protected bool AddQuotes = false;
+        protected Message _message;
 
         public MessageFlagCollection()
         {
@@ -42,7 +37,7 @@ namespace ImapX.Collections
             if (string.IsNullOrEmpty(flag))
                 throw new ArgumentException("Flag cannot be empty");
 
-            return AddRange(new[] {flag});
+            return AddRange(new[] { flag });
         }
 
         /// <summary>
@@ -54,28 +49,14 @@ namespace ImapX.Collections
         {
             if (Client == null)
             {
-                base.AddRangeInternal(flags);
+                AddRangeInternal(flags);
                 return true;
             }
 
-            if (_message.Folder.ReadOnly)
-                _message.Folder.Select();
+            if (Client.Store(_message, StoreAction.Add, flags.Where(_ => _ != MessageFlags.Recent)))
+                return true;
 
-            IList<string> data = new List<string>();
-            if (!Client.SendAndReceive(string.Format(ImapCommands.Store,
-                _message.UId, AddType,
-                string.Join(" ",
-                    this.Concat(flags.Where(_ => !string.IsNullOrEmpty(_)))
-                               .Where(_ => !_.Equals(Flags.MessageFlags.Recent))
-                               .Distinct()
-                               .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
-                               .Select(_ => (IsUTF7 ? ImapUTF7.Encode(_) : _)).ToArray())),
-                ref data))
-                return false;
-
-            AddRangeInternal(flags.Except(List));
-
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -89,7 +70,7 @@ namespace ImapX.Collections
             if (string.IsNullOrEmpty(flag))
                 throw new ArgumentException("Flag cannot be empty");
 
-            return RemoveRange(new[] {flag});
+            return RemoveRange(new[] { flag });
         }
 
         /// <summary>
@@ -120,19 +101,10 @@ namespace ImapX.Collections
             if (_message.Folder.ReadOnly || Client.SelectedFolder != _message.Folder)
                 _message.Folder.Select();
 
-            IList<string> data = new List<string>();
-            if (!Client.SendAndReceive(
-                string.Format(ImapCommands.Store, _message.UId, RemoveType,
-                    string.Join(" ",
-                        flags.Where(_ => !string.IsNullOrEmpty(_))
-                             .Select(_ => (AddQuotes ? "\"" : "") + _ + (AddQuotes ? "\"" : ""))
-                             .Select(_ => IsUTF7 ? ImapUTF7.Encode(_) : _).ToArray())),
-                ref data)) return false;
-            foreach (string flag in flags)
-                List.Remove(flag);
+            if(Client.Store(_message, StoreAction.Delete, flags.Where(_ => _ != MessageFlags.Recent)) )
+                return true;
 
-            return true;
+            return false;
         }
-
     }
 }

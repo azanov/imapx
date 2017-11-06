@@ -25,6 +25,7 @@ namespace ImapX.EncodingHelpers
     ///     cref="http://www.tribridge.com/Blog/crm/default/2011-04-29/Solving-OutOfMemoryException-errors-when-attempting-to-attach-large-Base64-encoded-content-into-CRM-annotations.aspx" />
     public static class Base64
     {
+
         /// <summary>
         ///     Converts a byte array to a base64 string one block at a time.
         /// </summary>
@@ -84,38 +85,40 @@ namespace ImapX.EncodingHelpers
         /// <returns></returns>
         public static byte[] FromBase64(string s)
         {
-#if WINDOWS_PHONE || NETFX_CORE
-            return Convert.FromBase64String(s);
-#else
+            return FromBase64(Encoding.UTF8.GetBytes(s));
+        }
+
+        public static byte[] FromBase64(byte[] inputBytes)
+        {
             byte[] bytes;
 
             //s = Regex.Replace(Regex.Replace(s, @"\r\n?|\n", string.Empty), @"--.*", string.Empty);
             using (var writer = new MemoryStream())
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(s);
 
                 using (var transformation = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces))
                 {
                     var bufferedOutputBytes = new byte[transformation.OutputBlockSize];
 
                     // Transform the data in chunks the size of InputBlockSize.
+                    var buffer = new byte[4];
+                    var bufferSize = 0;
 
-                    int i = 0;
-
-                    while (inputBytes.Length - i > 4)
+                    for(var i = 0; i < inputBytes.Length - 4; i++)
                     {
-                        transformation.TransformBlock(inputBytes, i, 4, bufferedOutputBytes, 0);
-
-
-                        i += 4;
-
-
-                        writer.Write(bufferedOutputBytes, 0, transformation.OutputBlockSize);
+                        if (inputBytes[i] == '\r' || inputBytes[i] == '\n') continue;
+                        buffer[bufferSize++] = inputBytes[i];
+                        if (bufferSize == 4)
+                        {
+                            transformation.TransformBlock(buffer, 0, 4, bufferedOutputBytes, 0);
+                            writer.Write(bufferedOutputBytes, 0, transformation.OutputBlockSize);
+                            bufferSize = 0;
+                        }
                     }
-
+                    
                     // Transform the final block of data.
 
-                    bufferedOutputBytes = transformation.TransformFinalBlock(inputBytes, i, inputBytes.Length - i);
+                    bufferedOutputBytes = transformation.TransformFinalBlock(inputBytes, inputBytes.Length - 4, 4);
 
                     writer.Write(bufferedOutputBytes, 0, bufferedOutputBytes.Length);
 
@@ -131,7 +134,6 @@ namespace ImapX.EncodingHelpers
                 writer.Close();
             }
             return bytes;
-#endif
         }
     }
 }

@@ -1,40 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ImapX.EncodingHelpers;
+using System;
 using System.Text;
 
 namespace ImapX.Extensions
 {
     public static class StringExtensions
     {
-        public static string Break(this string value, int chunkSize)
+        public static string Quote(this string value)
         {
-            var sb = new StringBuilder();
-
-            value.Break(ref sb, chunkSize);
-
-            return sb.ToString();
+            value = value.Replace("\"", "\\\"");
+            value = value.Replace("\\", "\\\\");
+            return "\"" + value + "\"";
         }
 
-        public static void Break(this string value, ref StringBuilder sb, int chunkSize)
+        public static string ToBase64String(this string value)
         {
+            return Base64.ToBase64(Encoding.UTF8.GetBytes(value));
+        }
 
-            if (string.IsNullOrEmpty(value))
-                return;
+        public static string Replace(this string s, char[] separators, string newVal)
+        {
+            string[] temp;
 
-            if (chunkSize < 1)
-                return;
-
-            if (value.Length <= chunkSize)
-            {
-                sb.Append(value);
-                return;
-            }
-
-            for (var i = 0; i < value.Length; i += chunkSize)
-                sb.AppendLine(value.Substring(i, i + chunkSize > value.Length ? (value.Length - i) : chunkSize));
-
-
+            temp = s.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            return String.Join(newVal, temp);
         }
     }
 }

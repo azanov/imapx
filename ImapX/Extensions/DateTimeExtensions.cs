@@ -14,6 +14,8 @@ namespace ImapX.Extensions
         internal static readonly string[] validDateTimeFormats;
         internal static readonly IDictionary<string, TimeSpan> timeZoneOffsetLookup;
 
+        public static CultureInfo EnUSCulture = new CultureInfo("en-US");
+
         static DateTimeExtensions()
         {
             allowedWhiteSpaceChars = new char[] { ' ', '\t' };
@@ -57,12 +59,12 @@ namespace ImapX.Extensions
             if (date == null)
                 throw new ArgumentException("date cannot be null");
 
-            return date.ToString("dd-MMM-yyyy", new CultureInfo("en-US"));
+            return date.ToString("dd-MMM-yyyy", EnUSCulture);
         }
 
         public static string ToImapInternalDate(this DateTime date)
         {
-            var dateTime = date.ToString("dd-MMM-yyyy hh:mm:ss", new CultureInfo("en-US"));
+            var dateTime = date.ToString("dd-MMM-yyyy hh:mm:ss", EnUSCulture);
             var timeZone = date.ToString("zzz").Replace(":", "");
 
             if (dateTime[0] == '0')

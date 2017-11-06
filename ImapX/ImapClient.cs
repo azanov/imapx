@@ -1,32 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security.Authentication;
-using System.Text;
-using ImapX.Authentication;
+﻿using ImapX.Authentication;
 using ImapX.Collections;
-using ImapX.Constants;
+using ImapX.Commands;
+using ImapX.EncodingHelpers;
 using ImapX.Enums;
 using ImapX.Exceptions;
-using ImapX.Parsing;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ImapX
 {
     public class ImapClient : ImapBase
     {
+        protected CommonFolderCollection _folders;
+        protected ImapIdentity _serverIdentity;
+        protected Folder _selectedFolder;
+        protected IdleState _idleState;
+        protected CancellationTokenSource _idleCancellationTokenSource = new CancellationTokenSource();
 
-        private CommonFolderCollection _folders;
-
-        /// <summary>
-        /// The folder structure
-        /// </summary>
-        public CommonFolderCollection Folders
+        public ImapClient()
         {
-            get
-            {
-                return _folders ?? (_folders = GetFolders());
-            }
+            Behavior = new ClientBehavior();
         }
 
         /// <summary>
@@ -34,51 +32,61 @@ namespace ImapX
         /// </summary>
         public ImapCredentials Credentials { get; set; }
 
-        /// <summary>
-        /// Creates a new IMAP client
-        /// </summary>
-        public ImapClient()
+        public ImapIdentity ClientIdentity { get; set; }
+
+        public ImapIdentity ServerIdentity
         {
-            Behavior = new ClientBehavior();
+            get
+            {
+                if (!Capabilities.Id)
+                    return null;
+                if (_serverIdentity == null)
+                    _serverIdentity = Identity();
+
+                return _serverIdentity;
+
+            }
+            protected set
+            {
+                _serverIdentity = value;
+            }
+        }
+        
+        /// <summary>
+        /// The folder structure
+        /// </summary>
+        public CommonFolderCollection Folders
+        {
+            get
+            {
+                if (_folders == null)
+                    _folders = new CommonFolderCollection(this, GetFolders());
+
+                return _folders;
+            }
         }
 
-        /// <summary>
-        /// Creates a new IMAP client, specifies the server to connect to. The default port is used (143; 993 if SSL is used)
-        /// </summary>
-        public ImapClient(string host, bool useSsl = false, bool validateServerCertificate = true)
-            : this(host, useSsl ? DefaultImapSslPort : DefaultImapPort, useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
+        internal Folder SelectedFolder
         {
-
+            get
+            {
+                return _selectedFolder;
+            }
+            set
+            {
+                if (_selectedFolder != null)
+                    _selectedFolder.ReadOnly = true;
+                _selectedFolder = value;
+            }
         }
-
-        /// <summary>
-        /// Creates a new IMAP client, specifies the server and the port to connect to. 
-        /// </summary>
-        public ImapClient(string host, int port, bool useSsl = false, bool validateServerCertificate = true)
-            : this(host, port, useSsl ? SslProtocols.Default : SslProtocols.None, validateServerCertificate)
-        {
-
-        }
-
-        /// <summary>
-        /// Creates a new IMAP client, specifies the server and the port to connect to. 
-        /// </summary>
-        public ImapClient(string host, int port, SslProtocols sslProtocol, bool validateServerCertificate = true)
-            : this()
-        {
-            Host = host;
-            Port = port;
-            SslProtocol = sslProtocol;
-            ValidateServerCertificate = validateServerCertificate;
-        }
-
+        
         /// <summary>
         /// Authenticate using credentials set through the <code>Credentials</code> property
         /// </summary>
         /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login()
+        public SafeResult Login()
         {
-            if(Credentials == null)
+            if (Credentials == null)
                 throw new ArgumentNullException("The credentials cannot be null");
 
             return Login(Credentials);
@@ -88,7 +96,7 @@ namespace ImapX
         /// Authenticate using a login and password
         /// </summary>
         /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login(string login, string password)
+        public SafeResult Login(string login, string password)
         {
             return Login(new PlainCredentials(login, password));
         }
@@ -97,24 +105,20 @@ namespace ImapX
         /// Authenticate using given credentials
         /// </summary>
         /// <returns><code>true</code> if the authentication was successful</returns>
-        public bool Login(ImapCredentials credentials)
+        public SafeResult Login(ImapCredentials credentials)
         {
             Credentials = credentials;
-            IList<string> data = new List<string>();
-            IsAuthenticated = SendAndReceive(credentials.ToCommand(Capabilities), ref data, credentials, null, true);
 
-            var capabilities = data.FirstOrDefault(_ => _.StartsWith("* CAPABILITY"));
-
-            if (Capabilities == null)
-                Capabilities = new Capability(capabilities);
-            else
-                Capabilities.Update(capabilities);
-
-            if (IsAuthenticated && Host.ToLower() == "imap.qq.com")
+            if (credentials.IsSupported(Capabilities))
             {
-                Behavior.SearchAllNotSupported = true;
-                Behavior.LazyFolderBrowsingNotSupported = true;
+                var cmd = RunCommand(Credentials.ToCommand(this, GetNextCommandId(), Capabilities));
+                
+                if (cmd.State == CommandState.Ok)
+                    IsAuthenticated = true;
+                else
+                    return new SafeResult(exception: new OperationFailedException("Failed to autheticate. Details: {0}", cmd.StateDetails));
             }
+            
             return IsAuthenticated;
         }
 
@@ -122,104 +126,228 @@ namespace ImapX
         /// Logout from server
         /// </summary>
         /// <returns><code>true</code> if the logout was successful</returns>
-        public bool Logout()
+        public SafeResult Logout()
         {
-            IList<string> data = new List<string>();
-            if (SendAndReceive(ImapCommands.Logout, ref data))
-            {
+            if (!IsAuthenticated)
+                return new SafeResult(exception: new InvalidStateException("You have to be authenticated to logout"));
+
+            var cmd = RunCommand(new LogoutCommand(this, GetNextCommandId()));
+
+            if (cmd.State == CommandState.Ok)
                 IsAuthenticated = false;
-                Behavior.FolderDelimeter = '\0';
-                _folders = null;
-            }
-            return !IsAuthenticated;
+            else
+                return new SafeResult(exception: new OperationFailedException("Failed to autheticate. Details: {0}", cmd.StateDetails));
+
+            return true;
         }
 
         /// <summary>
-        /// Requests the top-level folder structure
+        /// Sends the client identity to the server and returns the server identity.
+        /// Sets the <code>ClientIdentity</code> property if the <code>clientIdentity</code> argument us not null.
+        /// Sets the <code>ServerIdentity</code> property. 
         /// </summary>
+        /// <param name="clientIdentity">The client identity to send to the server. If <code>null</code>, value from the <code>ClientIdentity</code> property is used.</param>
         /// <returns></returns>
-        internal CommonFolderCollection GetFolders()
+        public ImapIdentity Identity(ImapIdentity clientIdentity = null)
         {
-            var folders = new CommonFolderCollection(this);
-            folders.AddRangeInternal(GetFolders("", folders, null, true));
-            return folders;
+            if (clientIdentity != null)
+                ClientIdentity = clientIdentity;
+
+            if (!Capabilities.Id)
+                throw new UnsupportedCapabilityException();
+            
+            var cmd = RunCommand(new IDCommand(this, GetNextCommandId(), clientIdentity ?? ClientIdentity));
+            
+            if (cmd.State != CommandState.Ok)
+                throw new InvalidOperationException();
+
+            ServerIdentity = cmd.Response;
+
+            return cmd.Response;
         }
 
-        /// <summary>
-        /// Request the folder structure for a specific path
-        /// </summary>
-        /// <param name="path">The path to search</param>
-        /// <param name="commonFolders">The list of common folders to update</param>
-        /// <param name="parent">The parent folder</param>
-        /// <param name="isFirstLevel">if <code>true</code>, will request the subfolders of all folders found. Thsi settign depends on the current FolderTreeBrowseMode</param>
-        /// <returns>A list of folders</returns>
-        internal FolderCollection GetFolders(string path, CommonFolderCollection commonFolders, Folder parent = null, bool isFirstLevel = false)
+        internal SafeResult SelectFolder(Folder folder)
         {
-            var result = new FolderCollection(this, parent);
-            string rewritePath = path.Replace(Behavior.FolderDelimeter.ToString(),
-                    Behavior.FolderDelimeterString);
+            if (!folder.Selectable)
+                return new SafeResult(false, new InvalidOperationException("The folder is not selectable"));
 
-            var cmd = string.Format(Capabilities.XList && !Capabilities.XGMExt1 ? ImapCommands.XList : ImapCommands.List, rewritePath, Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full ? "*" : "%");
-            IList<string> data = new List<string>();
-            if (!SendAndReceive(cmd, ref data)) return result;
+            if (_selectedFolder == folder)
+                return true;
 
-            for (var i = 0; i < data.Count - 1; i++)
-            {
-                string checkLiteralString = data[i];
-                // RZ 10/23/2015 detect literal
-                var literalMatch = Expressions.LiteralRex.Match(checkLiteralString);
-                if (literalMatch.Success && literalMatch.Groups.Count == 2)
-                {
-                    // read more lines until the number of characters are received.
-                    // get the number of characters first
-                    int iLength, iCumulate = 0;
-                    if (!int.TryParse(literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Value, out iLength))
-                    {
-                        throw new OperationFailedException(string.Format("Invalid literal length detected from server:{0}", literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Value));
-                    }
-                    int iStartIndex = literalMatch.Groups[Expressions.LITERAL_LENGTH_GROUP].Index;
-
-                    // truncate input to the start of literal
-                    checkLiteralString = checkLiteralString.Substring(0, iStartIndex - 1);
-                    if (iLength > 0)
-                    {
-                        var sb = new StringBuilder();
-                        while (iCumulate < iLength)
-                        {
-                            // read more
-                            i++;        // NOTE: increase i to the next line
-                            string moreLine = data[i];
-                            iCumulate += moreLine.Length;
-                            sb.Append(moreLine);
-                        }
-                        if (IsDebug)
-                            Debug.WriteLine("ImapX string Literal:{0}", sb.ToString());
-
-                        checkLiteralString += sb.ToString();
-                    }
-                    else
-                        checkLiteralString += " \"\"";  // add empty string
-
-                    if (IsDebug)
-                        Debug.WriteLine("ImapX Rewrite return into:{0}", checkLiteralString);
-                }
-                var folder = Folder.Parse(checkLiteralString, ref parent, this);
-                commonFolders.TryBind(ref folder);
-
-                if (Behavior.ExamineFolders)
-                    folder.Examine();
-
-                if (folder.HasChildren && (isFirstLevel || Behavior.FolderTreeBrowseMode == FolderTreeBrowseMode.Full))
-                    folder.SubFolders = GetFolders(folder.Path + Behavior.FolderDelimeter, commonFolders, folder);
-
-                result.AddInternal(folder);
-
-            }
-
-            return result;
-
+            var cmd = RunCommand(new SelectCommand(this, GetNextCommandId(), folder));
+            
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to select folder. Details: {0}", cmd.StateDetails));
+            
+            return true;
         }
 
-        
+        internal void ScheduleExamine(Folder folder)
+        {
+            if (!folder.Selectable)
+                throw new InvalidOperationException("The folder is not selectable");
+
+            ScheduleCommand(new ExamineCommand(this, GetNextCommandId(), folder));
+        }
+
+        internal SafeResult ExamineFolder(Folder folder)
+        {
+            if (!folder.Selectable)
+                return new SafeResult(false, new InvalidOperationException("The folder is not selectable"));
+
+            var cmd = RunCommand(new ExamineCommand(this, GetNextCommandId(), folder));
+
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to examine folder. Details: {0}", cmd.StateDetails));
+            
+            return true;
+        }
+
+        internal SafeResult ExpungeFolder(Folder folder)
+        {
+            if (!folder.Selectable)
+                return new SafeResult(false, new InvalidOperationException("The folder is not selectable"));
+
+            var cmd = RunCommand(new ExpungeCommand(this, GetNextCommandId(), folder));
+
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to expunge folder. Details: {0}", cmd.StateDetails));
+
+            return true;
+        }
+
+        internal SafeResult DeleteFolder(Folder folder)
+        {
+            if (!folder.CanBeDeleted)
+                return new SafeResult(false, new InvalidOperationException("The folder cannot be removed"));
+
+            var cmd = RunCommand(new DeleteCommand(this, GetNextCommandId(), folder));
+
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to expunge folder. Details: {0}", cmd.StateDetails));
+
+            return true;
+        }
+
+        internal IEnumerable<Message> SearchFolder(Folder folder, string query)
+        {
+            SelectFolder(folder);
+
+            var cmd = RunCommand(new SearchCommand(this, GetNextCommandId(), folder, query));
+
+            if (cmd.State != CommandState.Ok)
+                throw new OperationFailedException("Failed to search the messages. Details: {0}", cmd.StateDetails);
+
+            return cmd.Response;
+        }
+
+        internal void FetchMessage(Message message, MessageFetchMode mode = MessageFetchMode.ClientDefault, 
+            bool reloadHeaders = false, string bodyPartNumber = null)
+        {
+            if (mode == MessageFetchMode.ClientDefault)
+                mode = Behavior.MessageFetchMode;
+
+            mode = mode &= ~message.DownloadProgress;
+
+            mode &= ~MessageFetchMode.GMailExtendedData;
+
+            if (mode == MessageFetchMode.None || mode == MessageFetchMode.Initial)
+                return;
+
+            var cmd = RunCommand(new FetchCommand(this, GetNextCommandId(), message, mode, reloadHeaders, bodyPartNumber));
+
+            if (cmd.State != CommandState.Ok)
+                throw new OperationFailedException("Failed to fetch the message. Details: {0}", cmd.StateDetails);
+
+            if (mode.HasFlag(MessageFetchMode.Body))
+                message.Body.Download();
+        }
+
+        internal SafeResult Store(Message message, StoreAction action, IEnumerable<string> flags)
+        {
+            var cmd = RunCommand(new StoreCommand(this, GetNextCommandId(), message, action, flags));
+            return cmd.State == CommandState.Ok;
+        }
+
+        internal void ScheduleFetch(Message message, MessageFetchMode mode = MessageFetchMode.ClientDefault, bool reloadHeaders = false)
+        {
+            mode = mode &= ~message.DownloadProgress;
+
+            if (mode == MessageFetchMode.None)
+                return;
+
+            ScheduleCommand(new FetchCommand(this, GetNextCommandId(), message, mode, reloadHeaders));
+        }
+
+        internal FolderStatus GetFolderStatus(Folder folder, FolderStatusType type)
+        {
+            // Do not get the append limit if it is not supported
+            if (Capabilities.AppendLimit < 0)
+                type &= ~FolderStatusType.AppendLimit;
+
+            var cmd = RunCommand(new StatusCommand(this, GetNextCommandId(), folder, type));
+
+            if (cmd.State != CommandState.Ok)
+                throw new OperationFailedException("Failed to request the folder status. Details: {0}", cmd.StateDetails);
+
+            return cmd.Response;
+        }
+
+        internal SafeResult CloseFolder(Folder folder)
+        {
+            if (SelectedFolder != folder)
+                return new SafeResult(exception: new InvalidStateException("The folder cannot be closed as it's not the selected folder"));
+
+            var cmd = RunCommand(new CloseCommand(this, GetNextCommandId(), folder));
+
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to close folder. Details: {0}", cmd.StateDetails));
+
+            return true;
+        }
+
+        internal Folder CreateFolder(string folderName, Folder parent)
+        {
+            if (string.IsNullOrEmpty(folderName))
+                throw new ArgumentException("The folder name cannot be empty");
+            
+            var cmd = RunCommand(new CreateCommand(this, GetNextCommandId(), folderName, parent));
+
+            if (cmd.State != CommandState.Ok)
+                throw new OperationFailedException("Failed to create folder. Details: {0}", cmd.StateDetails);
+
+            return cmd.Response;
+        }
+
+        internal IEnumerable<Folder> GetFolders(Folder parentFolder = null, FolderTreeBrowseMode mode = FolderTreeBrowseMode.Lazy)
+        {
+            var cmd = RunCommand(
+                (!Capabilities.SpecialUse || (Behavior.ListFolderStatusType != FolderStatusType.None && Capabilities.ListStatus)) &&
+                Capabilities.XList ? 
+                    new XListCommand(this, GetNextCommandId(), parentFolder, mode) { Base = this } : 
+                    new ListCommand(this, GetNextCommandId(), parentFolder, mode) { Base = this }
+                );
+            
+            if (cmd.State != CommandState.Ok)
+                throw new InvalidOperationException();
+
+            if (parentFolder != null)
+                Folders.BindRangeInternal(cmd.Response);
+
+            return cmd.Response;
+        }
+
+        public SafeResult UnselectCurrentFolder()
+        {
+            if (SelectedFolder == null)
+                return new SafeResult(exception: new InvalidStateException("The folder cannot be unselected as no folder is selected"));
+
+            var cmd = RunCommand(new UnselectCommand(this, GetNextCommandId()));
+
+            if (cmd.State != CommandState.Ok)
+                return new SafeResult(exception: new OperationFailedException("Failed to unselect the current folder. Details: {0}", cmd.StateDetails));
+
+            return true;
+        }
     }
 }

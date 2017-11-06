@@ -9,44 +9,52 @@ namespace ImapX.Enums
         None = -2,
         ClientDefault = -1,
 
+        Initial = 0,
+
         /// <summary>
         /// Request message flags
         /// </summary>
         Flags = 1,
 
-        InternalDate = 2,
-        Size = 4,
-        Headers = 8,
+        ContentType = 2,
+        InternalDate = 4,
+        Size = 8,
+        Headers = 16,
 
-        BodyStructure = 16,
-        Body = BodyStructure | 32,
-        Attachments = BodyStructure | 64,
+        Envelope = 32,
 
-        GMailMessageId = 128,
-        GMailThreads = 256,
-        GMailLabels = 512,
+        BodyStructure = 64,
+        Body = BodyStructure | 128,
+        Attachments = BodyStructure | 256,
+
+        GMailMessageId = 512,
+        GMailThreads = 1024,
+        GMailLabels = 2048,
+
+        BodyPart = 4096,
+        BodyText = 8192,
 
         GMailExtendedData = GMailMessageId | GMailLabels | GMailThreads,
 
         /// <summary>
-        /// Request flags, headers and the body structure
+        /// Request flags, envelope and the body structure
         /// </summary>
-        Tiny = Flags | Headers | BodyStructure,
+        Tiny = Flags | Envelope | BodyStructure,
 
         /// <summary>
-        /// Request flags, headers, body structure, size and internal date
+        /// Request flags, enevelope, body structure, size and internal date
         /// </summary>
         Minimal = Tiny | Size | InternalDate,
 
         /// <summary>
         /// Request flags, headers, body structure and body, size and internal date
         /// </summary>
-        Basic = Minimal | Body,
+        Basic = Minimal | Headers | Body,
 
         /// <summary>
         /// Request flags, headers, body and attachments, size and internal date
         /// </summary>
-        Full = Basic | Attachments
-        
+        Full = Basic | Headers | Attachments
+
     }
 }

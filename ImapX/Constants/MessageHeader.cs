@@ -36,5 +36,6 @@ namespace ImapX.Constants
         public const string Language = "language";
         public const string InReplyTo = "in-reply-to";
         public const string Comments = "comments";
+        public const string ContentId = "content-id";
     }
 }

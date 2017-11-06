@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using ImapX.Parsing;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -11,6 +10,9 @@ namespace ImapX.EncodingHelpers
 {
     public class StringDecoder
     {
+        public static readonly Regex StringEncodingRex = new Regex(@"[=]?\?(?<charset>.*?)\?(?<encoding>[qQbB])\?(?<value>.*?)\?=\s?");
+
+
         private static Encoding TryGetEncoding(string name, Encoding defaultEncoding = null)
         {
             try
@@ -33,6 +35,14 @@ namespace ImapX.EncodingHelpers
             return encoding.GetString(bytes, 0, bytes.Length);
         }
 
+        internal static byte[] DecodeBase64(byte[] value)
+        {
+            if (value == null || value.Length == 0)
+                return new byte[0];
+
+            return Base64.FromBase64(value);
+        }
+
         internal static string DecodeQuotedPrintable(string input, Encoding encoding)
         {
             if (string.IsNullOrEmpty(input))
@@ -45,8 +55,7 @@ namespace ImapX.EncodingHelpers
             {
                 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
             };
-
-    
+            
             var start = 0;
             var end = input.Length;
             while (start < end)
@@ -62,28 +71,41 @@ namespace ImapX.EncodingHelpers
 
                 var buffer = new List<byte>();
 
-                while (pos < end - 2 && input[pos] == '=' && validHex.Contains(char.ToUpper(input[pos + 1])) && validHex.Contains(char.ToUpper(input[pos + 2])))
+                while (pos < end - 2 && input[pos] == '=')
                 {
-                    string hex = input.Substring(pos + 1, 2);
-                    byte b = byte.Parse(hex, NumberStyles.HexNumber);
-                    buffer.Add(b);
-                    start += 3;
-                    pos += 3;
+                    if (validHex.Contains(char.ToUpper(input[pos + 1])) && validHex.Contains(char.ToUpper(input[pos + 2])))
+                    {
+                        string hex = input.Substring(pos + 1, 2);
+                        byte b = byte.Parse(hex, NumberStyles.HexNumber);
+                        buffer.Add(b);
+                        start += 3;
+                        pos += 3;
+                    }
+                    else if (input[pos + 1] == '\r' && input[pos + 2] == '\n')
+                    {
+                        start += 3;
+                        pos += 3;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
 
                 if (buffer.Count > 0)
                 {
-                    sb.Append(encoding.GetChars(buffer.ToArray()));
+                    sb.Append(encoding.GetString(buffer.ToArray()));
                     buffer.Clear();
                 }
 
-                if(pos < input.Length && input[pos] == '=')
+                if (pos < input.Length && input[pos] == '=')
                 {
                     sb.Append("=");
                     start++;
                 }
             }
-            input = sb.ToString().Replace("?=", "").Replace("=\r\n", Environment.NewLine);
+            input = sb.ToString().Replace("?=", "");
 
             return input;
 
@@ -111,7 +133,7 @@ namespace ImapX.EncodingHelpers
                 string decodedString = string.Empty;
                 while (text.Length > 0)
                 {
-                    Match match = Expressions.StringEncodingRex.Match(text);
+                    Match match = StringEncodingRex.Match(text);
                     if (match.Success)
                     {
                         // If the match isn't at the start of the string, copy the initial few chars to the output

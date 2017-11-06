@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
 
 namespace ImapX.Enums
 {
@@ -12,7 +8,6 @@ namespace ImapX.Enums
         Off = 0,
         On = 1,
         Paused = 2,
-        Starting = 4,
-        Stopping = 8
+        Stopping = 4
     }
 }
