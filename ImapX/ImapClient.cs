@@ -1,14 +1,10 @@
 ﻿using ImapX.Authentication;
 using ImapX.Collections;
 using ImapX.Commands;
-using ImapX.EncodingHelpers;
 using ImapX.Enums;
 using ImapX.Exceptions;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,6 +88,11 @@ namespace ImapX
             return Login(Credentials);
         }
 
+        public Task<SafeResult> LoginAsync()
+        {
+            return Task.Run(() => Login());
+        }
+
         /// <summary>
         /// Authenticate using a login and password
         /// </summary>
@@ -99,6 +100,11 @@ namespace ImapX
         public SafeResult Login(string login, string password)
         {
             return Login(new PlainCredentials(login, password));
+        }
+
+        public Task<SafeResult> LoginAsync(string login, string password)
+        {
+            return Task.Run(() => Login(login, password));
         }
 
         /// <summary>
@@ -122,6 +128,11 @@ namespace ImapX
             return IsAuthenticated;
         }
 
+        public Task<SafeResult> LoginAsync(ImapCredentials credentials)
+        {
+            return Task.Run(() => Login(credentials));
+        }
+
         /// <summary>
         /// Logout from server
         /// </summary>
@@ -139,6 +150,11 @@ namespace ImapX
                 return new SafeResult(exception: new OperationFailedException("Failed to autheticate. Details: {0}", cmd.StateDetails));
 
             return true;
+        }
+
+        public Task<SafeResult> LogoutAsync()
+        {
+            return Task.Run(() => Logout());
         }
 
         /// <summary>
@@ -180,6 +196,11 @@ namespace ImapX
                 return new SafeResult(exception: new OperationFailedException("Failed to select folder. Details: {0}", cmd.StateDetails));
             
             return true;
+        }
+
+        internal Task<SafeResult> SelectFolderAsync(Folder folder)
+        {
+            return Task.Run(() => SelectFolder(folder));
         }
 
         internal void ScheduleExamine(Folder folder)
@@ -319,7 +340,12 @@ namespace ImapX
             return cmd.Response;
         }
 
-        internal IEnumerable<Folder> GetFolders(Folder parentFolder = null, FolderTreeBrowseMode mode = FolderTreeBrowseMode.Lazy)
+        internal IEnumerable<Folder> GetFolders(Folder parentFolder = null)
+        {
+            return GetFolders(parentFolder, Behavior.FolderTreeBrowseMode);
+        }
+
+        internal IEnumerable<Folder> GetFolders(Folder parentFolder, FolderTreeBrowseMode mode)
         {
             var cmd = RunCommand(
                 (!Capabilities.SpecialUse || (Behavior.ListFolderStatusType != FolderStatusType.None && Capabilities.ListStatus)) &&

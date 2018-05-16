@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX", "ImapX\ImapX.csproj", "{15E27A47-9080-4D11-8B93-9D011DFD45DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImapX", "ImapX\ImapX.csproj", "{15E27A47-9080-4D11-8B93-9D011DFD45DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImapX.Sample", "ImapX.Sample\ImapX.Sample.csproj", "{A1066788-3CCC-416B-ACF6-246517499C49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{15E27A47-9080-4D11-8B93-9D011DFD45DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15E27A47-9080-4D11-8B93-9D011DFD45DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15E27A47-9080-4D11-8B93-9D011DFD45DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1066788-3CCC-416B-ACF6-246517499C49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1066788-3CCC-416B-ACF6-246517499C49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1066788-3CCC-416B-ACF6-246517499C49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1066788-3CCC-416B-ACF6-246517499C49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -27,6 +27,8 @@ namespace ImapX.Extensions
                 "ddd, d MMM yy HH:mm:ss",
                 "dd MMM yyyy HH:mm:ss",
                 "ddd, dd MMM yyyy HH:mm",
+                "ddd, d MMM yyyy H:mm:ss",  // ^ new date format added by sbsen 04/14/2018
+                "ddd, dd MMM yyyy H:mm:ss", // ^ new date format added by sbsen 04/14/2018
                 "dd MMM yyyy HH:mm",
                 "ddd, d MMM yyyy HH:mm:ss",
                 "ddd, d MMM yyyy HH:mm",

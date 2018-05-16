@@ -3,16 +3,13 @@ using ImapX.Enums;
 using ImapX.Extensions;
 using System.IO;
 using System.Net.Mime;
-using System.Text;
 
 namespace ImapX
 {
-
     public class Attachment
     {
         private readonly MessageContent _content;
         private string _fileName = null;
-        private byte[] _fileData = null;
 
         public Attachment()
         {
@@ -97,8 +94,7 @@ namespace ImapX
 
         public void Download()
         {
-            if (!Downloaded)
-                _content.Download();
+            _content.Download();
         }
 
         public ContentType ContentType
@@ -117,14 +113,6 @@ namespace ImapX
             }
         }
 
-#if NETFX_CORE
-
-        public void Save(string folder, string fileName = null)
-        {
-            //TODO
-        }
-
-#else
         public void Save(string folder, string fileName = null)
         {
             string path = Path.Combine(folder,
@@ -139,8 +127,6 @@ namespace ImapX
 
         }
 
-#endif
-
         public long FileSize
         {
             get
@@ -148,11 +134,6 @@ namespace ImapX
                 return _content.Downloaded ? FileData.Length : _content.Size;
             }
         }
-
-        //public string GetTextData()
-        //{
-        //    return _content.ContentStream;
-        //}
 
     }
 }

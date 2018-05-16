@@ -5,6 +5,7 @@ using ImapX.Exceptions;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ImapX
 {
@@ -64,10 +65,11 @@ namespace ImapX
             {
                 if (string.IsNullOrWhiteSpace(_name) && !string.IsNullOrWhiteSpace(Path))
                 {
+                    var i = Path.LastIndexOf(Client.Behavior.FolderDelimeter);
                     if (Client.EncodingMode == ImapEncodingMode.UTF8)
-                        _name = Path;
+                        _name = i < 0 ? Path : Path.Substring(i + Client.Behavior.FolderDelimeter.Length);
                     else
-                        _name = ImapUTF7.Decode(Path);
+                        _name = ImapUTF7.Decode(i < 0 ? Path : Path.Substring(i + Client.Behavior.FolderDelimeter.Length));
                 }
 
                 return _name;
@@ -75,6 +77,14 @@ namespace ImapX
             set
             {
                 throw new TodoException();
+            }
+        }
+
+        public bool Selected
+        {
+            get
+            {
+                return Client.SelectedFolder == this;
             }
         }
 
@@ -177,7 +187,6 @@ namespace ImapX
             AllowedPermanentFlags = new string[0];
             ReadOnly = true;
             ParentFolder = parent;
-            _subFolders = new FolderCollection(Client, parent, new Folder[0]);
             _messages = new MessageCollection(Client, this);
             AppendLimit = -1;
         }
@@ -200,6 +209,11 @@ namespace ImapX
         public SafeResult Select()
         {
             return Client.SelectFolder(this);
+        }
+
+        public Task<SafeResult> SelectAsync()
+        {
+            return Client.SelectFolderAsync(this);
         }
 
         /// <summary>
@@ -280,12 +294,14 @@ namespace ImapX
 
         internal void RemoveExpungedMessages()
         {
-            // TODO: remove messages with the \Deleted flag
+            var msgs = _messages.Where(_ => _.Deleted).ToArray();
+            for (var i = 0; i < msgs.Length; i++)
+                _messages.RemoveInternal(msgs[i]);
         }
 
         internal void RemoveExpungedMessage(int id)
         {
-            // TODO: remove the given message
+            _messages.RemoveInternal(_messages.FirstOrDefault(_ => _.UId == id));
         }
         
     }

@@ -65,6 +65,7 @@ namespace ImapX.Commands
                         folder.Type = SpecialFolderType.Flagged; break;
 
                     case FolderFlags.HasChildren:
+                    case "\\HashChildren": // gmail seems to return this trash..
                         folder.HasChildren = true; break;
 
                     case FolderFlags.HasNoChildren:

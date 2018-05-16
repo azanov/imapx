@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ImapX
 {
@@ -174,6 +175,14 @@ namespace ImapX
             return Connect(_host, _port, _connectionSecurity, _validateServerCertificate);
         }
 
+        /// <summary>
+        ///     Connect using set values.
+        /// </summary>
+        public Task<SafeResult> ConnectAsync()
+        {
+            return ConnectAsync(_host, _port, _connectionSecurity, _validateServerCertificate);
+        }
+
 
         /// <summary>
         /// Connects to an IMAP server on port 993 using SSL
@@ -182,6 +191,15 @@ namespace ImapX
         public SafeResult Connect(string host)
         {
             return Connect(host, DefaultImapSslPort, ImapConnectionSecurity.SSL, ValidateServerCertificate);
+        }
+
+        /// <summary>
+        /// Connects to an IMAP server on port 993 using SSL
+        /// </summary>
+        /// <param name="host">Server address</param>
+        public Task<SafeResult> ConnectAsync(string host)
+        {
+            return ConnectAsync(host, DefaultImapSslPort, ImapConnectionSecurity.SSL, ValidateServerCertificate);
         }
 
         /// <summary>
@@ -248,6 +266,19 @@ namespace ImapX
             }
         }
 
+        /// <summary>
+        ///     Connects to an IMAP server on the specified port
+        /// </summary>
+        /// <param name="host">Server address</param>
+        /// <param name="port">Server port</param>
+        /// <param name="connectionSecuity">SSL protocol to use, <code>SslProtocols.None</code> by default</param>
+        /// <param name="validateServerCertificate">Defines whether the server certificate should be validated when SSL is used</param>
+        public Task<SafeResult> ConnectAsync(string host, int port, ImapConnectionSecurity connectionSecuity = ImapConnectionSecurity.None,
+            bool validateServerCertificate = true)
+        {
+            return Task.Run(() => Connect(host, port, connectionSecuity, validateServerCertificate));
+        }
+
         public void Disconnect()
         {
             try
@@ -277,6 +308,11 @@ namespace ImapX
                 throw new InvalidOperationException();
         }
 
+        public Task CapabilityAsync()
+        {
+            return Task.Run(() => Capability());
+        }
+
         protected void StartTLS()
         {
             if (!Capabilities.StartTLS)
@@ -304,6 +340,11 @@ namespace ImapX
             EncodingMode = ImapEncodingMode.UTF8;
 
             return true;
+        }
+
+        public Task<SafeResult> EnableAsync(string capability)
+        {
+            return Task.Run(() => Enable(capability));
         }
 
         public virtual void ScheduleCommand(ImapCommand cmd)
@@ -344,67 +385,74 @@ namespace ImapX
             if (_state == ImapBaseState.CommandInProgress)
                 return -1;
 
-            _state = ImapBaseState.CommandInProgress;
-
-            var cmd = _commandQueue.FirstOrDefault();
-            cmd.State = CommandState.Active;
-
-            string commandPart;
-
-            try
+            lock (Lock)
             {
-                while ((commandPart = cmd.GetNextPart()) != null)
+
+                _state = ImapBaseState.CommandInProgress;
+
+                var cmd = _commandQueue.FirstOrDefault();
+                if (cmd == null)
+                    return -1;
+
+                cmd.State = CommandState.Active;
+
+                string commandPart;
+
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(commandPart))
-                        _io.Write(Encoding.UTF8.GetBytes(commandPart));
-
-                    while (true)
+                    while ((commandPart = cmd.GetNextPart()) != null)
                     {
-                        var token = _io.ReadToken();
+                        if (!string.IsNullOrWhiteSpace(commandPart))
+                            _io.Write(Encoding.UTF8.GetBytes(commandPart));
 
-                        if (token.Type == TokenType.Eos)
-                            break;
-                        else if (token.Type == TokenType.Atom)
+                        while (true)
                         {
-                            if (token.Value == "+")
-                            {
-                                cmd.Continue(_io.ReadLine());
-                                break;
-                            }
-                            else if (cmd.MatchesTag(token.Value))
-                            {
-                                cmd.HandleTaggedResponse(_io);
-                                break;
-                            }
-                        }
-                        else if (token.Type == TokenType.Asterisk)
-                        {
-                            cmd.HandleUntaggedResponse(_io);
-                            if (cmd.BreakAfterUntagged)
-                                break;
-                        }
+                            var token = _io.ReadToken();
 
+                            if (token.Type == TokenType.Eos)
+                                break;
+                            else if (token.Type == TokenType.Atom)
+                            {
+                                if (token.Value == "+")
+                                {
+                                    cmd.Continue(_io.ReadLine());
+                                    break;
+                                }
+                                else if (cmd.MatchesTag(token.Value))
+                                {
+                                    cmd.HandleTaggedResponse(_io);
+                                    break;
+                                }
+                            }
+                            else if (token.Type == TokenType.Asterisk)
+                            {
+                                cmd.HandleUntaggedResponse(_io);
+                                if (cmd.BreakAfterUntagged)
+                                    break;
+                            }
+
+                        }
                     }
                 }
-            }
-            catch (BadCommandException)
-            {
-                cmd.State = CommandState.Bad;
-            }
-            catch(Exception ex)
-            {
-                cmd.State = CommandState.CriticalFailure;
-                cmd.StateDetails = ex.ToString();
-            }
+                catch (BadCommandException)
+                {
+                    cmd.State = CommandState.Bad;
+                }
+                catch (Exception ex)
+                {
+                    cmd.State = CommandState.CriticalFailure;
+                    cmd.StateDetails = ex.ToString();
+                }
 
-            _state = ImapBaseState.Idle;
-            _commandQueue.RemoveAt(0);
+                _state = ImapBaseState.Idle;
+                _commandQueue.RemoveAt(0);
 
-            if (cmd.State == CommandState.Ok)
-                cmd.OnCommandComplete();
-            
-            return cmd.Id;
+                if (cmd.State == CommandState.Ok)
+                    cmd.OnCommandComplete();
 
+                return cmd.Id;
+
+            }
         }
 
         internal void HandleCapabilityResponse(ImapParser io)
@@ -442,7 +490,15 @@ namespace ImapX
             return cmd.Response;
         }
 
-        internal SafeResult SetLanguage(string language)
+        public Task<string[]> GetSupportedLanguagesAsync()
+        {
+            return Task.Run(() => {
+                _supportedLanguages = GetSupportedLanguages();
+                return _supportedLanguages;
+            });
+        }
+
+        public SafeResult SetLanguage(string language)
         {
             if (string.IsNullOrWhiteSpace(language))
                 return new SafeResult(exception: new ArgumentException("A valid language is required", nameof(language)));

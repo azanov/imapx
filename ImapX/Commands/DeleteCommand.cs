@@ -22,8 +22,8 @@ namespace ImapX.Commands
 
                 Folder.Selectable = false;
                 Folder.Flags.AddInternal(FolderFlags.NoSelect);
-
-                // TODO: clean messages
+                
+                Folder.Messages.ClearInternal();
             }
             else if (Folder.ParentFolder != null)
                 Folder.ParentFolder.SubFolders.RemoveInternal(Folder);

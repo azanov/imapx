@@ -245,6 +245,21 @@ namespace ImapX
             }
         }
 
+        /// <summary>
+        ///     Gets or sets whether the message should be deleted on next expunge call
+        /// </summary>
+        public bool Deleted
+        {
+            get { return Flags.Contains(MessageFlags.Deleted); }
+            set
+            {
+                if (value)
+                    Flags.Add(MessageFlags.Deleted);
+                else
+                    Flags.Remove(MessageFlags.Deleted);
+            }
+        }
+
         public Message()
         {
             Headers = new Dictionary<string, string>();
