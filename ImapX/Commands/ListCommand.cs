@@ -1,4 +1,5 @@
-﻿using ImapX.Enums;
+﻿using ImapX.Collections;
+using ImapX.Enums;
 using ImapX.Exceptions;
 using ImapX.Extensions;
 using ImapX.Flags;
@@ -14,7 +15,7 @@ namespace ImapX.Commands
 
         internal virtual string ResponseToken { get { return "LIST"; } }
 
-        public ListCommand (ImapClient client, long id, Folder parentFolder, FolderTreeBrowseMode mode = FolderTreeBrowseMode.Lazy, string command = "LIST") 
+        public ListCommand(ImapClient client, long id, Folder parentFolder, FolderTreeBrowseMode mode = FolderTreeBrowseMode.Lazy, string command = "LIST")
             : base(client, id, parentFolder, string.Empty)
         {
             _mode = mode;
@@ -33,16 +34,17 @@ namespace ImapX.Commands
                   );
 
         }
-        
+
         public override bool HandleSpecificUntaggedResponse(ImapParser io, ImapToken responseToken)
         {
             if (responseToken.Value != ResponseToken)
                 return base.HandleSpecificUntaggedResponse(io, responseToken);
-            
+
             ImapToken token;
             io.ConsumeToken(TokenType.OpeningParenthesis);
 
-            var folder = new Folder(Client) {
+            var folder = new Folder(Client)
+            {
                 ParentFolder = Folder,
             };
 
@@ -115,14 +117,19 @@ namespace ImapX.Commands
                 folder.Type = SpecialFolderType.Inbox;
             else if (folder.Type == SpecialFolderType.Inbox)
                 folder.Path = "INBOX";
-
-            // TODO: Build tree structure if the mode == *
             
-            Response.Add(folder);
-            Folder = folder;
-
-            if (Client.Behavior.ExamineFolders && folder.Selectable)
-                folder.ScheduleExamine();
+            if (Folder != null && _mode == FolderTreeBrowseMode.Full && folder.IsSubFolderOf(Folder))
+            {
+                if (!Folder.SubFoldersLoaded)
+                    Folder.SubFolders = new FolderCollection(Client, Folder, new Folder[0]);
+                Folder.SubFolders.AddInternal(folder);
+            }
+            else
+            {
+                Response.Add(folder);
+                Folder = folder;
+            }
+            
 
             return true;
         }

@@ -140,6 +140,12 @@ namespace ImapX
         /// </summary>
         public bool Marked { get; internal set; }
 
+        internal bool IsSubFolderOf(Folder folder)
+        {
+            var i = Path.IndexOf(folder.Path);
+            return i == 0 && Path.Substring(folder.Path.Length).StartsWith(Client.Behavior.FolderDelimeter);
+        }
+
         /// <summary>
         /// Highest mod-sequence value of all messages in the folder
         /// </summary>
@@ -155,13 +161,27 @@ namespace ImapX
         {
             get
             {
-                return _subFolders ??
-                       (_subFolders = new FolderCollection(Client, this,
+                if (_subFolders == null)
+                {
+                    _subFolders = new FolderCollection(Client, this,
                            HasChildren
                                ? Client.GetFolders(this)
-                               : new Folder[0]));
+                               : new Folder[0]);
+
+                    Client.Folders.BindRangeInternal(_subFolders);
+                }
+                return _subFolders;
+                       
             }
             internal set { _subFolders = value; }
+        }
+
+        public bool SubFoldersLoaded
+        {
+            get
+            {
+                return CanHaveChildren && HasChildren && _subFolders != null;
+            }
         }
 
         /// <summary>

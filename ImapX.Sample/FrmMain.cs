@@ -28,22 +28,30 @@ namespace ImapX.Sample
             {
                 if (frmConnect.ShowDialog() == DialogResult.OK)
                 {
-                    Show(); 
+                    Show();
                 }
                 else
                     Close();
             }
         }
 
-        private async void Init()
+        private TreeNode FolderToNode(Folder folder)
         {
-            if (_initialized) return;
-            _initialized = true;
+            var n = new TreeNode();
+            n.Text = folder.Name;
+            n.Tag = folder;
+            if (folder.HasChildren)
+            {
+                if (folder.SubFoldersLoaded)
+                    n.Nodes.AddRange(folder.SubFolders.Select(FolderToNode).ToArray());
+                else
+                    n.Nodes.Add("...");
+            }
+            return n;
+        }
 
-            Program.Client.Behavior.FolderTreeBrowseMode = FolderTreeBrowseMode.Full;
-
-            var folders = await Task.Run(() => Program.Client.Folders);
-
+        private void BindSpecialFolders()
+        {
             lnkArchive.Folder = Program.Client.Folders.Archive;
             lnkAllMails.Folder = Program.Client.Folders.All;
             lnkTrash.Folder = Program.Client.Folders.Trash;
@@ -53,6 +61,21 @@ namespace ImapX.Sample
             lnkDrafts.Folder = Program.Client.Folders.Drafts;
             lnkSent.Folder = Program.Client.Folders.Sent;
             lnkInbox.Folder = Program.Client.Folders.Inbox;
+        }
+
+        private async void Init()
+        {
+            if (_initialized) return;
+            _initialized = true;
+
+            Program.Client.Behavior.FolderTreeBrowseMode = FolderTreeBrowseMode.Lazy;
+            Program.Client.Behavior.ExamineFolders = true;
+
+            var folders = await Task.Run(() => Program.Client.Folders);
+
+            BindSpecialFolders();
+
+            trwFolders.Nodes.AddRange(folders.Select(FolderToNode).ToArray());
 
         }
 
@@ -65,12 +88,25 @@ namespace ImapX.Sample
         {
             var lnk = (FolderLinkLabel)sender;
             var folder = lnk.Folder;
-            
+
             await folder.SelectAsync();
 
             for (var i = 0; i < panel1.Controls.Count; i++)
                 (panel1.Controls[i] as FolderLinkLabel)?.Refresh();
 
+        }
+
+        private async void trwFolders_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        {
+            var folder = e.Node.Tag as Folder;
+            if (folder != null && e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Tag == null)
+            {
+                e.Node.Nodes.Clear();
+                var subFolders = await Task.Run(() => folder.SubFolders);
+                e.Node.Nodes.AddRange(subFolders.Select(FolderToNode).ToArray());
+                e.Node.Expand();
+                BindSpecialFolders();
+            }
         }
     }
 }

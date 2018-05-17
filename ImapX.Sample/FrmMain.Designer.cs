@@ -31,6 +31,7 @@ namespace ImapX.Sample
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.trwFolders = new System.Windows.Forms.TreeView();
             this.panel1 = new System.Windows.Forms.Panel();
             this.lnkArchive = new ImapX.Sample.Controls.FolderLinkLabel();
             this.lnkAllMails = new ImapX.Sample.Controls.FolderLinkLabel();
@@ -56,10 +57,24 @@ namespace ImapX.Sample
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.BackgroundImage = global::ImapX.Sample.Properties.Resources.pattern8;
+            this.splitContainer1.Panel1.Controls.Add(this.trwFolders);
             this.splitContainer1.Panel1.Controls.Add(this.panel1);
             this.splitContainer1.Size = new System.Drawing.Size(829, 552);
             this.splitContainer1.SplitterDistance = 200;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // trwFolders
+            // 
+            this.trwFolders.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(44)))), ((int)(((byte)(48)))));
+            this.trwFolders.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.trwFolders.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trwFolders.ForeColor = System.Drawing.Color.White;
+            this.trwFolders.LineColor = System.Drawing.Color.LightGray;
+            this.trwFolders.Location = new System.Drawing.Point(0, 275);
+            this.trwFolders.Name = "trwFolders";
+            this.trwFolders.Size = new System.Drawing.Size(200, 277);
+            this.trwFolders.TabIndex = 1;
+            this.trwFolders.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.trwFolders_BeforeExpand);
             // 
             // panel1
             // 
@@ -297,6 +312,7 @@ namespace ImapX.Sample
         private FolderLinkLabel lnkInbox;
         private FolderLinkLabel lnkArchive;
         private FolderLinkLabel lnkAllMails;
+        private System.Windows.Forms.TreeView trwFolders;
     }
 }
 

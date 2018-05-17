@@ -33,6 +33,9 @@ namespace ImapX.Collections
 
         internal void BindInternal(Folder item)
         {
+            if (item.HasChildren && item.SubFoldersLoaded)
+                BindRangeInternal(item.SubFolders);
+
             switch (item.Type)
             {
                 case SpecialFolderType.All:
